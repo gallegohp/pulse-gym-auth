@@ -34,6 +34,6 @@ management:
 
 security:
   jwt:
-    secret: oMYOYPCjKGRjXEHQqcG0F/KwhgMZ7yej4cBdqeMVZsk=
-    expiration: 3600000
+    secret-key: oMYOYPCjKGRjXEHQqcG0F/KwhgMZ7yej4cBdqeMVZsk=
+    token-expiration: 3600000
 
