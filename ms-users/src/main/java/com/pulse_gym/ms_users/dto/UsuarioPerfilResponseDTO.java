@@ -13,25 +13,103 @@ import lombok.Data;
 @Data
 public class UsuarioPerfilResponseDTO {
 
+    /**
+     * Identificador único del usuario asignado por el sistema
+     */
     private Long idUsuario;
+
+    /**
+     * Rol asignado al usuario dentro del sistema de Pulse Gym
+     */
     private Rol rol;
+
+    /**
+     * Nombres completos del usuario
+     */
     private String nombre;
+
+    /**
+     * Apellidos completos del usuario
+     */
     private String apellido;
+
+    /**
+     * Número de teléfono de contacto del usuario
+     */
     private String telefono;
+
+    /**
+     * Número de documento de identidad único del usuario
+     */
     private String documentoIdentidad;
+
+    /**
+     * URL de la imagen o foto de perfil del usuario
+     */
     private String fotoUrl;
+
+    /**
+     * Fecha de contratación o vinculación del usuario
+     */
     private LocalDate fechaContratacion;
-    private String specialty;
+
+    /**
+     * Especialidad técnica o enfoque profesional del usuario
+     */
     private String especialidad;
+
+    /**
+     * Años de experiencia laboral acumulados por el usuario
+     */
     private Short anosExperiencia;
+
+    /**
+     * Horarios de disponibilidad o franjas horarias registradas
+     */
     private String horarioDisponibilidad;
+
+    /**
+     * Tarifa o costo monetario asignado por cada hora de servicio
+     */
     private BigDecimal tarifaHora;
+
+    /**
+     * Turno de trabajo o asistencia asignado en el sistema
+     */
     private Turno turno;
+
+    /**
+     * Fecha de nacimiento del usuario
+     */
     private LocalDate fechaNacimiento;
+
+    /**
+     * Nombre de la persona registrada para contacto en caso de emergencia
+     */
     private String contactoEmergenciaNombre;
+
+    /**
+     * Teléfono de la persona registrada para contacto en caso de emergencia
+     */
     private String contactoEmergenciaTelefono;
+
+    /**
+     * Objetivo o meta principal que el usuario busca alcanzar en el gimnasio
+     */
     private String objetivoPrincipal;
+
+    /**
+     * Nivel de experiencia física o deportiva actual del usuario
+     */
     private NivelExperiencia nivelExperiencia;
+
+    /**
+     * Fecha y hora exacta en la que el usuario fue registrado en la plataforma
+     */
     private LocalDateTime fechaRegistro;
+
+    /**
+     * Identificador de la sede física a la cual se encuentra vinculado el usuario
+     */
     private Integer idSede;
 }

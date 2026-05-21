@@ -1,5 +1,20 @@
 package com.pulse_gym.ms_users.enums;
 
 public enum NivelExperiencia {
-        novato, intermedio, avanzado   
+        /**
+         * Usuario que está iniciando en el gimnasio o lleva muy poco tiempo entrenando
+         */
+        novato,
+
+        /**
+         * Usuario con constancia previa que ya domina la técnica básica de los
+         * ejercicios
+         */
+        intermedio,
+
+        /**
+         * Usuario con excelente condición física y amplio historial de entrenamiento de
+         * alta intensidad
+         */
+        avanzado
 }
