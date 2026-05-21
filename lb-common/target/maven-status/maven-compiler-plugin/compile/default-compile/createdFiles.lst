@@ -1,0 +1,5 @@
+com\pulse_gym\lb_common\dto\MessegeGlobalDTO.class
+com\pulse_gym\lb_common\dto\JwtDTO.class
+com\pulse_gym\lb_common\services\JwtService.class
+com\pulse_gym\lb_common\enums\EnumRol.class
+com\pulse_gym\lb_common\LbCommonApplication.class
