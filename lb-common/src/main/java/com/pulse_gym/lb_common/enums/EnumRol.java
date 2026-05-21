@@ -1,9 +1,11 @@
-package com.pulse_gym.ms_auth.enums;
+package com.pulse_gym.lb_common.enums;
 
 public enum EnumRol {
 
-    ADMIN(1L),
-    CLIENTE(2L);
+    administrador(1L),
+    entrenador(2L),
+    recepcionista(3L),
+    socio(4L);
 
     private final Long id;
 

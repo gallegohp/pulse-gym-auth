@@ -3,23 +3,19 @@ package com.pulse_gym.ms_auth.services;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.GetMapping;
 
 import com.pulse_gym.lb_common.dto.JwtDTO;
 import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
 import com.pulse_gym.lb_common.services.JwtService;
+import com.pulse_gym.lb_common.enums.EnumRol;
 import com.pulse_gym.ms_auth.dto.HttpGlobalResponse;
 import com.pulse_gym.ms_auth.dto.LoginRequestDTO;
 import com.pulse_gym.ms_auth.dto.RegisterRequestDTO;
 import com.pulse_gym.ms_auth.entity.User;
-import com.pulse_gym.ms_auth.enums.EnumRol;
 import com.pulse_gym.ms_auth.repository.UserAuthRepository;
 
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -35,6 +31,7 @@ public class AuthService {
     private final MessegeGlobalDTO messegeGlobalDTO;
 
     private final JwtService jwtService;
+
 
 
 

@@ -2,7 +2,7 @@ package com.pulse_gym.ms_auth.entity;
 
 import java.time.LocalDateTime;
 
-import com.pulse_gym.ms_auth.enums.EnumRol;
+import com.pulse_gym.lb_common.enums.EnumRol;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -18,6 +18,7 @@ import lombok.Data;
 @Data
 @Table(name = "usuarios_auth")
 public class User {
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)

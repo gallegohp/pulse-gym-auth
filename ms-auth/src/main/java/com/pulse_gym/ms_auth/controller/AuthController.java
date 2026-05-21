@@ -26,7 +26,6 @@ public class AuthController {
 
     private final AuthService authService;
 
-    private final MessegeGlobalDTO messegeGlobalDTO;
 
     /**
      * Registro de usuario
