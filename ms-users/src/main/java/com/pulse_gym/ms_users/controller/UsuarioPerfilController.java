@@ -23,8 +23,21 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class UsuarioPerfilController {
 
+    /** Servicio del perfil de ususario */
     private final UsuarioPerfilService usuarioService;
 
+    /**
+     * Endpoint encargado de crear un nuevo perfil de usuario.
+     * Recibe la información del cuerpo de la petición, la valida y delega el
+     * proceso al servicio de negocio.
+     *
+     * @param requestDTO Objeto con la información de registro del usuario
+     *                   debidamente validada.
+     * @return {@link ResponseEntity} que contiene un {@link MessageResponseDTO} con
+     *         el resultado del proceso
+     *         y el código de estado HTTP correspondiente (201 Created, 400 Bad
+     *         Request o 500 Internal Server Error).
+     */
     @PostMapping
     public ResponseEntity<MessageResponseDTO> crearUsuario(@Valid @RequestBody UsuarioPerfilRequestDTO requestDTO) {
         try {
@@ -39,6 +52,16 @@ public class UsuarioPerfilController {
         }
     }
 
+    /**
+     * Endpoint encargado de recuperar el listado completo de los perfiles de
+     * usuario en la plataforma.
+     *
+     * @return {@link ResponseEntity} con la lista de
+     *         {@link UsuarioPerfilResponseDTO} si existen registros (200 OK),
+     *         una respuesta vacía si no se encuentra ningún usuario (204 No
+     *         Content), o un mensaje de error
+     *         en caso de una falla en el servidor (500 Internal Server Error).
+     */
     @GetMapping
     public ResponseEntity<?> obtenerTodosLosUsuarios() {
         try {
