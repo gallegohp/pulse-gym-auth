@@ -1,5 +1,7 @@
 package com.pulse_gym.ms_auth.entity;
 
+import java.time.LocalDateTime;
+
 import com.pulse_gym.ms_auth.enums.EnumRol;
 
 import jakarta.persistence.Column;
@@ -30,9 +32,6 @@ public class User {
     @Column(name = "username", nullable = false, length = 50)
     private String username;
 
-    @Column(name = "hash_huella", nullable = true, length = 255)
-    private String hashHuella;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "rol", nullable = false, length = 20)
     private EnumRol rol;
@@ -41,6 +40,6 @@ public class User {
     private Boolean estado;
 
     @Column(name = "fecha_registro", nullable = false)
-    private String fechaRegistro;
+    private LocalDateTime fechaRegistro;
 
 }
