@@ -5,10 +5,11 @@ spring:
   application:
     name: ms-auth
   datasource:
-    url: jdbc:mysql://db-auth:3306/auth_db?allowPublicKeyRetrieval=true&useSSL=false
+    url: jdbc:mysql://db-auth:3306/auth_db?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false
     username: pulsegym
     password: 123
   jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect
     hibernate:
       ddl-auto: update
     show-sql: true
