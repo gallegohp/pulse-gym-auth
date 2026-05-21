@@ -1,5 +1,3 @@
-version: '3.9'
-
 services:
 
   consul:
@@ -44,7 +42,18 @@ services:
     networks:
       - pulsegym
 
+  ms-gateway:
+    build: ./ms-gateway
+    container_name: ms-gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - consul
+    networks:
+      - pulsegym
+
+
 networks:
-  puslegym:
+  pulsegym:
     driver: bridge
 
