@@ -28,21 +28,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: 123
     networks:
       - pulsegym
-  ms-auth:
-    build: ./ms-auth
-    container_name: ms-auth
-    ports:
-      - "8090:8090"
-    depends_on:
-      - consul
-      - db-users
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://db-users:3306/users_db?allowPublicKeyRetrieval=true&useSSL=false
-      SPRING_DATASOURCE_USERNAME: pulsegym
-      SPRING_DATASOURCE_PASSWORD: 123
-    networks:
-      - pulsegym
-
+      
   db-users:
     image: mysql:8.0
     container_name: db-users
@@ -56,6 +42,36 @@ services:
       - "3310:3306"
     networks:
       - pulsegym
+
+  ms-auth:
+    build: ./ms-auth
+    container_name: ms-auth
+    ports:
+      - "8090:8090"
+    depends_on:
+      - consul
+      - db-auth
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db-auth:3306/auth_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: pulsegym
+      SPRING_DATASOURCE_PASSWORD: 123
+    networks:
+      - pulsegym
+
+  db-auth:
+    image: mysql:8.0
+    container_name: db-auth
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: auth_db
+      MYSQL_USER: pulsegym
+      MYSQL_PASSWORD: 123
+    ports:
+      - "3314:3306"
+    networks:
+      - pulsegym
+  
   ms-operations:
     build: ./ms-operation
     container_name: ms-operation
@@ -149,7 +165,7 @@ services:
     build: ./ms-gateway
     container_name: ms-gateway
     ports:
-      - "8080:8080"
+      - "9090:9090"
     depends_on:
       - consul
     networks:
