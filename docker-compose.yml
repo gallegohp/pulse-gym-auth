@@ -85,6 +85,65 @@ services:
     networks:
       - pulsegym
 
+  ms-notifications:
+    build: ./ms-notifications
+    container_name: ms-notifications
+    ports:
+      - "8083:8083"
+    depends_on:
+      - consul
+      - db-notifications
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db-notifications:3306/notifications_db?allowPublicKeyRetrieval=true&useSSL=false
+      SPRING_DATASOURCE_USERNAME: pulsegym
+      SPRING_DATASOURCE_PASSWORD: 123
+    networks:
+      - pulsegym
+
+  db-notifications:
+    image: mysql:8.0 
+    container_name: db-notifications
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: notifications_db
+      MYSQL_USER: pulsegym
+      MYSQL_PASSWORD: 123
+    ports:
+      - "3312:3306"
+    networks:
+      - pulsegym
+
+  ms-reports:
+    build: ./ms-reports
+    container_name: ms-reports
+    ports:
+      - "8084:8084"
+    depends_on:
+      - consul
+      - db-reports
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db-reports:3306/reports_db?allowPublicKeyRetrieval=true&useSSL=false
+      SPRING_DATASOURCE_USERNAME: pulsegym
+      SPRING_DATASOURCE_PASSWORD: 123
+    networks:
+      - pulsegym
+
+  db-reports:
+    image: mysql:8.0
+    container_name: db-reports
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: reports_db
+      MYSQL_USER: pulsegym
+      MYSQL_PASSWORD: 123
+    ports:
+      - "3313:3306"
+    networks:
+      - pulsegym
+
+
 
   ms-gateway:
     build: ./ms-gateway
