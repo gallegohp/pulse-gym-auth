@@ -11,6 +11,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -23,21 +24,8 @@ import reactor.core.publisher.Mono;
 @Component
 public class JwtValidationFilter implements GlobalFilter, Ordered{
     
-    /**
-     * Servicio de jwt
-     */
     private final JwtService jwtService;
 
-    /**
-     * Filtro global para validar el jwt en cada peticion
-     * Funciona de la forma que si la ruta es publica o es una peticion OPTIONS, 
-     * se permite el acceso sin validar el token.
-     * Si la ruta no es publica, se valida el token y si es valido se extraen los datos del usuario 
-     * y se agregan a los headers de la peticion para que los microservicios puedan acceder a ellos.
-     * @param exchange
-     * @param chain
-     * @return Mono<Void>
-     */
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         String path = exchange.getRequest().getURI().getPath();
@@ -57,49 +45,42 @@ public class JwtValidationFilter implements GlobalFilter, Ordered{
         }
 
         Long userId = jwtService.extractUserId(token);
-        Long rolId = jwtService.extractRolId(token);
+        String rol = jwtService.extractRol(token);  
         String username = jwtService.extractUsername(token);
+        
+        System.out.println("userId: " + userId);
+        System.out.println("rol: " + rol);
+        System.out.println("username: " + username);
 
-        ServerWebExchange modifiedExchange = exchange.mutate()
-            .request(r -> r.header("X-User-Id", userId != null ? userId.toString() : ""))
-            .request(r -> r.header("X-User-Rol", rolId != null ? rolId.toString() : ""))
-            .request(r -> r.header("X-User-Name", username != null ? username : ""))
-            .build();
+        ServerHttpRequest mutatedRequest = exchange.getRequest().mutate()
+                .header("X-User-Id", userId != null ? userId.toString() : "")
+                .header("X-User-Name", username != null ? username : "") 
+                .header("X-User-Rol", rol != null ? rol : "") 
+                .build();
 
-        return chain.filter(modifiedExchange);
+        ServerWebExchange mutatedExchange = exchange.mutate()
+                .request(mutatedRequest)
+                .build();
+
+        return chain.filter(mutatedExchange);
     }
 
-    /**
-     * Metodo para validar las rutas publicas
-     */
     private boolean isPublicPath(String path) {
         return path.startsWith("/ms-auth/auth/login") 
                 || path.startsWith("/ms-auth/auth/register")
                 || path.startsWith("/ms-auth/auth/refresh");
     }
 
-    /**
-     * Metodo para responder con un error 401 no autorizado
-     * @param exchange
-     * @param message
-     * @return Mono<Void>
-     */
-    private Mono<Void> unauthorized (ServerWebExchange exchange, String message) {
+    private Mono<Void> unauthorized(ServerWebExchange exchange, String message) {
         exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
         exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
         DataBuffer buffer = exchange.getResponse().bufferFactory()
                 .wrap(("{\"error\": \"" + message + "\"}").getBytes(StandardCharsets.UTF_8));
         return exchange.getResponse().writeWith(Mono.just(buffer));
-
     }
     
-    /**
-     * Metodo para establecer el orden del filtro, se establece como el filtro de mayor 
-     * prioridad para que se ejecute antes que cualquier otro filtro
-     */
     @Override
     public int getOrder() {
         return Ordered.HIGHEST_PRECEDENCE;
     }
-
 }

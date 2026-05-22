@@ -3,6 +3,10 @@
 # Compiled files
 *.class
 
+target/
+*.class
+*.jar
+
 # Logs
 *.log
 
