@@ -3,8 +3,8 @@ package com.pulse_gym.ms_users.dto;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+import com.pulse_gym.lb_common.enums.EnumRol;
 import com.pulse_gym.ms_users.enums.NivelExperiencia;
-import com.pulse_gym.ms_users.enums.Rol;
 import com.pulse_gym.ms_users.enums.Turno;
 
 import jakarta.validation.constraints.DecimalMin;
@@ -23,7 +23,7 @@ public class UsuarioPerfilRequestDTO {
      * Rol asignado al usuario. Es obligatorio.
      */
     @NotNull(message = "El rol es obligatorio.")
-    private Rol rol;
+    private EnumRol rol;
 
     /**
      * Nombre(s) del usuario. No puede estar vacío ni superar los 100 caracteres.
