@@ -6,13 +6,14 @@ import java.util.Optional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.pulse_gym.lb_common.dto.HttpGlobalResponse;
 import com.pulse_gym.lb_common.dto.JwtDTO;
 import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
+import com.pulse_gym.lb_common.entity.User;
+import com.pulse_gym.lb_common.enums.EnumRol;
 import com.pulse_gym.lb_common.services.JwtService;
-import com.pulse_gym.ms_auth.dto.HttpGlobalResponse;
 import com.pulse_gym.ms_auth.dto.LoginRequestDTO;
 import com.pulse_gym.ms_auth.dto.RegisterRequestDTO;
-import com.pulse_gym.ms_auth.entity.User;
 import com.pulse_gym.ms_auth.repository.UserAuthRepository;
 
 import lombok.RequiredArgsConstructor;
