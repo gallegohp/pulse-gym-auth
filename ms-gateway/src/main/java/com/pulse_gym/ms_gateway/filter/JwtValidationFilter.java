@@ -53,13 +53,13 @@ public class JwtValidationFilter implements GlobalFilter, Ordered{
             .request(r -> r.header("X-User-Name", username != null ? username : ""))
             .build();
 
-        return chain.filter(exchange);
+        return chain.filter(modifiedExchange);
     }
 
     private boolean isPublicPath(String path) {
-        return path.startsWith("/auth/login") 
-                || path.startsWith("/auth/register")
-                || path.startsWith("/auth/refresh");
+        return path.startsWith("/ms-auth/auth/login") 
+                || path.startsWith("/ms-auth/auth/register")
+                || path.startsWith("/ms-auth/auth/refresh");
     }
 
     private Mono<Void> unauthorized (ServerWebExchange exchange, String message) {
