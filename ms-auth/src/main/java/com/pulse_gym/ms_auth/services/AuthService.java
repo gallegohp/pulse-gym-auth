@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import com.pulse_gym.lb_common.dto.JwtDTO;
 import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
 import com.pulse_gym.lb_common.services.JwtService;
-import com.pulse_gym.lb_common.enums.EnumRol;
 import com.pulse_gym.ms_auth.dto.HttpGlobalResponse;
 import com.pulse_gym.ms_auth.dto.LoginRequestDTO;
 import com.pulse_gym.ms_auth.dto.RegisterRequestDTO;
@@ -22,7 +21,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 
 public class AuthService {
-    
+
     /**
      * Repositorio de usuarios
      */
@@ -45,6 +44,7 @@ public class AuthService {
 
     /**
      * Registro de usuario
+     * 
      * @param requestDTO
      * @return MessegeGlobalDTO
      */
@@ -59,7 +59,7 @@ public class AuthService {
         user.setEmail(requestDTO.getEmail());
         user.setPassword(passwordEncoder.encode(requestDTO.getPassword()));
         user.setUsername(requestDTO.getUsername());
-        user.setRol(EnumRol.fromId(requestDTO.getRol()));
+        user.setRol(requestDTO.getRol());
         user.setEstado(requestDTO.getEstado());
         user.setFechaRegistro(LocalDateTime.now());
         userAuthRepository.save(user);
@@ -71,6 +71,7 @@ public class AuthService {
 
     /**
      * Inicio de sesion
+     * 
      * @param requestDTO
      * @return HttpGlobalResponse<JwtDTO>
      */
@@ -91,7 +92,8 @@ public class AuthService {
         }
 
         JwtDTO jwtDTO = new JwtDTO();
-        String jwt = jwtService.generateToken(user.getId(),user.getRol().getId(), user.getEmail());
+        // Pasar el nombre del rol como String, NO user.getRol().name()
+        String jwt = jwtService.generateToken(user.getId(), user.getRol().name(), user.getEmail());
         jwtDTO.setJwt(jwt);
         response.setMessege("Inicio de sesion exitoso");
         response.setData(jwtDTO);
@@ -100,6 +102,7 @@ public class AuthService {
 
     /**
      * Refresco del jwt
+     * 
      * @param token
      * @return JwtDTO
      * @throws Exception

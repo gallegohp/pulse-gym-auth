@@ -67,17 +67,16 @@ public class GlobalExceptionHandler {
     // return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
     // }
 
-    // /**
-    // * Maneja errores de autorización (Roles no permitidos)
-    // *
-    // * @param ex
-    // * @return un estado 403 FORBIDDEN
-    // */
-    // @ExceptionHandler(SecurityAuthorizationException.class)
-    // public ResponseEntity<MessageResponseDTO>
-    // handleSecurityException(SecurityAuthorizationException ex) {
-    // MessageResponseDTO response = new MessageResponseDTO(ex.getMessage());
-    // return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
-    // }
+    /**
+     * Maneja errores de autorización (Roles no permitidos)
+     *
+     * @param ex
+     * @return un estado 403 FORBIDDEN
+     */
+    @ExceptionHandler(SecurityAuthorizationException.class)
+    public ResponseEntity<MessageResponseDTO> handleSecurityException(SecurityAuthorizationException ex) {
+        MessageResponseDTO response = new MessageResponseDTO(ex.getMessage());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+    }
 
 }
