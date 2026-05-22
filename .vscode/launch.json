@@ -2,11 +2,11 @@
     "configurations": [
         {
             "type": "java",
-            "name": "Spring Boot-MsUsersApplication<ms-users>",
+            "name": "Spring Boot-MsUsersApplication<pg-ms-users>",
             "request": "launch",
             "cwd": "${workspaceFolder}",
             "mainClass": "com.pulse_gym.ms_users.MsUsersApplication",
-            "projectName": "ms-users",
+            "projectName": "pg-ms-users",
             "args": "",
             "envFile": "${workspaceFolder}/.env"
         }
