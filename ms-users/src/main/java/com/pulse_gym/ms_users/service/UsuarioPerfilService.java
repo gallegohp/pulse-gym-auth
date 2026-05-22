@@ -6,12 +6,12 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.pulse_gym.lb_common.dto.UsuarioPerfilRequestDTO;
+import com.pulse_gym.lb_common.dto.UsuarioPerfilResponseDTO;
+import com.pulse_gym.lb_common.entity.UsuarioPerfil;
+import com.pulse_gym.lb_common.exception.SecurityAuthorizationException;
+import com.pulse_gym.lb_common.repository.UsuarioPerfilRepository;
 import com.pulse_gym.ms_users.dto.MessageResponseDTO;
-import com.pulse_gym.ms_users.dto.UsuarioPerfilRequestDTO;
-import com.pulse_gym.ms_users.dto.UsuarioPerfilResponseDTO;
-import com.pulse_gym.ms_users.entity.UsuarioPerfil;
-import com.pulse_gym.ms_users.exception.SecurityAuthorizationException;
-import com.pulse_gym.ms_users.repository.UsuarioPerfilRepository;
 
 import lombok.RequiredArgsConstructor;
 

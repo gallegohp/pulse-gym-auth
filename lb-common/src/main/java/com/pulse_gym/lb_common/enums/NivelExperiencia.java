@@ -1,4 +1,4 @@
-package com.pulse_gym.ms_users.enums;
+package com.pulse_gym.lb_common.enums;
 
 public enum NivelExperiencia {
         /**

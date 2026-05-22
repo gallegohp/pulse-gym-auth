@@ -1,4 +1,4 @@
-package com.pulse_gym.ms_users.dto;
+package com.pulse_gym.lb_common.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

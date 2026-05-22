@@ -1,4 +1,4 @@
-package com.pulse_gym.ms_users.exception;
+package com.pulse_gym.lb_common.exception;
 
 public class SecurityAuthorizationException extends RuntimeException {
 
