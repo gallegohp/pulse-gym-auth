@@ -23,18 +23,31 @@ import lombok.RequiredArgsConstructor;
 
 public class AuthService {
     
-
+    /**
+     * Repositorio de usuarios
+     */
     private final UserAuthRepository userAuthRepository;
 
+    /**
+     * Codificador de contraseñas
+     */
     private final PasswordEncoder passwordEncoder;
 
+    /**
+     * DTO para mensajes globales
+     */
     private final MessegeGlobalDTO messegeGlobalDTO;
 
+    /**
+     * Servicio para manejo de JWT
+     */
     private final JwtService jwtService;
 
-
-
-
+    /**
+     * Registro de usuario
+     * @param requestDTO
+     * @return MessegeGlobalDTO
+     */
     public MessegeGlobalDTO register(RegisterRequestDTO requestDTO) {
 
         if (userAuthRepository.findByEmail(requestDTO.getEmail()).isPresent()) {

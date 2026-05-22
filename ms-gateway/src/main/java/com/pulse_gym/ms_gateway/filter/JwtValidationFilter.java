@@ -23,8 +23,21 @@ import reactor.core.publisher.Mono;
 @Component
 public class JwtValidationFilter implements GlobalFilter, Ordered{
     
+    /**
+     * Servicio de jwt
+     */
     private final JwtService jwtService;
 
+    /**
+     * Filtro global para validar el jwt en cada peticion
+     * Funciona de la forma que si la ruta es publica o es una peticion OPTIONS, 
+     * se permite el acceso sin validar el token.
+     * Si la ruta no es publica, se valida el token y si es valido se extraen los datos del usuario 
+     * y se agregan a los headers de la peticion para que los microservicios puedan acceder a ellos.
+     * @param exchange
+     * @param chain
+     * @return Mono<Void>
+     */
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         String path = exchange.getRequest().getURI().getPath();
@@ -56,12 +69,21 @@ public class JwtValidationFilter implements GlobalFilter, Ordered{
         return chain.filter(modifiedExchange);
     }
 
+    /**
+     * Metodo para validar las rutas publicas
+     */
     private boolean isPublicPath(String path) {
         return path.startsWith("/ms-auth/auth/login") 
                 || path.startsWith("/ms-auth/auth/register")
                 || path.startsWith("/ms-auth/auth/refresh");
     }
 
+    /**
+     * Metodo para responder con un error 401 no autorizado
+     * @param exchange
+     * @param message
+     * @return Mono<Void>
+     */
     private Mono<Void> unauthorized (ServerWebExchange exchange, String message) {
         exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
         exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
@@ -70,7 +92,11 @@ public class JwtValidationFilter implements GlobalFilter, Ordered{
         return exchange.getResponse().writeWith(Mono.just(buffer));
 
     }
-
+    
+    /**
+     * Metodo para establecer el orden del filtro, se establece como el filtro de mayor 
+     * prioridad para que se ejecute antes que cualquier otro filtro
+     */
     @Override
     public int getOrder() {
         return Ordered.HIGHEST_PRECEDENCE;
