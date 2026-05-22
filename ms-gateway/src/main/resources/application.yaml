@@ -28,7 +28,7 @@ management:
     health:
       show-details: always
     
-security: 
+security:
   jwt:
-    secret: mysecretkey
-    expiration: 3600000
+    secret-key: oMYOYPCjKGRjXEHQqcG0F/KwhgMZ7yej4cBdqeMVZsk=
+    token-expiration: 3600000
