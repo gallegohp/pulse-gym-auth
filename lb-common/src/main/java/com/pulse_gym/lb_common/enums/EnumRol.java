@@ -24,6 +24,11 @@ public enum EnumRol {
         return id;
     }
 
+    /**
+    * Método para obtener el rol a partir de su id
+    * @param id
+    * @return EnumRol
+    */
     public static EnumRol fromId(Long id) {
         for (EnumRol rol : values()) {
             if (rol.getId().equals(id)) {

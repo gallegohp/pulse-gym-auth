@@ -159,6 +159,12 @@ public class JwtService {
         return generateToken(claims.get("userId", Long.class), claims.get("rolId", Long.class), claims.getSubject());
     }
 
+    /**
+     * Comprueba si el token pertenece a un usuario con el rol requerido
+     * @param token
+     * @param requiredRolId
+     * @return
+     */
     public boolean hasRequiredRole(String token, Long requiredRolId) {
         try {
             Claims claims = Jwts.parser()
