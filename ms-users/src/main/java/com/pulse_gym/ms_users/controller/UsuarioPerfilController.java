@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.pulse_gym.ms_users.dto.MessageResponseDTO;
 import com.pulse_gym.ms_users.dto.UsuarioPerfilRequestDTO;
@@ -31,13 +32,10 @@ public class UsuarioPerfilController {
      * Recibe la información del cuerpo de la petición, la valida y delega el
      * proceso al servicio de negocio.
      *
-     * @param requestDTO Objeto con la información de registro del usuario
-     *                   debidamente validada.
-     * @return {@link ResponseEntity} que contiene un {@link MessageResponseDTO} con
-     *         el resultado del proceso
-     *         y el código de estado HTTP correspondiente (201 Created, 400 Bad
-     *         Request o 500 Internal Server Error).
+     * @param requestDTO Objeto con la información de registro del usuario debidamente validada.
+     * @return el resultado del proceso y el código de estado HTTP correspondiente (201 Created, 400 Bad Request o 500 Internal Server Error).
      */
+    
     @PostMapping
     public ResponseEntity<MessageResponseDTO> crearUsuario(@Valid @RequestBody UsuarioPerfilRequestDTO requestDTO) {
         try {
@@ -56,26 +54,16 @@ public class UsuarioPerfilController {
      * Endpoint encargado de recuperar el listado completo de los perfiles de
      * usuario en la plataforma.
      *
-     * @return {@link ResponseEntity} con la lista de
-     *         {@link UsuarioPerfilResponseDTO} si existen registros (200 OK),
-     *         una respuesta vacía si no se encuentra ningún usuario (204 No
-     *         Content), o un mensaje de error
-     *         en caso de una falla en el servidor (500 Internal Server Error).
+     * @return con la lista de usuario perfiles si existen registros (200 OK), una respuesta vacía si no se encuentra ningún usuario (204 No Content), o un mensaje de error en caso de una falla en el servidor (500 Internal Server Error).
      */
-    @GetMapping
-    public ResponseEntity<?> obtenerTodosLosUsuarios() {
+@GetMapping
+    public ResponseEntity<List<UsuarioPerfilResponseDTO>> obtenerTodosLosUsuarios() {
         try {
             List<UsuarioPerfilResponseDTO> usuarios = usuarioService.obtenerTodosLosUsuarios();
-
-            if (usuarios.isEmpty()) {
-                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-            }
-
-            return new ResponseEntity<>(usuarios, HttpStatus.OK);
+            return ResponseEntity.status(HttpStatus.OK).body(usuarios);
         } catch (Exception e) {
-            return new ResponseEntity<>(
-                    new MessageResponseDTO("Error al obtener la lista de usuarios: " + e.getMessage()),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
+            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al obtener la lista de usuarios", e);
         }
     }
 }
