@@ -4,8 +4,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import com.pulse_gym.lb_common.enums.EnumRol;
 import com.pulse_gym.ms_users.enums.NivelExperiencia;
-import com.pulse_gym.ms_users.enums.Rol;
 import com.pulse_gym.ms_users.enums.Turno;
 
 import jakarta.persistence.Column;
@@ -38,8 +38,8 @@ public class UsuarioPerfil {
      * un ENUM nativo
      */
     @Enumerated(EnumType.STRING)
-    @Column(name = "rol", nullable = false, columnDefinition = "ENUM('administrador', 'entrenador', 'recepcionista', 'socio')")
-    private Rol rol;
+    @Column(name = "rol", nullable = false)
+    private EnumRol rol;
 
     /**
      * Nombres del usuario

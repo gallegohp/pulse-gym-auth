@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
@@ -14,6 +15,7 @@ import org.springframework.web.server.ResponseStatusException;
 import com.pulse_gym.ms_users.dto.MessageResponseDTO;
 import com.pulse_gym.ms_users.dto.UsuarioPerfilRequestDTO;
 import com.pulse_gym.ms_users.dto.UsuarioPerfilResponseDTO;
+import com.pulse_gym.ms_users.exception.SecurityAuthorizationException;
 import com.pulse_gym.ms_users.service.UsuarioPerfilService;
 
 import jakarta.validation.Valid;
@@ -24,43 +26,32 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class UsuarioPerfilController {
 
-    /** Servicio del perfil de ususario */
     private final UsuarioPerfilService usuarioService;
 
-    /**
-     * Endpoint encargado de crear un nuevo perfil de usuario.
-     * Recibe la información del cuerpo de la petición, la valida y delega el
-     * proceso al servicio de negocio.
-     *
-     * @param requestDTO Objeto con la información de registro del usuario debidamente validada.
-     * @return el resultado del proceso y el código de estado HTTP correspondiente (201 Created, 400 Bad Request o 500 Internal Server Error).
-     */
-    
     @PostMapping
-    public ResponseEntity<MessageResponseDTO> crearUsuario(@Valid @RequestBody UsuarioPerfilRequestDTO requestDTO) {
+    public ResponseEntity<MessageResponseDTO> crearUsuario(
+            @Valid @RequestBody UsuarioPerfilRequestDTO requestDTO,
+            @RequestHeader(value = "X-User-Rol", required = false) String userRol) {
         try {
-            MessageResponseDTO response = usuarioService.crearUsuario(requestDTO);
+            MessageResponseDTO response = usuarioService.crearUsuario(requestDTO, userRol);
             return new ResponseEntity<>(response, HttpStatus.CREATED);
-        } catch (RuntimeException e) {
-            return new ResponseEntity<>(new MessageResponseDTO("Error al crear el usuario: " + e.getMessage()),
-                    HttpStatus.BAD_REQUEST);
+        } catch (SecurityAuthorizationException e) {
+            throw e;
         } catch (Exception e) {
             return new ResponseEntity<>(new MessageResponseDTO("Error interno del servidor: " + e.getMessage()),
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
-    /**
-     * Endpoint encargado de recuperar el listado completo de los perfiles de
-     * usuario en la plataforma.
-     *
-     * @return con la lista de usuario perfiles si existen registros (200 OK), una respuesta vacía si no se encuentra ningún usuario (204 No Content), o un mensaje de error en caso de una falla en el servidor (500 Internal Server Error).
-     */
-@GetMapping
-    public ResponseEntity<List<UsuarioPerfilResponseDTO>> obtenerTodosLosUsuarios() {
+    @GetMapping
+    public ResponseEntity<List<UsuarioPerfilResponseDTO>> obtenerTodosLosUsuarios(
+            @RequestHeader(value = "X-User-Rol", required = false) String userRol) {
+
         try {
-            List<UsuarioPerfilResponseDTO> usuarios = usuarioService.obtenerTodosLosUsuarios();
+            List<UsuarioPerfilResponseDTO> usuarios = usuarioService.obtenerTodosLosUsuarios(userRol);
             return ResponseEntity.status(HttpStatus.OK).body(usuarios);
+        } catch (SecurityAuthorizationException e) {
+            throw e;
         } catch (Exception e) {
             e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al obtener la lista de usuarios", e);

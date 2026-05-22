@@ -10,6 +10,7 @@ import com.pulse_gym.ms_users.dto.MessageResponseDTO;
 import com.pulse_gym.ms_users.dto.UsuarioPerfilRequestDTO;
 import com.pulse_gym.ms_users.dto.UsuarioPerfilResponseDTO;
 import com.pulse_gym.ms_users.entity.UsuarioPerfil;
+import com.pulse_gym.ms_users.exception.SecurityAuthorizationException;
 import com.pulse_gym.ms_users.repository.UsuarioPerfilRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -18,18 +19,19 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class UsuarioPerfilService {
 
-    /** Repositorio de Del perfil del usuario */
     private final UsuarioPerfilRepository usuarioRepository;
 
-    /**
-     * Registra un nuevo perfil de usuario en el sistema de Pulse Gym.
-     * Valida que el documento de identidad no se encuentre registrado previamente.
-     *
-     * @param requestDTO Datos de entrada validados para la creación del perfil.
-     * @return con un mensaje de éxito tras la persistencia.
-     */
+private void validateAdminRole(String currentRole) {
+    System.out.println("DEBUG - Validando rol. Rol actual: '" + currentRole + "'");
+    if (currentRole == null || !"administrador".equals(currentRole)) {
+        throw new SecurityAuthorizationException(
+            "Acceso denegado. Se requiere rol de administrador. Rol actual: " + currentRole);
+    }
+}
+
     @Transactional
-    public MessageResponseDTO crearUsuario(UsuarioPerfilRequestDTO requestDTO) {
+    public MessageResponseDTO crearUsuario(UsuarioPerfilRequestDTO requestDTO, String userRol) {
+        validateAdminRole(userRol);
 
         if (usuarioRepository.findByDocumentoIdentidad(requestDTO.getDocumentoIdentidad()).isPresent()) {
             throw new RuntimeException("El número de documento ya existe, por favor ingrese uno diferente: "
@@ -57,19 +59,12 @@ public class UsuarioPerfilService {
         usuario.setIdSede(requestDTO.getIdSede());
 
         usuarioRepository.save(usuario);
-
         return new MessageResponseDTO("Usuario creado ¡Correctamente!");
     }
 
-    /**
-     * Recupera todos los perfiles de usuario registrados en la plataforma.
-     * Ejecuta una transacción en modo de solo lectura para optimizar el
-     * rendimiento.
-     *
-     * @return Una lista con la información de todos los usuarios.
-     */
     @Transactional(readOnly = true)
-    public List<UsuarioPerfilResponseDTO> obtenerTodosLosUsuarios() {
+    public List<UsuarioPerfilResponseDTO> obtenerTodosLosUsuarios(String userRol) {
+        validateAdminRole(userRol);
 
         return usuarioRepository.findAll().stream().map(usuario -> {
             UsuarioPerfilResponseDTO dto = new UsuarioPerfilResponseDTO();
