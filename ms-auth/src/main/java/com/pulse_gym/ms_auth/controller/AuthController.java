@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
+import com.pulse_gym.lb_common.dto.HttpGlobalResponse;
 import com.pulse_gym.lb_common.dto.JwtDTO;
-import com.pulse_gym.ms_auth.dto.HttpGlobalResponse;
 import com.pulse_gym.ms_auth.dto.LoginRequestDTO;
 import com.pulse_gym.ms_auth.dto.RegisterRequestDTO;
 import com.pulse_gym.ms_auth.services.AuthService;

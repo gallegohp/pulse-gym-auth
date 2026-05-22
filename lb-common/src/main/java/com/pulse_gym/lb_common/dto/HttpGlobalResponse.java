@@ -1,4 +1,4 @@
-package com.pulse_gym.ms_auth.dto;
+package com.pulse_gym.lb_common.dto;
 
 import lombok.Data;
 
