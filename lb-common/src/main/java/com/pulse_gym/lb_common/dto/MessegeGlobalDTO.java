@@ -1,12 +1,9 @@
 
 package com.pulse_gym.lb_common.dto;
 
-import org.springframework.stereotype.Component;
-
 import lombok.Data;
 
 @Data
-@Component
 public class MessegeGlobalDTO {
     
     /**

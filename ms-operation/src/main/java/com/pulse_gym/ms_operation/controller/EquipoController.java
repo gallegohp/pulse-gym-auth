@@ -18,17 +18,22 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api/equipos")
 @RequiredArgsConstructor
 public class EquipoController {
-    
+
     private final EquipoService equipoService;
 
     @PostMapping
-    public ResponseEntity<MessegeGlobalDTO> registrarEquipo(@Valid @RequestBody EquipoRequestDTO equipoRequestDTO ) {
+    public ResponseEntity<MessegeGlobalDTO> registrarEquipo(@Valid @RequestBody EquipoRequestDTO equipoRequestDTO) {
         try {
             MessegeGlobalDTO response = equipoService.registrarEquipo(equipoRequestDTO);
             return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(null);
+
+            MessegeGlobalDTO dto = new MessegeGlobalDTO(e.getMessage());
+
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(dto);
         }
     }
 
