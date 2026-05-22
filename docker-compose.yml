@@ -14,9 +14,9 @@ services:
     networks:
       - pulsegym
 
-  ms-users:
-    build: ./ms-users
-    container_name: ms-users
+  pg-ms-users:
+    build: ./pg-ms-users
+    container_name: pg-ms-users
     ports:
       - "8081:8081"
     depends_on:
@@ -43,9 +43,9 @@ services:
     networks:
       - pulsegym
 
-  ms-auth:
-    build: ./ms-auth
-    container_name: ms-auth
+  pg-ms-auth:
+    build: ./pg-ms-auth
+    container_name: pg-ms-auth
     ports:
       - "8090:8090"
     depends_on:
@@ -72,9 +72,9 @@ services:
     networks:
       - pulsegym
   
-  ms-operations:
-    build: ./ms-operation
-    container_name: ms-operation
+  pg-ms-operation:
+    build: ./pg-ms-operation
+    container_name: pg-ms-operation
     ports:
       - "8082:8082"
     depends_on:
@@ -101,9 +101,9 @@ services:
     networks:
       - pulsegym
 
-  ms-notifications:
-    build: ./ms-notifications
-    container_name: ms-notifications
+  pg-ms-notifications:
+    build: ./pg-ms-notifications
+    container_name: pg-ms-notifications
     ports:
       - "8083:8083"
     depends_on:
@@ -130,9 +130,9 @@ services:
     networks:
       - pulsegym
 
-  ms-reports:
-    build: ./ms-reports
-    container_name: ms-reports
+  pg-ms-reports:
+    build: ./pg-ms-reports
+    container_name: pg-ms-reports
     ports:
       - "8084:8084"
     depends_on:
@@ -161,9 +161,9 @@ services:
 
 
 
-  ms-gateway:
-    build: ./ms-gateway
-    container_name: ms-gateway
+  pg-ms-gateway:
+    build: ./pg-ms-gateway
+    container_name: pg-ms-gateway
     ports:
       - "9090:9090"
     depends_on:
