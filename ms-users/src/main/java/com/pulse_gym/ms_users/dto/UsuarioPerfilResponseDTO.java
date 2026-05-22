@@ -4,8 +4,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import com.pulse_gym.lb_common.enums.EnumRol;
 import com.pulse_gym.ms_users.enums.NivelExperiencia;
-import com.pulse_gym.ms_users.enums.Rol;
 import com.pulse_gym.ms_users.enums.Turno;
 
 import lombok.Data;
@@ -21,7 +21,7 @@ public class UsuarioPerfilResponseDTO {
     /**
      * Rol asignado al usuario dentro del sistema de Pulse Gym
      */
-    private Rol rol;
+    private EnumRol rol;
 
     /**
      * Nombres completos del usuario
