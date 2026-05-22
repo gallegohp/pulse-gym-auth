@@ -26,10 +26,7 @@ public class UsuarioPerfilService {
      * Valida que el documento de identidad no se encuentre registrado previamente.
      *
      * @param requestDTO Datos de entrada validados para la creación del perfil.
-     * @return {@link MessageResponseDTO} con un mensaje de éxito tras la
-     *         persistencia.
-     * @throws RuntimeException Si el número de documento de identidad ya existe en
-     *                          la base de datos.
+     * @return con un mensaje de éxito tras la persistencia.
      */
     @Transactional
     public MessageResponseDTO crearUsuario(UsuarioPerfilRequestDTO requestDTO) {
@@ -69,8 +66,7 @@ public class UsuarioPerfilService {
      * Ejecuta una transacción en modo de solo lectura para optimizar el
      * rendimiento.
      *
-     * @return Una lista de {@link UsuarioPerfilResponseDTO} con la información de
-     *         todos los usuarios.
+     * @return Una lista con la información de todos los usuarios.
      */
     @Transactional(readOnly = true)
     public List<UsuarioPerfilResponseDTO> obtenerTodosLosUsuarios() {

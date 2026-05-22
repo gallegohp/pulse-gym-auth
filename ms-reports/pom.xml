@@ -10,7 +10,7 @@
 		<relativePath />
 	</parent>
 	<groupId>com.pulse-gym</groupId>
-	<artifactId>ms-users</artifactId>
+<artifactId>ms-reports</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name />
 	<description />
