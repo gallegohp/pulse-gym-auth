@@ -17,11 +17,11 @@ import io.jsonwebtoken.security.Keys;
 
 @Service
 public class JwtService {
-    
-    @Value("${security.jwt.secret-key}") 
+
+    @Value("${security.jwt.secret-key}")
     String secretKey;
-    
-    @Value("${security.jwt.token-expiration}") 
+
+    @Value("${security.jwt.token-expiration}")
     Long tokenExpiration;
 
     private SecretKey getSignKey() {
@@ -72,7 +72,10 @@ public class JwtService {
     }
 
     public String extractRol(String token) {
-        return extractClaims(token, claims -> claims.get("rol", String.class));
+        return extractClaims(token, claims -> {
+            Object rol = claims.get("rol");
+            return rol != null ? rol.toString() : null;
+        });
     }
 
     // ✅ CORREGIDO: Extracción segura de tipos numéricos al refrescar
@@ -93,7 +96,8 @@ public class JwtService {
         // Extracción segura del ID numérico evitando ClassCastException
         Number userIdNum = claims.get("userId", Number.class);
         Long userId = userIdNum != null ? userIdNum.longValue() : null;
-        String rol = claims.get("rol", String.class);
+        Object rolObj = claims.get("rol");
+        String rol = rolObj != null ? rolObj.toString() : null;
 
         return generateToken(userId, rol, claims.getSubject());
     }
