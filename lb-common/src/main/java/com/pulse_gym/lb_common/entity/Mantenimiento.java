@@ -1,9 +1,9 @@
-package com.pulse_gym.ms_operation.entity;
+package com.pulse_gym.lb_common.entity;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-import com.pulse_gym.ms_operation.enums.EnumTipoMantenimiento;
+import com.pulse_gym.lb_common.enums.EnumTipoMantenimiento;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

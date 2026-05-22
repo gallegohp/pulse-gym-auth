@@ -1,9 +1,9 @@
-package com.pulse_gym.ms_operation.entity;
+package com.pulse_gym.lb_common.entity;
 
 import java.time.LocalDateTime;
 
-import com.pulse_gym.ms_operation.enums.EnumEstadoAcceso;
-import com.pulse_gym.ms_operation.enums.EnumTipoAcceso;
+import com.pulse_gym.lb_common.enums.EnumEstadoAcceso;
+import com.pulse_gym.lb_common.enums.EnumTipoAcceso;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
