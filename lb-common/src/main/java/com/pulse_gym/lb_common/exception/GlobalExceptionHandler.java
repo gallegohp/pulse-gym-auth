@@ -10,8 +10,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import com.pulse_gym.ms_users.dto.MessageResponseDTO;
-import com.pulse_gym.ms_users.exception.SecurityAuthorizationException;
+import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
+
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -49,8 +49,8 @@ public class GlobalExceptionHandler {
      * @return mensaje de error con estado (400)
      */
     @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<MessageResponseDTO> handleRuntimeException(RuntimeException ex) {
-        MessageResponseDTO response = new MessageResponseDTO(ex.getMessage());
+    public ResponseEntity<MessegeGlobalDTO> handleRuntimeException(RuntimeException ex) {
+        MessegeGlobalDTO response = new MessegeGlobalDTO(ex.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
@@ -75,8 +75,8 @@ public class GlobalExceptionHandler {
      * @return un estado 403 FORBIDDEN
      */
     @ExceptionHandler(SecurityAuthorizationException.class)
-    public ResponseEntity<MessageResponseDTO> handleSecurityException(SecurityAuthorizationException ex) {
-        MessageResponseDTO response = new MessageResponseDTO(ex.getMessage());
+    public ResponseEntity<MessegeGlobalDTO> handleSecurityException(SecurityAuthorizationException ex) {
+        MessegeGlobalDTO response = new MessegeGlobalDTO(ex.getMessage());
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
     }
 

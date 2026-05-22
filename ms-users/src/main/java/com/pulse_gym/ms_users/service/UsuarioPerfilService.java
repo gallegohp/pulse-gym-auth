@@ -6,12 +6,12 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
 import com.pulse_gym.lb_common.dto.UsuarioPerfilRequestDTO;
 import com.pulse_gym.lb_common.dto.UsuarioPerfilResponseDTO;
 import com.pulse_gym.lb_common.entity.UsuarioPerfil;
 import com.pulse_gym.lb_common.exception.SecurityAuthorizationException;
 import com.pulse_gym.lb_common.repository.UsuarioPerfilRepository;
-import com.pulse_gym.ms_users.dto.MessageResponseDTO;
 
 import lombok.RequiredArgsConstructor;
 
@@ -30,7 +30,7 @@ private void validateAdminRole(String currentRole) {
 }
 
     @Transactional
-    public MessageResponseDTO crearUsuario(UsuarioPerfilRequestDTO requestDTO, String userRol) {
+    public MessegeGlobalDTO crearUsuario(UsuarioPerfilRequestDTO requestDTO, String userRol) {
         validateAdminRole(userRol);
 
         if (usuarioRepository.findByDocumentoIdentidad(requestDTO.getDocumentoIdentidad()).isPresent()) {
@@ -59,7 +59,7 @@ private void validateAdminRole(String currentRole) {
         usuario.setIdSede(requestDTO.getIdSede());
 
         usuarioRepository.save(usuario);
-        return new MessageResponseDTO("Usuario creado ¡Correctamente!");
+        return new MessegeGlobalDTO("Usuario creado ¡Correctamente!");
     }
 
     @Transactional(readOnly = true)

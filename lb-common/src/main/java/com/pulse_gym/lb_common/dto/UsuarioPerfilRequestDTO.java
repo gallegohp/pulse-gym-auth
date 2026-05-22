@@ -4,8 +4,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import com.pulse_gym.lb_common.enums.EnumRol;
-import com.pulse_gym.ms_users.enums.NivelExperiencia;
-import com.pulse_gym.ms_users.enums.Turno;
+import com.pulse_gym.lb_common.enums.NivelExperiencia;
+import com.pulse_gym.lb_common.enums.Turno;
 
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
