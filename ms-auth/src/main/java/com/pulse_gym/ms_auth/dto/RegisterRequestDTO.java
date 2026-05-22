@@ -1,5 +1,7 @@
 package com.pulse_gym.ms_auth.dto;
 
+import com.pulse_gym.lb_common.enums.EnumRol;
+
 import lombok.Data;
 
 @Data
@@ -22,7 +24,7 @@ public class RegisterRequestDTO {
     /**
      * Rol del usuario
      */
-    private Long rol;
+    private EnumRol rol;
 
     /**
      * Estado del usuario
