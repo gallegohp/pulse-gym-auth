@@ -1,9 +1,9 @@
-package com.pulse_gym.ms_operation.entity;
+package com.pulse_gym.lb_common.entity;
 
 import java.time.LocalDate;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.pulse_gym.ms_operation.enums.EnumEstado;
+import com.pulse_gym.lb_common.enums.EnumEstado;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

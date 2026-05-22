@@ -1,4 +1,4 @@
-package com.pulse_gym.ms_operation.entity;
+package com.pulse_gym.lb_common.entity;
 
 import java.util.List;
 
@@ -17,31 +17,31 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "sede")
+@Table(name = "proveedor")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Sede {
+public class Proveedor {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_sede")
-    private Long idSede;
+    @Column(name = "id_proveedor")
+    private Long idProveedor;
 
-    @Column(name = "nombre_sede", nullable = false, length = 100)
-    private String nombreSede;
+    @Column(name = "nombre_empresa", nullable = false, length = 100)
+    private String nombreEmpresa;
 
-    @Column(name = "direccion", nullable = false, length = 200)
-    private String direccion;
+    @Column(name = "contacto_nombre", length = 100)
+    private String contactoNombre;
 
     @Column(name = "telefono", length = 20)
     private String telefono;
 
-    @Column(name = "ciudad", nullable = false, length = 100)
-    private String ciudad;
+    @Column(name = "email", length = 150)
+    private String email;
 
     @JsonIgnore
-    @OneToMany(mappedBy = "sede")
+    @OneToMany(mappedBy = "proveedor")
     private List<Equipo> equipos;
 }
