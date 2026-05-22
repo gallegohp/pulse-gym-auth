@@ -62,20 +62,14 @@ public class UsuarioPerfilController {
      *         Content), o un mensaje de error
      *         en caso de una falla en el servidor (500 Internal Server Error).
      */
-    @GetMapping
-    public ResponseEntity<?> obtenerTodosLosUsuarios() {
+@GetMapping
+    public ResponseEntity<List<UsuarioPerfilResponseDTO>> obtenerTodosLosUsuarios() {
         try {
             List<UsuarioPerfilResponseDTO> usuarios = usuarioService.obtenerTodosLosUsuarios();
-
-            if (usuarios.isEmpty()) {
-                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-            }
-
-            return new ResponseEntity<>(usuarios, HttpStatus.OK);
+            return ResponseEntity.status(HttpStatus.OK).body(response);
         } catch (Exception e) {
-            return new ResponseEntity<>(
-                    new MessageResponseDTO("Error al obtener la lista de usuarios: " + e.getMessage()),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
+            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al obtener la lista de usuarios", e);
         }
     }
 }
