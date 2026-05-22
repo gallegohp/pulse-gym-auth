@@ -12,10 +12,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.pulse_gym.ms_users.dto.MessageResponseDTO;
-import com.pulse_gym.ms_users.dto.UsuarioPerfilRequestDTO;
-import com.pulse_gym.ms_users.dto.UsuarioPerfilResponseDTO;
-import com.pulse_gym.ms_users.exception.SecurityAuthorizationException;
+import com.pulse_gym.lb_common.dto.UsuarioPerfilRequestDTO;
+import com.pulse_gym.lb_common.dto.UsuarioPerfilResponseDTO;
+import com.pulse_gym.lb_common.exception.SecurityAuthorizationException;
 import com.pulse_gym.ms_users.service.UsuarioPerfilService;
 
 import jakarta.validation.Valid;

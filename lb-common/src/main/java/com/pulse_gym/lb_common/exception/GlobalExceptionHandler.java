@@ -1,4 +1,4 @@
-package com.pulse_gym.ms_users.exception;
+package com.pulse_gym.lb_common.exception;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.pulse_gym.ms_users.dto.MessageResponseDTO;
+import com.pulse_gym.ms_users.exception.SecurityAuthorizationException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
