@@ -48,11 +48,9 @@ public class JwtValidationFilter implements GlobalFilter, Ordered{
         String rol = jwtService.extractRol(token);  
         String username = jwtService.extractUsername(token);
         
-        System.out.println("=== GATEWAY DEBUG ===");
         System.out.println("userId: " + userId);
         System.out.println("rol: " + rol);
         System.out.println("username: " + username);
-        System.out.println("====================");
 
         ServerHttpRequest mutatedRequest = exchange.getRequest().mutate()
                 .header("X-User-Id", userId != null ? userId.toString() : "")
