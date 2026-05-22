@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
 import com.pulse_gym.lb_common.dto.UsuarioPerfilRequestDTO;
 import com.pulse_gym.lb_common.dto.UsuarioPerfilResponseDTO;
 import com.pulse_gym.lb_common.exception.SecurityAuthorizationException;
@@ -26,18 +27,18 @@ import lombok.RequiredArgsConstructor;
 public class UsuarioPerfilController {
 
     private final UsuarioPerfilService usuarioService;
-
+    
     @PostMapping
-    public ResponseEntity<MessageResponseDTO> crearUsuario(
+    public ResponseEntity<MessegeGlobalDTO> crearUsuario(
             @Valid @RequestBody UsuarioPerfilRequestDTO requestDTO,
             @RequestHeader(value = "X-User-Rol", required = false) String userRol) {
         try {
-            MessageResponseDTO response = usuarioService.crearUsuario(requestDTO, userRol);
+            MessegeGlobalDTO response = usuarioService.crearUsuario(requestDTO, userRol);
             return new ResponseEntity<>(response, HttpStatus.CREATED);
         } catch (SecurityAuthorizationException e) {
             throw e;
         } catch (Exception e) {
-            return new ResponseEntity<>(new MessageResponseDTO("Error interno del servidor: " + e.getMessage()),
+            return new ResponseEntity<>(new MessegeGlobalDTO("Error interno del servidor: " + e.getMessage()),
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

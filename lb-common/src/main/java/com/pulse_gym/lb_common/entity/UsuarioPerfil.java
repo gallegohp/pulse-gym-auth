@@ -5,8 +5,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import com.pulse_gym.lb_common.enums.EnumRol;
-import com.pulse_gym.ms_users.enums.NivelExperiencia;
-import com.pulse_gym.ms_users.enums.Turno;
+import com.pulse_gym.lb_common.enums.NivelExperiencia;
+import com.pulse_gym.lb_common.enums.Turno;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
