@@ -32,3 +32,8 @@ management:
   endpoint:
     health:
       show-details: always
+
+security:
+  jwt:
+    secret-key: oMYOYPCjKGRjXEHQqcG0F/KwhgMZ7yej4cBdqeMVZsk=
+    token-expiration: 3600000
