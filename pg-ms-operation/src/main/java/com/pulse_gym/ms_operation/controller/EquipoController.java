@@ -1,5 +1,9 @@
 package com.pulse_gym.ms_operation.controller;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -8,9 +12,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.pulse_gym.lb_common.dto.ConsultaEquipoRequestDTO;
 import com.pulse_gym.lb_common.dto.EquipoRequestDTO;
 import com.pulse_gym.lb_common.dto.EquipoResponseDTO;
 import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
+import com.pulse_gym.lb_common.entity.operation.Equipo;
 import com.pulse_gym.lb_common.dto.HttpGlobalResponse;
 import com.pulse_gym.ms_operation.services.EquipoService;
 
@@ -48,20 +54,32 @@ public class EquipoController {
         }
     }
 
-    @GetMapping
-    public ResponseEntity<HttpGlobalResponse<EquipoResponseDTO>> obtenerEquipos() {
+    @PostMapping("/consultar")
+    public ResponseEntity<Map<String, Object>> consultarEquipos(@RequestBody ConsultaEquipoRequestDTO request) {
         try {
-            HttpGlobalResponse<EquipoResponseDTO> response = equipoService.obtenerEquipos();
+            List<Equipo> equipos = equipoService.obtenerEquipos(request);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            
+            // Mensaje diferenciado según si hay resultados o no
+            if (equipos.isEmpty()) {
+                response.put("message", "Consulta exitosa, no se encontraron equipos");
+                response.put("count", 0);
+                response.put("data", equipos);
+            } else {
+                response.put("message", "Consulta exitosa");
+                response.put("count", equipos.size());
+                response.put("data", equipos);
+            }
+            
             return ResponseEntity.ok(response);
+            
         } catch (Exception e) {
-            e.printStackTrace();
-
-            HttpGlobalResponse<EquipoResponseDTO> dto = new HttpGlobalResponse<>();
-            dto.setMessage(e.getMessage());
-
-            return ResponseEntity
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(dto);
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "Error al consultar equipos: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
 
