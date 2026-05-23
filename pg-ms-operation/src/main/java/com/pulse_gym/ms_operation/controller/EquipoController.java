@@ -30,14 +30,17 @@ import lombok.RequiredArgsConstructor;
 public class EquipoController {
 
     /**
-     * Inyeccion de EquipoService para manejar la lógica de negocio relacionada con los equipos, como el registro y la obtención de equipos. 
+     * Inyeccion de EquipoService para manejar la lógica de negocio relacionada con
+     * los equipos, como el registro y la obtención de equipos.
      */
     private final EquipoService equipoService;
 
     /**
-     * Endpoint para registrar un nuevo equipo. Recibe un objeto EquipoRequestDTO en el cuerpo de la solicitud, 
+     * Endpoint para registrar un nuevo equipo. Recibe un objeto EquipoRequestDTO en
+     * el cuerpo de la solicitud,
+     * 
      * @param equipoRequestDTO
-     * @return ResponseEntity<MessegeGlobalDTO> 
+     * @return ResponseEntity<MessegeGlobalDTO>
      */
     @PostMapping
     public ResponseEntity<MessegeGlobalDTO> registrarEquipo(@Valid @RequestBody EquipoRequestDTO equipoRequestDTO) {
@@ -55,14 +58,21 @@ public class EquipoController {
         }
     }
 
+    /**
+     * Endpoint para consultar equipos segun los datos pasados por el cuerpo de la
+     * solicitud
+     * 
+     * @param request
+     * @return ResponseEntity<Map<String, Object>> con la respuesta de la consulta
+     */
     @PostMapping("/consultar")
     public ResponseEntity<Map<String, Object>> consultarEquipos(@RequestBody ConsultaEquipoRequestDTO request) {
         try {
             List<Equipo> equipos = equipoService.obtenerEquipos(request);
-            
+
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
-            
+
             // Mensaje diferenciado según si hay resultados o no
             if (equipos.isEmpty()) {
                 response.put("message", "Consulta exitosa, no se encontraron equipos");
@@ -73,9 +83,9 @@ public class EquipoController {
                 response.put("count", equipos.size());
                 response.put("data", equipos);
             }
-            
+
             return ResponseEntity.ok(response);
-            
+
         } catch (Exception e) {
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("success", false);
@@ -84,8 +94,18 @@ public class EquipoController {
         }
     }
 
+    /**
+     * Endpoint para actualizar un equipo existente. Recibe el ID del equipo a
+     * actualizar como parte de la URL y
+     * un objeto EquipoRequestDTO con los nuevos datos en el cuerpo de la solicitud.
+     * 
+     * @param id
+     * @param equipoRequestDTO
+     * @return ResponseEntity<MessegeGlobalDTO> con el resultado de la actualización
+     */
     @PutMapping("/{id}")
-    public ResponseEntity<MessegeGlobalDTO> actualizarEquipo(@PathVariable Long id, @Valid @RequestBody EquipoRequestDTO equipoRequestDTO) {
+    public ResponseEntity<MessegeGlobalDTO> actualizarEquipo(@PathVariable Long id,
+            @Valid @RequestBody EquipoRequestDTO equipoRequestDTO) {
         try {
             MessegeGlobalDTO response = equipoService.actualizarEquipo(id, equipoRequestDTO);
             return ResponseEntity.ok(response);
@@ -96,18 +116,27 @@ public class EquipoController {
         }
     }
 
+    /**
+     * Endpoint para cambiar el estado de un equipo. Recibe el ID del equipo como
+     * parte de la URL y un objeto
+     * EstadoEquipoRequestDTO con el nuevo estado en el cuerpo de la solicitud.
+     * 
+     * @param id
+     * @param estadoRequestDTO
+     * @return ResponseEntity<MessegeGlobalDTO> con el resultado del cambio de estado
+     */
     @PatchMapping("/{id}/estado")
-public ResponseEntity<MessegeGlobalDTO> cambiarEstadoEquipo(
-        @PathVariable Long id, 
-        @Valid @RequestBody EstadoEquipoRequestDTO estadoRequestDTO) {
-    try {
-        MessegeGlobalDTO response = equipoService.cambiarEstadoEquipo(id, estadoRequestDTO);
-        return ResponseEntity.ok(response);
-    } catch (Exception e) {
-        e.printStackTrace();
-        MessegeGlobalDTO dto = new MessegeGlobalDTO(e.getMessage());
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(dto);
+    public ResponseEntity<MessegeGlobalDTO> cambiarEstadoEquipo(
+            @PathVariable Long id,
+            @Valid @RequestBody EstadoEquipoRequestDTO estadoRequestDTO) {
+        try {
+            MessegeGlobalDTO response = equipoService.cambiarEstadoEquipo(id, estadoRequestDTO);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            MessegeGlobalDTO dto = new MessegeGlobalDTO(e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(dto);
+        }
     }
-}
 
 }
