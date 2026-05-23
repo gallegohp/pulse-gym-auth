@@ -22,12 +22,27 @@ import lombok.RequiredArgsConstructor;
 
 public class AuthService {
 
+    /**
+     * Inyeccion de UserAuthRepository
+     */
     private final UserAuthRepository userAuthRepository;
+
+    /**
+     * Inyeccion de PasswordEncoder para manejar el cifrado de contraseñas 
+     */
     private final PasswordEncoder passwordEncoder;
+
+    /**
+     * Inyeccion de JwtService para manejar la generación y validación de tokens JWT
+     */
     private final JwtService jwtService;
 
-    // Elimina la inyección de MessegeGlobalDTO
-
+    /**
+     * Registro de usuario
+     * 
+     * @param requestDTO
+     * @return MessegeGlobalDTO
+     */
     public MessegeGlobalDTO register(RegisterRequestDTO requestDTO) {
 
         if (userAuthRepository.findByEmail(requestDTO.getEmail()).isPresent()) {

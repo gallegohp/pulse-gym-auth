@@ -24,23 +24,41 @@ import lombok.Setter;
 @AllArgsConstructor
 public class Sede {
 
+    /**
+    * Identificador único de la sede, generado automáticamente por la base de datos
+    */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_sede")
     private Long idSede;
 
+    /**
+     * Nombre de la sede del gimnasio (por ejemplo, "Sede Central", "Sede Norte", etc.)
+     */
     @Column(name = "nombre_sede", nullable = false, length = 100)
     private String nombreSede;
 
+    /**
+     * Dirección física de la sede del gimnasio
+     */
     @Column(name = "direccion", nullable = false, length = 200)
     private String direccion;
 
+    /**
+     * Número de teléfono de contacto de la sede
+     */
     @Column(name = "telefono", length = 20)
     private String telefono;
 
+    /**
+     * Ciudad donde se encuentra la sede del gimnasio
+     */
     @Column(name = "ciudad", nullable = false, length = 100)
     private String ciudad;
 
+    /**
+     * Lista de equipos disponibles en la sede. Se ignora en la serialización JSON para evitar ciclos de referencia
+     */
     @JsonIgnore
     @OneToMany(mappedBy = "sede")
     private List<Equipo> equipos;

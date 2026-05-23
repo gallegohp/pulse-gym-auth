@@ -26,8 +26,17 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class UsuarioPerfilController {
 
+    /**
+     *  Inyeccion de UsuarioPerfilService
+     */
     private final UsuarioPerfilService usuarioService;
     
+    /**
+     * Metodo para crear un usuario nuevo
+     * @param requestDTO
+     * @param userRol
+     * @return ResponseEntity<MessegeGlobalDTO>
+     */
     @PostMapping
     public ResponseEntity<MessegeGlobalDTO> crearUsuario(
             @Valid @RequestBody UsuarioPerfilRequestDTO requestDTO,
@@ -43,6 +52,11 @@ public class UsuarioPerfilController {
         }
     }
 
+    /**
+     * Metodo para obtener la lista de todos los usuarios registrados en el sistema.
+     * @param userRol
+     * @return ResponseEntity<List<UsuarioPerfilResponseDTO>>
+     */
     @GetMapping
     public ResponseEntity<List<UsuarioPerfilResponseDTO>> obtenerTodosLosUsuarios(
             @RequestHeader(value = "X-User-Rol", required = false) String userRol) {
