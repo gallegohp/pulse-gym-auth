@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import com.pulse_gym.lb_common.dto.ConsultaEquipoRequestDTO;
 import com.pulse_gym.lb_common.dto.EquipoRequestDTO;
 import com.pulse_gym.lb_common.dto.EquipoResponseDTO;
+import com.pulse_gym.lb_common.dto.EstadoEquipoRequestDTO;
 import com.pulse_gym.lb_common.dto.HttpGlobalResponse;
 import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
 import com.pulse_gym.lb_common.entity.operation.Equipo;
@@ -176,6 +177,41 @@ public class EquipoService {
 
                 MessegeGlobalDTO response = new MessegeGlobalDTO("Equipo actualizado correctamente");
                 return response;
+        }
+
+        public MessegeGlobalDTO cambiarEstadoEquipo(Long id, EstadoEquipoRequestDTO estadoRequestDTO) {
+                Equipo equipo = equipoRepository.findById(id)
+                                .orElseThrow(() -> new RuntimeException("Equipo no encontrado"));
+
+                try {
+                        String nuevoEstado = estadoRequestDTO.getEstado().toUpperCase().trim();
+
+                        EnumEstado estadoEnum;
+                        try {
+                                estadoEnum = EnumEstado.valueOf(nuevoEstado);
+                        } catch (IllegalArgumentException e) {
+                                throw new RuntimeException("Estado no válido: '" + estadoRequestDTO.getEstado() +
+                                                "'. Los valores válidos son: OPERATIVO, EN_MANTENIMIENTO, FUERA_DE_SERVICIO, RETIRADO");
+                        }
+
+                        // Guardar estado anterior para el mensaje
+                        String estadoAnterior = equipo.getEstado() != null ? equipo.getEstado().name() : "SIN_ESTADO";
+
+                        // Actualizar el estado
+                        equipo.setEstado(estadoEnum);
+                        equipoRepository.save(equipo);
+
+                        // Retornar respuesta exitosa
+                        return new MessegeGlobalDTO(String.format(
+                                        "Estado del equipo actualizado correctamente de %s a %s",
+                                        estadoAnterior,
+                                        estadoEnum.name()));
+
+                } catch (RuntimeException e) {
+                        throw e;
+                } catch (Exception e) {
+                        throw new RuntimeException("Error al actualizar el estado del equipo: " + e.getMessage());
+                }
         }
 
 }
