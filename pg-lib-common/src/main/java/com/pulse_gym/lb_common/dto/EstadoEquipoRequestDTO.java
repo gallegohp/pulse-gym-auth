@@ -12,6 +12,9 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public class EstadoEquipoRequestDTO {
     
+    /**
+     * Dto para manejar el cambio de estado de los equipos
+     */
     @NotBlank(message = "El estado no puede estar vacío")
     @Pattern(regexp = "^(OPERATIVO|MANTENIMIENTO|FUERA_DE_SERVICIO|RETIRADO)$", 
             message = "Estado no válido. Valores permitidos: OPERATIVO, MANTENIMIENTO, FUERA_DE_SERVICIO, RETIRADO")

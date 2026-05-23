@@ -100,7 +100,7 @@ public class EquipoService {
          * flexible y eficiente en la base de datos.
          * 
          * @param request
-         * @return
+         * @return Lista de equipos que coinciden con los criterios de búsqueda especificados en el objeto ConsultaEquipoRequestDTO
          */
         public List<Equipo> obtenerEquipos(ConsultaEquipoRequestDTO request) {
                 Specification<Equipo> spec = buildSpecification(request);
@@ -149,6 +149,13 @@ public class EquipoService {
                 };
         }
 
+        /**
+         * Actualiza la información de un equipo existente en la base de datos. El método
+         * primero verifica que el equipo con el ID proporcionado exista, luego actualiza
+         * @param id
+         * @param equipoRequestDTO
+         * @return MessegeGlobalDTO con un mensaje de éxito si el equipo se actualizó correctamente
+         */
         public MessegeGlobalDTO actualizarEquipo(Long id, EquipoRequestDTO equipoRequestDTO) {
                 Equipo equipo = equipoRepository.findById(id)
                                 .orElseThrow(() -> new RuntimeException("Equipo no encontrado"));
@@ -179,6 +186,15 @@ public class EquipoService {
                 return response;
         }
 
+        /**
+         * Cambia el estado de un equipo existente en la base de datos. El método primero verifica que el equipo con el ID proporcionado exista,
+         * luego actualiza su estado al nuevo valor proporcionado en el objeto EstadoEquipoRequestDTO. El método maneja específicamente la 
+         * validación del nuevo estado para asegurarse de que sea un valor válido del enum EnumEstado, y proporciona mensajes de error claros
+         *  en caso de que el equipo no se encuentre o el nuevo estado no sea válido.
+         * @param id
+         * @param estadoRequestDTO
+         * @return MessegeGlobalDTO con un mensaje de éxito si el estado del equipo se actualizó correctamente
+         */
         public MessegeGlobalDTO cambiarEstadoEquipo(Long id, EstadoEquipoRequestDTO estadoRequestDTO) {
                 Equipo equipo = equipoRepository.findById(id)
                                 .orElseThrow(() -> new RuntimeException("Equipo no encontrado"));
