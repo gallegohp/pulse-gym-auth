@@ -4,12 +4,12 @@ import org.springframework.stereotype.Service;
 
 import com.pulse_gym.lb_common.dto.EquipoRequestDTO;
 import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
-import com.pulse_gym.lb_common.entity.Equipo;
-import com.pulse_gym.lb_common.entity.Proveedor;
-import com.pulse_gym.lb_common.entity.Sede;
-import com.pulse_gym.lb_common.repository.EquipoRepository;
-import com.pulse_gym.lb_common.repository.ProveedorRepository;
-import com.pulse_gym.lb_common.repository.SedeRepository;
+import com.pulse_gym.lb_common.entity.operation.Equipo;
+import com.pulse_gym.lb_common.entity.operation.Proveedor;
+import com.pulse_gym.lb_common.entity.operation.Sede;
+import com.pulse_gym.ms_operation.repository.EquipoRepository;
+import com.pulse_gym.ms_operation.repository.ProveedorRepository;
+import com.pulse_gym.ms_operation.repository.SedeRepository;
 
 import lombok.RequiredArgsConstructor;
 
