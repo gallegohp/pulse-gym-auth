@@ -7,7 +7,9 @@ import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -80,6 +82,18 @@ public class EquipoController {
             errorResponse.put("success", false);
             errorResponse.put("message", "Error al consultar equipos: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<MessegeGlobalDTO> actualizarEquipo(@PathVariable Long id, @Valid @RequestBody EquipoRequestDTO equipoRequestDTO) {
+        try {
+            MessegeGlobalDTO response = equipoService.actualizarEquipo(id, equipoRequestDTO);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            MessegeGlobalDTO dto = new MessegeGlobalDTO(e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(dto);
         }
     }
 
