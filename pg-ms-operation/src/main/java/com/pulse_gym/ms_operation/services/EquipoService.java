@@ -21,6 +21,7 @@ import com.pulse_gym.ms_operation.repository.ProveedorRepository;
 import com.pulse_gym.ms_operation.repository.SedeRepository;
 
 import io.micrometer.common.util.StringUtils;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -145,6 +146,36 @@ public class EquipoService {
 
                         return cb.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
                 };
+        }
+
+        public MessegeGlobalDTO actualizarEquipo(Long id, EquipoRequestDTO equipoRequestDTO) {
+                Equipo equipo = equipoRepository.findById(id)
+                                .orElseThrow(() -> new RuntimeException("Equipo no encontrado"));
+
+                Proveedor proveedor = proveedorRepository
+                                .findById(equipoRequestDTO.getIdProveedor())
+                                .orElseThrow(() -> new RuntimeException("Proveedor no encontrado"));
+
+                Sede sede = sedeRepository
+                                .findById(equipoRequestDTO.getIdSede())
+                                .orElseThrow(() -> new RuntimeException("Sede no encontrada"));
+
+                equipo.setProveedor(proveedor);
+                equipo.setSede(sede);
+
+                equipo.setNombre(equipoRequestDTO.getNombre());
+                equipo.setMarca(equipoRequestDTO.getMarca());
+                equipo.setModelo(equipoRequestDTO.getModelo());
+                equipo.setNumeroSerie(equipoRequestDTO.getNumeroSerie());
+                equipo.setFechaAdquisicion(equipoRequestDTO.getFechaAdquisicion());
+                equipo.setFechaGarantia(equipoRequestDTO.getFechaGarantia());
+                equipo.setUbicacion(equipoRequestDTO.getUbicacion());
+                equipo.setEstado(equipoRequestDTO.getEstado());
+
+                equipoRepository.save(equipo);
+
+                MessegeGlobalDTO response = new MessegeGlobalDTO("Equipo actualizado correctamente");
+                return response;
         }
 
 }
