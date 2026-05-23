@@ -6,7 +6,7 @@ import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -16,10 +16,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.pulse_gym.lb_common.dto.ConsultaEquipoRequestDTO;
 import com.pulse_gym.lb_common.dto.EquipoRequestDTO;
-import com.pulse_gym.lb_common.dto.EquipoResponseDTO;
+import com.pulse_gym.lb_common.dto.EstadoEquipoRequestDTO;
 import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
 import com.pulse_gym.lb_common.entity.operation.Equipo;
-import com.pulse_gym.lb_common.dto.HttpGlobalResponse;
 import com.pulse_gym.ms_operation.services.EquipoService;
 
 import jakarta.validation.Valid;
@@ -96,5 +95,19 @@ public class EquipoController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(dto);
         }
     }
+
+    @PatchMapping("/{id}/estado")
+public ResponseEntity<MessegeGlobalDTO> cambiarEstadoEquipo(
+        @PathVariable Long id, 
+        @Valid @RequestBody EstadoEquipoRequestDTO estadoRequestDTO) {
+    try {
+        MessegeGlobalDTO response = equipoService.cambiarEstadoEquipo(id, estadoRequestDTO);
+        return ResponseEntity.ok(response);
+    } catch (Exception e) {
+        e.printStackTrace();
+        MessegeGlobalDTO dto = new MessegeGlobalDTO(e.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(dto);
+    }
+}
 
 }
