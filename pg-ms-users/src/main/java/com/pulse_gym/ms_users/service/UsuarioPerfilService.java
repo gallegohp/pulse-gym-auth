@@ -19,16 +19,31 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class UsuarioPerfilService {
 
+    /**
+     * Inyeccion de UsuarioPerfilRepository para manejar las operaciones de base de datos relacionadas con los perfiles de usuario
+     */
     private final UsuarioPerfilRepository usuarioRepository;
 
-private void validateAdminRole(String currentRole) {
-    System.out.println("DEBUG - Validando rol. Rol actual: '" + currentRole + "'");
-    if (currentRole == null || !"administrador".equals(currentRole)) {
-        throw new SecurityAuthorizationException(
-            "Acceso denegado. Se requiere rol de administrador. Rol actual: " + currentRole);
+    /**
+     * Valida que el rol del usuario actual sea "administrador". Si el rol es nulo o no es "administrador", lanza una excepción de autorización de seguridad.
+     * @param currentRole el rol del usuario actual extraído del encabezado de la solicitud
+     * @throws SecurityAuthorizationException si el rol es nulo o no es "administrador"
+     */
+    private void validateAdminRole(String currentRole) {
+        System.out.println("DEBUG - Validando rol. Rol actual: '" + currentRole + "'");
+        if (currentRole == null || !"administrador".equals(currentRole)) {
+            throw new SecurityAuthorizationException(
+                "Acceso denegado. Se requiere rol de administrador. Rol actual: " + currentRole);
+        }
     }
-}
 
+    /**
+     * Crea un nuevo usuario en el sistema. Primero valida que el usuario tenga el rol de administrador, luego verifica que el número de documento de 
+     * identidad no exista ya en la base de datos.
+     * @param requestDTO
+     * @param userRol
+     * @return MessegeGlobalDTO con un mensaje de éxito si el usuario se creó correctamente
+     */
     @Transactional
     public MessegeGlobalDTO crearUsuario(UsuarioPerfilRequestDTO requestDTO, String userRol) {
         validateAdminRole(userRol);
@@ -62,6 +77,11 @@ private void validateAdminRole(String currentRole) {
         return new MessegeGlobalDTO("Usuario creado ¡Correctamente!");
     }
 
+    /**
+     * Obtiene la lista de todos los usuarios registrados en el sistema. Primero valida que el usuario tenga el rol de administrador
+     * @param userRol
+     * @return ResponseEntity<List<UsuarioPerfilResponseDTO>> 
+     */
     @Transactional(readOnly = true)
     public List<UsuarioPerfilResponseDTO> obtenerTodosLosUsuarios(String userRol) {
         validateAdminRole(userRol);
