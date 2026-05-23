@@ -22,37 +22,16 @@ import lombok.RequiredArgsConstructor;
 
 public class AuthService {
 
-    /**
-     * Repositorio de usuarios
-     */
     private final UserAuthRepository userAuthRepository;
-
-    /**
-     * Codificador de contraseñas
-     */
     private final PasswordEncoder passwordEncoder;
-
-    /**
-     * DTO para mensajes globales
-     */
-    private final MessegeGlobalDTO messegeGlobalDTO;
-
-    /**
-     * Servicio para manejo de JWT
-     */
     private final JwtService jwtService;
 
-    /**
-     * Registro de usuario
-     * 
-     * @param requestDTO
-     * @return MessegeGlobalDTO
-     */
+    // Elimina la inyección de MessegeGlobalDTO
+
     public MessegeGlobalDTO register(RegisterRequestDTO requestDTO) {
 
         if (userAuthRepository.findByEmail(requestDTO.getEmail()).isPresent()) {
-            messegeGlobalDTO.setMessage("El correo ya esta en uso");
-            return messegeGlobalDTO;
+            return new MessegeGlobalDTO("El correo ya esta en uso"); // Crear nueva instancia
         }
 
         User user = new User();
@@ -64,9 +43,7 @@ public class AuthService {
         user.setFechaRegistro(LocalDateTime.now());
         userAuthRepository.save(user);
 
-        messegeGlobalDTO.setMessage("Se ha registrado correctamente");
-        return messegeGlobalDTO;
-
+        return new MessegeGlobalDTO("Se ha registrado correctamente"); // Crear nueva instancia
     }
 
     /**
