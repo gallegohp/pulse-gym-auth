@@ -1,4 +1,4 @@
-package com.pulse_gym.lb_common.entity;
+package com.pulse_gym.lb_common.entity.auth;
 
 import java.time.LocalDateTime;
 

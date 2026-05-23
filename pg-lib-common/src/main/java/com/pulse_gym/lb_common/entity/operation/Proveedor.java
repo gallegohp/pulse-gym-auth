@@ -1,4 +1,4 @@
-package com.pulse_gym.lb_common.entity;
+package com.pulse_gym.lb_common.entity.operation;
 
 import java.util.List;
 

@@ -9,9 +9,9 @@ import org.springframework.transaction.annotation.Transactional;
 import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
 import com.pulse_gym.lb_common.dto.UsuarioPerfilRequestDTO;
 import com.pulse_gym.lb_common.dto.UsuarioPerfilResponseDTO;
-import com.pulse_gym.lb_common.entity.UsuarioPerfil;
+import com.pulse_gym.lb_common.entity.user.UsuarioPerfil;
 import com.pulse_gym.lb_common.exception.SecurityAuthorizationException;
-import com.pulse_gym.lb_common.repository.UsuarioPerfilRepository;
+import com.pulse_gym.ms_users.repository.UsuarioPerfilRepository;
 
 import lombok.RequiredArgsConstructor;
 
