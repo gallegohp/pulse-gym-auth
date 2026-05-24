@@ -26,8 +26,19 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class UsuarioPerfilController {
 
+    /**
+     * Servicio de usuarios para la lógica de negocio
+     */
     private final UsuarioPerfilService usuarioService;
-    
+
+    /**
+     * Crea un nuevo usuario en el sistema
+     * 
+     * @param requestDTO Datos del usuario a crear
+     * @param userRol    Rol del usuario que hace la petición (desde header
+     *                   X-User-Rol)
+     * @return Respuesta con mensaje de éxito o error
+     */
     @PostMapping
     public ResponseEntity<MessegeGlobalDTO> crearUsuario(
             @Valid @RequestBody UsuarioPerfilRequestDTO requestDTO,
@@ -43,6 +54,12 @@ public class UsuarioPerfilController {
         }
     }
 
+    /**
+     * Obtiene la lista de todos los usuarios registrados
+     * 
+     * @param userRol Rol del usuario que hace la petición (desde header X-User-Rol)
+     * @return Lista de usuarios con sus datos completos
+     */
     @GetMapping
     public ResponseEntity<List<UsuarioPerfilResponseDTO>> obtenerTodosLosUsuarios(
             @RequestHeader(value = "X-User-Rol", required = false) String userRol) {
@@ -54,7 +71,8 @@ public class UsuarioPerfilController {
             throw e;
         } catch (Exception e) {
             e.printStackTrace();
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al obtener la lista de usuarios", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al obtener la lista de usuarios",
+                    e);
         }
     }
 }

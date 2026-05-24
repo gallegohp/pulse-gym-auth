@@ -18,17 +18,36 @@ import io.jsonwebtoken.security.Keys;
 @Service
 public class JwtService {
 
+    /**
+     * Clave secreta para firmar los tokens JWT (desde application.yaml)
+     */
     @Value("${security.jwt.secret-key}")
     String secretKey;
 
+    /**
+     * Tiempo de expiración del token en milisegundos (desde application.yaml)
+     */
     @Value("${security.jwt.token-expiration}")
     Long tokenExpiration;
 
+    /**
+     * Obtiene la clave de firma a partir de la clave secreta en Base64
+     * 
+     * @return Clave secreta para firmar/verificar JWT
+     */
     private SecretKey getSignKey() {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
+    /**
+     * Genera un token JWT con los datos del usuario
+     * 
+     * @param userId ID del usuario
+     * @param rol    Rol del usuario
+     * @param name   Nombre/email del usuario
+     * @return Token JWT firmado
+     */
     public String generateToken(Long userId, String rol, String name) {
         return Jwts.builder()
                 .claim("userId", userId)
@@ -40,6 +59,12 @@ public class JwtService {
                 .compact();
     }
 
+    /**
+     * Valida si un token JWT es válido (no expirado y firma correcta)
+     * 
+     * @param token Token JWT a validar
+     * @return true si es válido, false en caso contrario
+     */
     public Boolean isTokenValid(String token) {
         try {
             Jwts.parser().verifyWith(getSignKey()).build().parseSignedClaims(token);
@@ -51,6 +76,14 @@ public class JwtService {
         }
     }
 
+    /**
+     * Extrae los claims (datos) del token JWT
+     * 
+     * @param <T>      Tipo de dato a retornar
+     * @param token    Token JWT
+     * @param resolver Función para extraer un claim específico
+     * @return Valor extraído del token
+     */
     public <T> T extractClaims(String token, Function<Claims, T> resolver) {
         final Claims claims = Jwts.parser()
                 .verifyWith(getSignKey())
@@ -60,10 +93,22 @@ public class JwtService {
         return resolver.apply(claims);
     }
 
+    /**
+     * Extrae el nombre de usuario (subject) del token
+     * 
+     * @param token Token JWT
+     * @return Nombre de usuario o email
+     */
     public String extractUsername(String token) {
         return extractClaims(token, Claims::getSubject);
     }
 
+    /**
+     * Extrae el ID del usuario del token
+     * 
+     * @param token Token JWT
+     * @return ID del usuario o null si no existe
+     */
     public Long extractUserId(String token) {
         return extractClaims(token, claims -> {
             Number userId = claims.get("userId", Number.class);
@@ -71,6 +116,12 @@ public class JwtService {
         });
     }
 
+    /**
+     * Extrae el rol del usuario del token
+     * 
+     * @param token Token JWT
+     * @return Rol del usuario o null si no existe
+     */
     public String extractRol(String token) {
         return extractClaims(token, claims -> {
             Object rol = claims.get("rol");
@@ -78,7 +129,13 @@ public class JwtService {
         });
     }
 
-    // ✅ CORREGIDO: Extracción segura de tipos numéricos al refrescar
+    /**
+     * Renueva un token JWT (refresca la fecha de expiración)
+     * 
+     * @param token Token JWT actual (puede estar cerca de expirar)
+     * @return Nuevo token JWT con fecha renovada
+     * @throws Exception Si el token es inválido o está expirado
+     */
     public String refreshToken(String token) throws Exception {
         Claims claims;
         try {
@@ -93,7 +150,6 @@ public class JwtService {
             throw new Exception("Token is invalid");
         }
 
-        // Extracción segura del ID numérico evitando ClassCastException
         Number userIdNum = claims.get("userId", Number.class);
         Long userId = userIdNum != null ? userIdNum.longValue() : null;
         Object rolObj = claims.get("rol");
