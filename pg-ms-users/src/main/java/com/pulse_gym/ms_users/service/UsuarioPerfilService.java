@@ -10,7 +10,7 @@ import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
 import com.pulse_gym.lb_common.dto.UsuarioPerfilRequestDTO;
 import com.pulse_gym.lb_common.dto.UsuarioPerfilResponseDTO;
 import com.pulse_gym.lb_common.entity.user.UsuarioPerfil;
-import com.pulse_gym.lb_common.exception.SecurityAuthorizationException;
+import com.pulse_gym.lb_common.services.ValidacionDeRoles;
 import com.pulse_gym.ms_users.repository.UsuarioPerfilRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -25,19 +25,6 @@ public class UsuarioPerfilService {
     private final UsuarioPerfilRepository usuarioRepository;
 
     /**
-     * Valida que el usuario actual tenga rol de administrador
-     * 
-     * @param currentRole Rol del usuario que hace la petición
-     * @throws SecurityAuthorizationException Si el rol no es administrador
-     */
-    private void validateAdminRole(String currentRole) {
-        if (currentRole == null || !"administrador".equals(currentRole)) {
-            throw new SecurityAuthorizationException(
-                    "Acceso denegado. Se requiere rol de administrador. Rol actual: " + currentRole);
-        }
-    }
-
-    /**
      * Crea un nuevo usuario en el sistema
      * 
      * @param requestDTO Datos completos del usuario a crear
@@ -47,7 +34,7 @@ public class UsuarioPerfilService {
      */
     @Transactional
     public MessegeGlobalDTO crearUsuario(UsuarioPerfilRequestDTO requestDTO, String userRol) {
-        validateAdminRole(userRol);
+        ValidacionDeRoles.validarAdminORecepcionista(userRol);
 
         if (usuarioRepository.findByDocumentoIdentidad(requestDTO.getDocumentoIdentidad()).isPresent()) {
             throw new RuntimeException("El número de documento ya existe, por favor ingrese uno diferente: "
@@ -86,7 +73,7 @@ public class UsuarioPerfilService {
      */
     @Transactional(readOnly = true)
     public List<UsuarioPerfilResponseDTO> obtenerTodosLosUsuarios(String userRol) {
-        validateAdminRole(userRol);
+        ValidacionDeRoles.validarAdminORecepcionista(userRol);
 
         return usuarioRepository.findAll().stream().map(usuario -> {
             UsuarioPerfilResponseDTO dto = new UsuarioPerfilResponseDTO();
