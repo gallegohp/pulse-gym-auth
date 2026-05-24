@@ -91,10 +91,7 @@ public class EquipoService {
         /**
          * Obtiene una lista de equipos que coinciden con los criterios de búsqueda
          * especificados en el objeto ConsultaEquipoRequestDTO.
-         * Specification tiene la funcion de construir dinámicamente consultas basadas
-         * en los campos proporcionados en el DTO, lo que permite una búsqueda
-         * flexible y eficiente en la base de datos.
-         * 
+         * Utiliza Specification para construir una consulta dinámica basada en los criterios de búsqueda proporcionados.
          * @param request
          * @return Lista de equipos que coinciden con los criterios de búsqueda especificados en el objeto ConsultaEquipoRequestDTO
          */
@@ -183,10 +180,10 @@ public class EquipoService {
         }
 
         /**
-         * Cambia el estado de un equipo existente en la base de datos. El método primero verifica que el equipo con el ID proporcionado exista,
-         * luego actualiza su estado al nuevo valor proporcionado en el objeto EstadoEquipoRequestDTO. El método maneja específicamente la 
-         * validación del nuevo estado para asegurarse de que sea un valor válido del enum EnumEstado, y proporciona mensajes de error claros
-         *  en caso de que el equipo no se encuentre o el nuevo estado no sea válido.
+         * Cambia el estado de un equipo existente en la base de datos. Primero verifica que el equipo exista,
+         * luego actualiza su estado al nuevo valor proporcionado en el objeto EstadoEquipoRequestDTO.
+         * Maneja la validación del nuevo estado para asegurarse de que sea un valor válido del enum EnumEstado,
+         * y proporciona mensajes de error claros en caso de que el equipo no se encuentre o el nuevo estado no sea válido.
          * @param id
          * @param estadoRequestDTO
          * @return MessegeGlobalDTO con un mensaje de éxito si el estado del equipo se actualizó correctamente
