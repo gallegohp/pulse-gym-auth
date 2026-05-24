@@ -51,5 +51,5 @@ security:
   jwt:
     secret-key: oMYOYPCjKGRjXEHQqcG0F/KwhgMZ7yej4cBdqeMVZsk=
     token-expiration: 3600000
-    reset-token-expiration-minutes: 1
+    reset-token-expiration-minutes: 10
     # frontend-url: http://localhost:3000
