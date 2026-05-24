@@ -18,14 +18,18 @@ import org.springframework.web.server.ServerWebExchange;
 import com.pulse_gym.lb_common.services.JwtService;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
 @RequiredArgsConstructor
 @Component
-public class JwtValidationFilter implements GlobalFilter, Ordered{
-    
+@Slf4j
+public class JwtValidationFilter implements GlobalFilter, Ordered {
+
+    /** Servicio de Jwt */
     private final JwtService jwtService;
 
+    /** Valida el JWT y agrega los datos del usuario a los headers de la petición */
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         String path = exchange.getRequest().getURI().getPath();
@@ -45,17 +49,17 @@ public class JwtValidationFilter implements GlobalFilter, Ordered{
         }
 
         Long userId = jwtService.extractUserId(token);
-        String rol = jwtService.extractRol(token);  
+        String rol = jwtService.extractRol(token);
         String username = jwtService.extractUsername(token);
-        
+
         System.out.println("userId: " + userId);
         System.out.println("rol: " + rol);
         System.out.println("username: " + username);
 
         ServerHttpRequest mutatedRequest = exchange.getRequest().mutate()
                 .header("X-User-Id", userId != null ? userId.toString() : "")
-                .header("X-User-Name", username != null ? username : "") 
-                .header("X-User-Rol", rol != null ? rol : "") 
+                .header("X-User-Name", username != null ? username : "")
+                .header("X-User-Rol", rol != null ? rol : "")
                 .build();
 
         ServerWebExchange mutatedExchange = exchange.mutate()
@@ -65,12 +69,27 @@ public class JwtValidationFilter implements GlobalFilter, Ordered{
         return chain.filter(mutatedExchange);
     }
 
+    /**
+     * Verifica si la ruta solicitada es pública (no requiere autenticación)
+     * 
+     * @param path Ruta de la petición HTTP
+     * @return true si la ruta es pública, false si requiere autenticación
+     */
     private boolean isPublicPath(String path) {
-        return path.startsWith("/pg-ms-auth/auth/login") 
+        return path.startsWith("/pg-ms-auth/auth/login")
                 || path.startsWith("/pg-ms-auth/auth/register")
-                || path.startsWith("/pg-ms-auth/auth/refresh");
+                || path.startsWith("/pg-ms-auth/auth/refresh")
+                || path.startsWith("/pg-ms-auth/auth/forgot-password")
+                || path.startsWith("/pg-ms-auth/auth/reset-password");
     }
 
+    /**
+     * Retorna una respuesta de error 401 (No autorizado)
+     * 
+     * @param exchange Intercambio HTTP que contiene la respuesta
+     * @param message  Mensaje de error que se envía al cliente
+     * @return Mono con la respuesta de error en formato JSON
+     */
     private Mono<Void> unauthorized(ServerWebExchange exchange, String message) {
         exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
         exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
@@ -78,7 +97,8 @@ public class JwtValidationFilter implements GlobalFilter, Ordered{
                 .wrap(("{\"error\": \"" + message + "\"}").getBytes(StandardCharsets.UTF_8));
         return exchange.getResponse().writeWith(Mono.just(buffer));
     }
-    
+
+    /** Prioridad más alta para ejecutar el filtro primero */
     @Override
     public int getOrder() {
         return Ordered.HIGHEST_PRECEDENCE;
