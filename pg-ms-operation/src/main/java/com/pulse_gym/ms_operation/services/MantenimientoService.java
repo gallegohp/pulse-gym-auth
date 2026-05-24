@@ -1,7 +1,11 @@
 package com.pulse_gym.ms_operation.services;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Service;
 
+import com.pulse_gym.lb_common.dto.HistorialMantenimientoDTO;
 import com.pulse_gym.lb_common.dto.MantenimientoRequestDTO;
 import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
 import com.pulse_gym.lb_common.entity.operation.Equipo;
@@ -25,6 +29,13 @@ public class MantenimientoService {
 
     private final MantenimientoRepository mantenimientoRepository;
 
+    /**
+     * Registra un nuevo mantenimiento en el sistema. Primero verifica que el proveedor y el equipo existan.
+     * Luego, convierte el tipo de mantenimiento a su representación enum y crea un nuevo objeto Mantenimiento.
+     * Finalmente, guarda el mantenimiento en la base de datos.
+     * @param mantenimientoRequestDTO
+     * @return MessegeGlobalDTO con el resultado del registro
+     */
     public MessegeGlobalDTO registrarMantenimiento(MantenimientoRequestDTO mantenimientoRequestDTO) {
 
         Proveedor proveedor = null;
@@ -62,6 +73,54 @@ public class MantenimientoService {
         mantenimientoRepository.save(mantenimiento);
 
         return new MessegeGlobalDTO("Mantenimiento registrado exitosamente");
+    }
+
+    public List<HistorialMantenimientoDTO> obtenerHistorialPorEquipo(Long idEquipo) {
+
+        Equipo equipo = equipoRepository.findById(idEquipo)
+                .orElseThrow(() -> new RuntimeException("Equipo no encontrado con ID: " + idEquipo));
+
+        List<Mantenimiento> mantenimientos = mantenimientoRepository
+                .findByEquipoIdEquipoOrderByFechaServicioDesc(idEquipo);
+
+        if (mantenimientos.isEmpty()) {
+            throw new RuntimeException("El equipo '" + equipo.getNombre() + "' no tiene registros de mantenimiento");
+        }
+
+        return mantenimientos.stream()
+                .map(this::convertirAHistorialDTO)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Convierte un objeto Mantenimiento a un objeto HistorialMantenimientoDTO.
+     * @param mantenimiento
+     * @return HistorialMantenimientoDTO con los datos del mantenimiento
+     */
+    private HistorialMantenimientoDTO convertirAHistorialDTO(Mantenimiento mantenimiento) {
+        HistorialMantenimientoDTO dto = new HistorialMantenimientoDTO();
+
+        // Mapeo básico (copiar campos simples)
+        dto.setIdMantenimiento(mantenimiento.getIdMantenimiento());
+        dto.setFechaServicio(mantenimiento.getFechaServicio());
+        dto.setDescripcion(mantenimiento.getDescripcion());
+        dto.setCosto(mantenimiento.getCosto());
+        dto.setTecnicoResponsable(mantenimiento.getTecnicoResponsable());
+        dto.setProximoMantenimiento(mantenimiento.getProximoMantenimiento());
+
+        // Mapeo del tipo (Enum a String)
+        if (mantenimiento.getTipo() != null) {
+            dto.setTipo(mantenimiento.getTipo().name()); // CORRECTIVO, PREVENTIVO, etc.
+        }
+
+        // Mapeo de relaciones: Proveedor (solo el nombre)
+        if (mantenimiento.getProveedor() != null) {
+            dto.setProveedorNombre(mantenimiento.getProveedor().getNombreEmpresa());
+        } else {
+            dto.setProveedorNombre("Interno"); // Mantenimiento sin proveedor externo
+        }
+
+        return dto;
     }
 
 }
