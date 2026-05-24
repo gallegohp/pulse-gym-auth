@@ -19,16 +19,32 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class UsuarioPerfilService {
 
+    /**
+     * Repositorio para operaciones de base de datos de usuarios
+     */
     private final UsuarioPerfilRepository usuarioRepository;
 
-private void validateAdminRole(String currentRole) {
-    System.out.println("DEBUG - Validando rol. Rol actual: '" + currentRole + "'");
-    if (currentRole == null || !"administrador".equals(currentRole)) {
-        throw new SecurityAuthorizationException(
-            "Acceso denegado. Se requiere rol de administrador. Rol actual: " + currentRole);
+    /**
+     * Valida que el usuario actual tenga rol de administrador
+     * 
+     * @param currentRole Rol del usuario que hace la petición
+     * @throws SecurityAuthorizationException Si el rol no es administrador
+     */
+    private void validateAdminRole(String currentRole) {
+        if (currentRole == null || !"administrador".equals(currentRole)) {
+            throw new SecurityAuthorizationException(
+                    "Acceso denegado. Se requiere rol de administrador. Rol actual: " + currentRole);
+        }
     }
-}
 
+    /**
+     * Crea un nuevo usuario en el sistema
+     * 
+     * @param requestDTO Datos completos del usuario a crear
+     * @param userRol    Rol del usuario autenticado (debe ser administrador)
+     * @return Mensaje de confirmación
+     * @throws RuntimeException Si el documento de identidad ya existe
+     */
     @Transactional
     public MessegeGlobalDTO crearUsuario(UsuarioPerfilRequestDTO requestDTO, String userRol) {
         validateAdminRole(userRol);
@@ -62,6 +78,12 @@ private void validateAdminRole(String currentRole) {
         return new MessegeGlobalDTO("Usuario creado ¡Correctamente!");
     }
 
+    /**
+     * Obtiene la lista de todos los usuarios registrados
+     * 
+     * @param userRol Rol del usuario autenticado (debe ser administrador)
+     * @return Lista de DTOs con los datos completos de cada usuario
+     */
     @Transactional(readOnly = true)
     public List<UsuarioPerfilResponseDTO> obtenerTodosLosUsuarios(String userRol) {
         validateAdminRole(userRol);

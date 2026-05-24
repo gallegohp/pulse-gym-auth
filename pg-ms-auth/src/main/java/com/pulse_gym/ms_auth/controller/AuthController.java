@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
+import com.pulse_gym.lb_common.dto.RestablecerContraseña;
+import com.pulse_gym.lb_common.dto.ContrasenaOlvidad;
 import com.pulse_gym.lb_common.dto.HttpGlobalResponse;
 import com.pulse_gym.lb_common.dto.JwtDTO;
 import com.pulse_gym.ms_auth.dto.LoginRequestDTO;
@@ -16,19 +18,19 @@ import com.pulse_gym.ms_auth.dto.RegisterRequestDTO;
 import com.pulse_gym.ms_auth.services.AuthService;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/auth")
 public class AuthController {
-    
 
     private final AuthService authService;
 
-
     /**
      * Registro de usuario
+     * 
      * @param requestDTO
      * @return ResponseEntity<RegisterResponseDTO>
      */
@@ -42,7 +44,7 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
     }
-    
+
     /**
      * Inicio de sesion del usuario
      * 
@@ -83,6 +85,43 @@ public class AuthController {
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
+    }
+
+    /**
+     * Endpoint para solicitar recuperación de contraseña
+     * 
+     * @param requestDTO Contiene el username del usuario
+     * @return Mensaje de confirmación
+     */
+    @PostMapping("/forgot-password")
+    public ResponseEntity<MessegeGlobalDTO> forgotPassword(@Valid @RequestBody ContrasenaOlvidad requestDTO) {
+        try {
+            MessegeGlobalDTO response = authService.forgotPassword(requestDTO);
+            return ResponseEntity.status(HttpStatus.OK).body(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new MessegeGlobalDTO("Error al procesar la solicitud"));
+        }
+    }
+
+    /**
+     * Endpoint para restablecer la contraseña con token
+     * 
+     * @param requestDTO Contiene token y nueva contraseña
+     * @return Mensaje de éxito o error
+     */
+    @PostMapping("/reset-password")
+    public ResponseEntity<MessegeGlobalDTO> resetPassword(@Valid @RequestBody RestablecerContraseña requestDTO) {
+        try {
+            MessegeGlobalDTO response = authService.resetPassword(requestDTO);
+            HttpStatus status = response.getMessage().contains("exitosamente") ? HttpStatus.OK : HttpStatus.BAD_REQUEST;
+            return ResponseEntity.status(status).body(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new MessegeGlobalDTO("Error al restablecer la contraseña"));
         }
     }
 }
