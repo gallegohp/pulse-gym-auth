@@ -13,7 +13,7 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
-  cloud: 
+  cloud:
     consul:
       host: consul
       port: 8500
@@ -22,7 +22,22 @@ spring:
         health-check-path: /actuator/health
         prefer-ip-address: false
         instance-id: ${spring.application.name}:${random.value}
-
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: juanjosemorenobenavides207@gmail.com # Tu email de Gmail
+    password: exckanzbhayznpjm # NO es tu contraseña normal
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          timeout: 5000
+          connectiontimeout: 5000
+          writetimeout: 5000
+    protocol: smtp
+    default-encoding: UTF-8
 management:
   endpoints:
     web:
@@ -36,4 +51,5 @@ security:
   jwt:
     secret-key: oMYOYPCjKGRjXEHQqcG0F/KwhgMZ7yej4cBdqeMVZsk=
     token-expiration: 3600000
-
+    reset-token-expiration-minutes: 1
+    # frontend-url: http://localhost:3000

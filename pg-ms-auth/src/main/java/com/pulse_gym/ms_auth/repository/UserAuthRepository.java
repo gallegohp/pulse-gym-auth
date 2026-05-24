@@ -8,7 +8,9 @@ import org.springframework.stereotype.Repository;
 import com.pulse_gym.lb_common.entity.auth.User;
 
 @Repository
-public interface UserAuthRepository  extends JpaRepository<User, Long> {
+public interface UserAuthRepository extends JpaRepository<User, Long> {
+
     Optional<User> findByEmail(String email);
 
+    Optional<User> findByUsername(String username);
 }
