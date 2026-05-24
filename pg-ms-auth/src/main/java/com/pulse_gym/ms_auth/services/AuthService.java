@@ -42,7 +42,7 @@ public class AuthService {
 
     /** Servicio de Restableer la contraseña */
     private final PasswordResetTokenRepository tokenRepository;
-    @Value("${app.security.reset-token-expiration-minutes:1}")
+    @Value("${app.security.reset-token-expiration-minutes:10}")
     private long tokenExpirationMinutes;
 
     /**
