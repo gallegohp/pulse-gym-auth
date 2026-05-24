@@ -47,7 +47,7 @@ public class Mantenimiento {
      * Proveedor que realiza el mantenimiento (puede ser null si es un mantenimiento interno)
      */
     @ManyToOne
-    @JoinColumn(name = "id_proveedor")
+    @JoinColumn(name = "id_proveedor", nullable = true)
     private Proveedor proveedor;
 
     /**

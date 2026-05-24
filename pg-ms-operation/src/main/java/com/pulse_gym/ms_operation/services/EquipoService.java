@@ -2,16 +2,13 @@ package com.pulse_gym.ms_operation.services;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Predicate;
 
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import com.pulse_gym.lb_common.dto.ConsultaEquipoRequestDTO;
 import com.pulse_gym.lb_common.dto.EquipoRequestDTO;
-import com.pulse_gym.lb_common.dto.EquipoResponseDTO;
 import com.pulse_gym.lb_common.dto.EstadoEquipoRequestDTO;
-import com.pulse_gym.lb_common.dto.HttpGlobalResponse;
 import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
 import com.pulse_gym.lb_common.entity.operation.Equipo;
 import com.pulse_gym.lb_common.entity.operation.Proveedor;
@@ -22,7 +19,6 @@ import com.pulse_gym.ms_operation.repository.ProveedorRepository;
 import com.pulse_gym.ms_operation.repository.SedeRepository;
 
 import io.micrometer.common.util.StringUtils;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @Service
