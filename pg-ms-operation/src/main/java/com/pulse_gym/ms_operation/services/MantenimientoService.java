@@ -28,7 +28,7 @@ public class MantenimientoService {
     private final EquipoRepository equipoRepository;
 
     private final MantenimientoRepository mantenimientoRepository;
-
+    
     /**
      * Registra un nuevo mantenimiento en el sistema. Primero verifica que el proveedor y el equipo existan.
      * Luego, convierte el tipo de mantenimiento a su representación enum y crea un nuevo objeto Mantenimiento.

@@ -57,7 +57,7 @@ public class Mantenimiento {
     private LocalDate fechaServicio;
 
     /**
-     * Tipo de mantenimiento realizado (preventivo, correctivo, etc.)
+     * Tipo de mantenimiento realizado (preventivo, correctivo)
      */
     @Enumerated(EnumType.STRING)
     @Column(name = "tipo", nullable = false)
@@ -66,7 +66,7 @@ public class Mantenimiento {
     /**
      * Descripción detallada del mantenimiento realizado
      */
-    @Column(name = "descripcion", columnDefinition = "TEXT")
+    @Column(name = "descripcion", nullable = true ,columnDefinition = "TEXT")
     private String descripcion;
 
     /**
@@ -78,12 +78,12 @@ public class Mantenimiento {
     /**
      * Técnico responsable del mantenimiento
      */
-    @Column(name = "tecnico_responsable", length = 100)
+    @Column(name = "tecnico_responsable",nullable = true ,length = 100)
     private String tecnicoResponsable;
 
     /**
      * Fecha estimada del próximo mantenimiento (puede ser null si no se ha programado)
      */
-    @Column(name = "proximo_mantenimiento")
+    @Column(name = "proximo_mantenimiento", nullable = true)
     private LocalDate proximoMantenimiento;
 }

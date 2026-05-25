@@ -4,6 +4,8 @@ import java.time.LocalDate;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.pulse_gym.lb_common.enums.EnumEstado;
+import com.pulse_gym.lb_common.enums.EnumEstadoReporte;
+import com.pulse_gym.lb_common.enums.EnumUrgencia;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -100,4 +102,24 @@ public class Equipo {
     @Enumerated(EnumType.STRING)
     @Column(name = "estado")
     private EnumEstado estado;
+    
+    /**    
+     * Urgencia de la falla reportada
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "urgencia_falla")
+    private EnumUrgencia urgenciaFalla = EnumUrgencia.NINGUNA;
+
+    /**
+     * Descripción de la falla
+     */
+    @Column(name = "descripcion_falla", columnDefinition = "TEXT")
+    private String descripcionFalla;
+
+    /**
+     * Estado del reporte de falla
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "estado_reporte")
+    private EnumEstadoReporte estadoReporte;
 }
