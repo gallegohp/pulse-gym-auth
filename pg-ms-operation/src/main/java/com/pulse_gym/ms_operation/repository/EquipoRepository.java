@@ -12,6 +12,11 @@ import com.pulse_gym.lb_common.entity.operation.Equipo;
 public interface EquipoRepository extends JpaRepository<Equipo, Long>, 
                                         JpaSpecificationExecutor<Equipo> {
     
+    /**
+     * Busca un equipo por el número de serie
+     * @param numeroSerie
+     * @return Optional<Equipo> con el equipo encontrado
+     */
     Optional<Equipo> findByNumeroSerie(String numeroSerie);
     
 } 

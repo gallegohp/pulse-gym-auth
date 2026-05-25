@@ -9,18 +9,34 @@ import java.util.List;
 
 @Repository
 public interface ProveedorRepository extends JpaRepository<Proveedor, Long>, 
-                                             JpaSpecificationExecutor<Proveedor> {
+                                            JpaSpecificationExecutor<Proveedor> {
     
-    // Buscar por nombre de empresa (parcial, case insensitive)
+    /**
+     * Busca un proveedor por el nombre de empresa (parcial, case insensitive)
+     * @param nombreEmpresa
+     * @return List<Proveedor> con los proveedores encontrados
+     */
     List<Proveedor> findByNombreEmpresaContainingIgnoreCase(String nombreEmpresa);
     
-    // Buscar por email
+    /**
+     * Busca un proveedor por el email
+     * @param email
+     * @return List<Proveedor> con los proveedores encontrados
+     */
     List<Proveedor> findByEmail(String email);
     
-    // Buscar por teléfono
+    /**
+     * Busca un proveedor por el teléfono
+     * @param telefono
+     * @return List<Proveedor> con los proveedores encontrados
+     */
     List<Proveedor> findByTelefono(String telefono);
     
-    // Verificar si existe por email
+    /**
+     * Verifica si existe un proveedor por el email
+     * @param email
+     * @return boolean true si existe, false si no existe
+     */
     boolean existsByEmail(String email);
     
 }
