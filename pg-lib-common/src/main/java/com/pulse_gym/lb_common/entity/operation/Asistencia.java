@@ -57,7 +57,7 @@ public class Asistencia {
     private LocalDateTime fechaHoraEntrada;
 
     /**
-     * Fecha y hora de salida del usuario del gimnasio (puede ser null si aún no ha salido)
+     * Tipo de acceso (entrada, salida, etc.)
      */
     @Enumerated(EnumType.STRING)
     @Column(name = "tipo_acceso", nullable = false)

@@ -24,6 +24,12 @@ spring:
         prefer-ip-address: false
         instance-id: ${spring.application.name}:${random.value}
 
+
+    
+  membresias:
+    url: http://pg-ms-membresia:8083  # Cuando lo implementes
+    # url: http://localhost:8083
+
 management:
   endpoints:
     web:
@@ -37,3 +43,7 @@ security:
   jwt:
     secret-key: oMYOYPCjKGRjXEHQqcG0F/KwhgMZ7yej4cBdqeMVZsk=
     token-expiration: 3600000
+
+# Modo prueba (para desarrollo sin microservicios)
+modo:
+  prueba: true  # Cambiar a false en producción
