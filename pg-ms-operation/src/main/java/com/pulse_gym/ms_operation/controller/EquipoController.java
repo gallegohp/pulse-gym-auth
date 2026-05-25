@@ -144,9 +144,13 @@ public class EquipoController {
         }
     }
 
-    // EquipoController.java - Agregar estos endpoints
-
-    // 1. Reportar falla
+    /**
+     * Endpoint para reportar una falla en un equipo. Recibe el ID del equipo como
+     * parte de la URL y un objeto ReporteFallaDTO con los datos de la falla en el cuerpo de la solicitud.
+     * @param idEquipo
+     * @param request
+     * @return ResponseEntity<Map<String, Object>> con el resultado del reporte de la falla
+     */
     @PostMapping("/{idEquipo}/reportar-falla")
     public ResponseEntity<Map<String, Object>> reportarFalla(
             @PathVariable Long idEquipo,
@@ -168,7 +172,13 @@ public class EquipoController {
         }
     }
 
-    // 2. Actualizar estado del reporte
+    /**
+     * Endpoint para actualizar el estado de un reporte de falla. Recibe el ID del equipo como
+     * parte de la URL y un objeto ActualizarEstadoReporteDTO con el nuevo estado en el cuerpo de la solicitud.
+     * @param idEquipo
+     * @param request
+     * @return ResponseEntity<Map<String, Object>> con el resultado de la actualización del estado del reporte de falla
+     */
     @PatchMapping("/{idEquipo}/estado-reporte")
     public ResponseEntity<Map<String, Object>> actualizarEstadoReporte(
             @PathVariable Long idEquipo,
@@ -190,7 +200,13 @@ public class EquipoController {
         }
     }
 
-    // 3. Consultar reportes de falla
+    /**
+     * Endpoint para consultar reportes de falla. Recibe el ID del equipo, el estado y la urgencia como parte de la URL y los filtros en el cuerpo de la solicitud.
+     * @param idEquipo
+     * @param estado
+     * @param urgencia
+     * @return ResponseEntity<Map<String, Object>> con los reportes de falla encontrados
+     */
     @GetMapping("/reportes-falla")
     public ResponseEntity<Map<String, Object>> consultarReportesFalla(
             @RequestParam(required = false) Long idEquipo,
