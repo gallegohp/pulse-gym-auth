@@ -6,18 +6,22 @@ import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.pulse_gym.lb_common.dto.ActualizarEstadoReporteDTO;
 import com.pulse_gym.lb_common.dto.ConsultaEquipoRequestDTO;
 import com.pulse_gym.lb_common.dto.EquipoRequestDTO;
 import com.pulse_gym.lb_common.dto.EstadoEquipoRequestDTO;
 import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
+import com.pulse_gym.lb_common.dto.ReporteFallaDTO;
 import com.pulse_gym.lb_common.entity.operation.Equipo;
 import com.pulse_gym.ms_operation.services.EquipoService;
 
@@ -123,7 +127,8 @@ public class EquipoController {
      * 
      * @param id
      * @param estadoRequestDTO
-     * @return ResponseEntity<MessegeGlobalDTO> con el resultado del cambio de estado
+     * @return ResponseEntity<MessegeGlobalDTO> con el resultado del cambio de
+     *         estado
      */
     @PatchMapping("/{id}/estado")
     public ResponseEntity<MessegeGlobalDTO> cambiarEstadoEquipo(
@@ -136,6 +141,83 @@ public class EquipoController {
             e.printStackTrace();
             MessegeGlobalDTO dto = new MessegeGlobalDTO(e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(dto);
+        }
+    }
+
+    // EquipoController.java - Agregar estos endpoints
+
+    // 1. Reportar falla
+    @PostMapping("/{idEquipo}/reportar-falla")
+    public ResponseEntity<Map<String, Object>> reportarFalla(
+            @PathVariable Long idEquipo,
+            @Valid @RequestBody ReporteFallaDTO request) {
+        try {
+            MessegeGlobalDTO response = equipoService.reportarFalla(idEquipo, request);
+
+            Map<String, Object> respuesta = new HashMap<>();
+            respuesta.put("success", true);
+            respuesta.put("message", response.getMessage());
+
+            return ResponseEntity.ok(respuesta);
+
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        }
+    }
+
+    // 2. Actualizar estado del reporte
+    @PatchMapping("/{idEquipo}/estado-reporte")
+    public ResponseEntity<Map<String, Object>> actualizarEstadoReporte(
+            @PathVariable Long idEquipo,
+            @Valid @RequestBody ActualizarEstadoReporteDTO request) {
+        try {
+            MessegeGlobalDTO response = equipoService.actualizarEstadoReporte(idEquipo, request);
+
+            Map<String, Object> respuesta = new HashMap<>();
+            respuesta.put("success", true);
+            respuesta.put("message", response.getMessage());
+
+            return ResponseEntity.ok(respuesta);
+
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        }
+    }
+
+    // 3. Consultar reportes de falla
+    @GetMapping("/reportes-falla")
+    public ResponseEntity<Map<String, Object>> consultarReportesFalla(
+            @RequestParam(required = false) Long idEquipo,
+            @RequestParam(required = false) String estado,
+            @RequestParam(required = false) String urgencia) {
+        try {
+            List<Equipo> equipos = equipoService.consultarReportesFalla(idEquipo, estado, urgencia);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+
+            if (equipos.isEmpty()) {
+                response.put("message", "No se encontraron reportes de falla con los criterios especificados");
+            } else {
+                response.put("message", "Consulta exitosa");
+            }
+
+            response.put("count", equipos.size());
+            response.put("data", equipos);
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
 
