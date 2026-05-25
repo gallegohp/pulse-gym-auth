@@ -10,7 +10,19 @@ import com.pulse_gym.lb_common.entity.auth.User;
 @Repository
 public interface UserAuthRepository extends JpaRepository<User, Long> {
 
+    /**
+     * Busca un usuario por su email.
+     *
+     * @param email El email del usuario
+     * @return El usuario si existe, o vacío si no se encuentra
+     */
     Optional<User> findByEmail(String email);
 
+    /**
+     * Busca un usuario por su nombre de usuario.
+     *
+     * @param username El nombre de usuario
+     * @return El usuario si existe, o vacío si no se encuentra
+     */
     Optional<User> findByUsername(String username);
 }

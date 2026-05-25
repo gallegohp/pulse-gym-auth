@@ -9,13 +9,10 @@ import com.pulse_gym.lb_common.entity.user.UsuarioPerfil;
 public interface UsuarioPerfilRepository extends JpaRepository<UsuarioPerfil, Long> {
 
     /**
-     * Realiza una consulta en la base de datos para buscar un usuario específico
-     * mediante su número de documento de identidad.
+     * Busca un usuario por su documento de identidad.
      *
-     * @param documentoIdentidad El número de documento único que se desea buscar.
-     * @return Un {@link Optional} que contiene el {@link UsuarioPerfil} si es
-     *         encontrado,
-     *         o un contenedor vacío si no existe ningún registro con ese documento.
+     * @param documentoIdentidad El documento del usuario
+     * @return El usuario si existe, o vacío si no se encuentra
      */
     Optional<UsuarioPerfil> findByDocumentoIdentidad(String documentoIdentidad);
 
