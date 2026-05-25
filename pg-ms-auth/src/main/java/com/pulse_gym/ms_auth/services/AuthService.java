@@ -2,7 +2,6 @@ package com.pulse_gym.ms_auth.services;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -46,9 +45,22 @@ public class AuthService {
     private long tokenExpirationMinutes;
 
     /**
+     * Genera un código OTP de 4 dígitos
+     * 
+     * @return Código OTP de 4 dígitos
+     */
+    private String generateOTP() {
+        int otp = 1000 + (int) (Math.random() * 9000);
+        return String.valueOf(otp);
+    }
+
+    /**
      * Registra un nuevo usuario en el sistema
-     * @param requestDTO Datos del usuario a registrar (email, password, username, rol, estado)
-     * @return Mensaje de éxito si se registró correctamente, o error si el email ya existe
+     * 
+     * @param requestDTO Datos del usuario a registrar (email, password, username,
+     *                   rol, estado)
+     * @return Mensaje de éxito si se registró correctamente, o error si el email ya
+     *         existe
      */
     public MessegeGlobalDTO register(RegisterRequestDTO requestDTO) {
 
@@ -113,7 +125,7 @@ public class AuthService {
     }
 
     /**
-     * Solicita recuperación de contraseña
+     * Solicita recuperación de contraseña con 4 digitos
      * 
      * @param requestDTO Contiene el username del usuario
      * @return Mensaje de éxito o error
@@ -130,7 +142,7 @@ public class AuthService {
 
         tokenRepository.deleteByUserId(user.getId());
 
-        String token = UUID.randomUUID().toString();
+        String token = generateOTP();
 
         PasswordResetToken resetToken = new PasswordResetToken();
         resetToken.setToken(token);
