@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -26,17 +27,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class UsuarioPerfilController {
 
-    /**
-     *  Inyeccion de UsuarioPerfilService
-     */
     private final UsuarioPerfilService usuarioService;
     
-    /**
-     * Metodo para crear un usuario nuevo
-     * @param requestDTO
-     * @param userRol
-     * @return ResponseEntity<MessegeGlobalDTO>
-     */
     @PostMapping
     public ResponseEntity<MessegeGlobalDTO> crearUsuario(
             @Valid @RequestBody UsuarioPerfilRequestDTO requestDTO,
@@ -52,15 +44,9 @@ public class UsuarioPerfilController {
         }
     }
 
-    /**
-     * Metodo para obtener la lista de todos los usuarios registrados en el sistema.
-     * @param userRol
-     * @return ResponseEntity<List<UsuarioPerfilResponseDTO>>
-     */
     @GetMapping
     public ResponseEntity<List<UsuarioPerfilResponseDTO>> obtenerTodosLosUsuarios(
             @RequestHeader(value = "X-User-Rol", required = false) String userRol) {
-
         try {
             List<UsuarioPerfilResponseDTO> usuarios = usuarioService.obtenerTodosLosUsuarios(userRol);
             return ResponseEntity.status(HttpStatus.OK).body(usuarios);
@@ -69,6 +55,22 @@ public class UsuarioPerfilController {
         } catch (Exception e) {
             e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al obtener la lista de usuarios", e);
+        }
+    }
+
+    /**
+     * ENDPOINT NUEVO: Obtener usuario por ID (sin autenticación para comunicación entre microservicios)
+     * GET /api/v1/usuarios/{idUsuario}
+     */
+    @GetMapping("/{idUsuario}")
+    public ResponseEntity<UsuarioPerfilResponseDTO> obtenerUsuarioPorId(@PathVariable Long idUsuario) {
+        try {
+            UsuarioPerfilResponseDTO usuario = usuarioService.obtenerUsuarioPorId(idUsuario);
+            return ResponseEntity.ok(usuario);
+        } catch (RuntimeException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al obtener el usuario", e);
         }
     }
 }

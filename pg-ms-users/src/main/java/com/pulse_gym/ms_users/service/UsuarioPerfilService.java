@@ -19,16 +19,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class UsuarioPerfilService {
 
-    /**
-     * Inyeccion de UsuarioPerfilRepository para manejar las operaciones de base de datos relacionadas con los perfiles de usuario
-     */
     private final UsuarioPerfilRepository usuarioRepository;
 
-    /**
-     * Valida que el rol del usuario actual sea "administrador". Si el rol es nulo o no es "administrador", lanza una excepción de autorización de seguridad.
-     * @param currentRole el rol del usuario actual extraído del encabezado de la solicitud
-     * @throws SecurityAuthorizationException si el rol es nulo o no es "administrador"
-     */
     private void validateAdminRole(String currentRole) {
         System.out.println("DEBUG - Validando rol. Rol actual: '" + currentRole + "'");
         if (currentRole == null || !"administrador".equals(currentRole)) {
@@ -37,13 +29,6 @@ public class UsuarioPerfilService {
         }
     }
 
-    /**
-     * Crea un nuevo usuario en el sistema. Primero valida que el usuario tenga el rol de administrador, luego verifica que el número de documento de 
-     * identidad no exista ya en la base de datos.
-     * @param requestDTO
-     * @param userRol
-     * @return MessegeGlobalDTO con un mensaje de éxito si el usuario se creó correctamente
-     */
     @Transactional
     public MessegeGlobalDTO crearUsuario(UsuarioPerfilRequestDTO requestDTO, String userRol) {
         validateAdminRole(userRol);
@@ -77,11 +62,6 @@ public class UsuarioPerfilService {
         return new MessegeGlobalDTO("Usuario creado ¡Correctamente!");
     }
 
-    /**
-     * Obtiene la lista de todos los usuarios registrados en el sistema. Primero valida que el usuario tenga el rol de administrador
-     * @param userRol
-     * @return ResponseEntity<List<UsuarioPerfilResponseDTO>> 
-     */
     @Transactional(readOnly = true)
     public List<UsuarioPerfilResponseDTO> obtenerTodosLosUsuarios(String userRol) {
         validateAdminRole(userRol);
@@ -110,5 +90,38 @@ public class UsuarioPerfilService {
             dto.setIdSede(usuario.getIdSede());
             return dto;
         }).collect(Collectors.toList());
+    }
+
+    /**
+     * NUEVO MÉTODO: Obtener usuario por ID (sin validación de rol)
+     */
+    @Transactional(readOnly = true)
+    public UsuarioPerfilResponseDTO obtenerUsuarioPorId(Long idUsuario) {
+        UsuarioPerfil usuario = usuarioRepository.findById(idUsuario)
+            .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + idUsuario));
+        
+        UsuarioPerfilResponseDTO dto = new UsuarioPerfilResponseDTO();
+        dto.setIdUsuario(usuario.getIdUsuario());
+        dto.setRol(usuario.getRol());
+        dto.setNombre(usuario.getNombre());
+        dto.setApellido(usuario.getApellido());
+        dto.setTelefono(usuario.getTelefono());
+        dto.setDocumentoIdentidad(usuario.getDocumentoIdentidad());
+        dto.setFotoUrl(usuario.getFotoUrl());
+        dto.setFechaContratacion(usuario.getFechaContratacion());
+        dto.setEspecialidad(usuario.getEspecialidad());
+        dto.setAnosExperiencia(usuario.getAnosExperiencia());
+        dto.setHorarioDisponibilidad(usuario.getHorarioDisponibilidad());
+        dto.setTarifaHora(usuario.getTarifaHora());
+        dto.setTurno(usuario.getTurno());
+        dto.setFechaNacimiento(usuario.getFechaNacimiento());
+        dto.setContactoEmergenciaNombre(usuario.getContactoEmergenciaNombre());
+        dto.setContactoEmergenciaTelefono(usuario.getContactoEmergenciaTelefono());
+        dto.setObjetivoPrincipal(usuario.getObjetivoPrincipal());
+        dto.setNivelExperiencia(usuario.getNivelExperiencia());
+        dto.setFechaRegistro(usuario.getFechaRegistro());
+        dto.setIdSede(usuario.getIdSede());
+        
+        return dto;
     }
 }
