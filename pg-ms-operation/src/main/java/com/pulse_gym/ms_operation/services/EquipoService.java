@@ -192,15 +192,7 @@ public class EquipoService {
         }
 
         /**
-         * Cambia el estado de un equipo existente en la base de datos. Primero verifica
-         * que el equipo exista,
-         * luego actualiza su estado al nuevo valor proporcionado en el objeto
-         * EstadoEquipoRequestDTO.
-         * Maneja la validación del nuevo estado para asegurarse de que sea un valor
-         * válido del enum EnumEstado,
-         * y proporciona mensajes de error claros en caso de que el equipo no se
-         * encuentre o el nuevo estado no sea válido.
-         * 
+         * Cambia el estado de un equipo existente en la base de datos.
          * @param id
          * @param estadoRequestDTO
          * @return MessegeGlobalDTO con un mensaje de éxito si el estado del equipo se
@@ -241,6 +233,12 @@ public class EquipoService {
                 }
         }
 
+        /**
+         * Reporta una falla en un equipo existente en la base de datos.
+         * @param idEquipo
+         * @param request
+         * @return MessegeGlobalDTO con un mensaje de éxito si la falla se reportó correctamente
+         */
         @Transactional
         public MessegeGlobalDTO reportarFalla(Long idEquipo, ReporteFallaDTO request) {
                 Equipo equipo = equipoRepository.findById(idEquipo)
@@ -269,7 +267,12 @@ public class EquipoService {
                 return new MessegeGlobalDTO("Falla reportada exitosamente para el equipo: " + equipo.getNombre());
         }
 
-        // 2. Actualizar estado del reporte
+        /**
+         * Actualiza el estado de un reporte de falla existente en la base de datos.
+         * @param idEquipo
+         * @param request
+         * @return MessegeGlobalDTO con un mensaje de éxito si el estado del reporte de falla se actualizó correctamente
+         */
         @Transactional
         public MessegeGlobalDTO actualizarEstadoReporte(Long idEquipo, ActualizarEstadoReporteDTO request) {
                 Equipo equipo = equipoRepository.findById(idEquipo)
@@ -305,7 +308,13 @@ public class EquipoService {
                                 estadoAnterior, nuevoEstado.name(), equipo.getNombre()));
         }
 
-        // 3. Consultar reportes de falla (con filtros)
+        /**
+         * Consulta los reportes de falla de los equipos que coinciden con los criterios de búsqueda especificados.
+         * @param idEquipo
+         * @param estado
+         * @param urgencia
+         * @return Lista de equipos que coinciden con los criterios de búsqueda
+         */
         public List<Equipo> consultarReportesFalla(Long idEquipo, String estado, String urgencia) {
                 Specification<Equipo> spec = (root, query, cb) -> {
                         List<Predicate> predicates = new ArrayList<>();
