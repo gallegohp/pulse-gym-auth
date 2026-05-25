@@ -30,327 +30,334 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class EquipoService {
-        /**
-         * Inyeccion de EquipoRepository
-         */
-        private final EquipoRepository equipoRepository;
+    /**
+     * Inyeccion de EquipoRepository
+     */
+    private final EquipoRepository equipoRepository;
 
-        /**
-         * Inyeccion de ProveedorRepository para manejar las operaciones de base de
-         * datos relacionadas con los proveedores
-         */
-        private final ProveedorRepository proveedorRepository;
+    /**
+     * Inyeccion de ProveedorRepository para manejar las operaciones de base de
+     * datos relacionadas con los proveedores
+     */
+    private final ProveedorRepository proveedorRepository;
 
-        /**
-         * Inyeccion de SedeRepository para manejar las operaciones de base de datos
-         * relacionadas con las sedes
-         */
-        private final SedeRepository sedeRepository;
+    /**
+     * Inyeccion de SedeRepository para manejar las operaciones de base de datos
+     * relacionadas con las sedes
+     */
+    private final SedeRepository sedeRepository;
 
-        /**
-         * Registra un nuevo equipo en el sistema. Primero verifica que el número de
-         * serie del equipo no exista ya en la base de datos
-         * 
-         * @param equipoRequestDTO
-         * @return MessegeGlobalDTO con un mensaje de éxito si el equipo se registró
-         *         correctamente
-         */
-        public MessegeGlobalDTO registrarEquipo(EquipoRequestDTO equipoRequestDTO) {
+    /**
+     * Registra un nuevo equipo en el sistema. Primero verifica que el número de
+     * serie del equipo no exista ya en la base de datos
+     * 
+     * @param equipoRequestDTO
+     * @return MessegeGlobalDTO con un mensaje de éxito si el equipo se registró
+     *         correctamente
+     */
+    public MessegeGlobalDTO registrarEquipo(EquipoRequestDTO equipoRequestDTO) {
 
-                if (equipoRepository.findByNumeroSerie(equipoRequestDTO.getNumeroSerie()).isPresent()) {
+        if (equipoRepository.findByNumeroSerie(equipoRequestDTO.getNumeroSerie()).isPresent()) {
 
-                        MessegeGlobalDTO response = new MessegeGlobalDTO("El número de serie ya existe");
-                        return response;
-                }
-
-                Proveedor proveedor = proveedorRepository
-                                .findById(equipoRequestDTO.getIdProveedor())
-                                .orElseThrow(() -> new RuntimeException("Proveedor no encontrado"));
-
-                Sede sede = sedeRepository
-                                .findById(equipoRequestDTO.getIdSede())
-                                .orElseThrow(() -> new RuntimeException("Sede no encontrada"));
-
-                Equipo equipo = new Equipo();
-
-                equipo.setProveedor(proveedor);
-                equipo.setSede(sede);
-
-                equipo.setNombre(equipoRequestDTO.getNombre());
-                equipo.setMarca(equipoRequestDTO.getMarca());
-                equipo.setModelo(equipoRequestDTO.getModelo());
-                equipo.setNumeroSerie(equipoRequestDTO.getNumeroSerie());
-                equipo.setFechaAdquisicion(equipoRequestDTO.getFechaAdquisicion());
-                equipo.setFechaGarantia(equipoRequestDTO.getFechaGarantia());
-                equipo.setUbicacion(equipoRequestDTO.getUbicacion());
-                equipo.setEstado(equipoRequestDTO.getEstado());
-
-                equipoRepository.save(equipo);
-
-                MessegeGlobalDTO response = new MessegeGlobalDTO("Equipo registrado correctamente");
-                return response;
+            MessegeGlobalDTO response = new MessegeGlobalDTO("El número de serie ya existe");
+            return response;
         }
 
-        /**
-         * Obtiene una lista de equipos que coinciden con los criterios de búsqueda
-         * especificados en el objeto ConsultaEquipoRequestDTO.
-         * Utiliza Specification para construir una consulta dinámica basada en los
-         * criterios de búsqueda proporcionados.
-         * 
-         * @param request
-         * @return Lista de equipos que coinciden con los criterios de búsqueda
-         *         especificados en el objeto ConsultaEquipoRequestDTO
-         */
-        public List<Equipo> obtenerEquipos(ConsultaEquipoRequestDTO request) {
-                Specification<Equipo> spec = buildSpecification(request);
-                return equipoRepository.findAll(spec);
-        }
+        Proveedor proveedor = proveedorRepository
+                .findById(equipoRequestDTO.getIdProveedor())
+                .orElseThrow(() -> new RuntimeException("Proveedor no encontrado"));
 
-        private Specification<Equipo> buildSpecification(ConsultaEquipoRequestDTO request) {
-                // root -> Entidad, query -> modificar consulta , cd - > construye WHERE
-                return (root, query, cb) -> {
-                        // Especifica el tipo jakarta.persistence.criteria.Predicate
-                        List<jakarta.persistence.criteria.Predicate> predicates = new ArrayList<>();
+        Sede sede = sedeRepository
+                .findById(equipoRequestDTO.getIdSede())
+                .orElseThrow(() -> new RuntimeException("Sede no encontrada"));
 
-                        // Búsqueda por nombre
-                        if (StringUtils.isNotBlank(request.getNombre())) {
-                                predicates.add(cb.like(cb.lower(root.get("nombre")),
-                                                "%" + request.getNombre().toLowerCase() + "%")); // % comodin ->
-                                                                                                 // contiene
-                        }
+        Equipo equipo = new Equipo();
 
-                        // Búsqueda por marca
-                        if (StringUtils.isNotBlank(request.getMarca())) {
-                                predicates.add(cb.like(cb.lower(root.get("marca")),
-                                                "%" + request.getMarca().toLowerCase() + "%"));
-                        }
+        equipo.setProveedor(proveedor);
+        equipo.setSede(sede);
 
-                        // Búsqueda por ubicación
-                        if (StringUtils.isNotBlank(request.getUbicacion())) {
-                                predicates.add(cb.like(cb.lower(root.get("ubicacion")),
-                                                "%" + request.getUbicacion().toLowerCase() + "%"));
-                        }
+        equipo.setNombre(equipoRequestDTO.getNombre());
+        equipo.setMarca(equipoRequestDTO.getMarca());
+        equipo.setModelo(equipoRequestDTO.getModelo());
+        equipo.setNumeroSerie(equipoRequestDTO.getNumeroSerie());
+        equipo.setFechaAdquisicion(equipoRequestDTO.getFechaAdquisicion());
+        equipo.setFechaGarantia(equipoRequestDTO.getFechaGarantia());
+        equipo.setUbicacion(equipoRequestDTO.getUbicacion());
+        equipo.setEstado(equipoRequestDTO.getEstado());
 
-                        // Búsqueda por estado
-                        if (StringUtils.isNotBlank(request.getEstado())) {
-                                try {
-                                        EnumEstado estadoEnum = EnumEstado.valueOf(request.getEstado().toUpperCase());
-                                        predicates.add(cb.equal(root.get("estado"), estadoEnum));
-                                } catch (IllegalArgumentException e) {
-                                        // Estado no válido
-                                }
-                        }
+        equipoRepository.save(equipo);
 
-                        // Búsqueda por sede
-                        if (request.getIdSede() != null) {
-                                predicates.add(cb.equal(root.get("sede").get("idSede"), request.getIdSede()));
-                        }
+        MessegeGlobalDTO response = new MessegeGlobalDTO("Equipo registrado correctamente");
+        return response;
+    }
 
-                        return cb.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
-                };
-        }
+    /**
+     * Obtiene una lista de equipos que coinciden con los criterios de búsqueda
+     * especificados en el objeto ConsultaEquipoRequestDTO.
+     * Utiliza Specification para construir una consulta dinámica basada en los
+     * criterios de búsqueda proporcionados.
+     * 
+     * @param request
+     * @return Lista de equipos que coinciden con los criterios de búsqueda
+     *         especificados en el objeto ConsultaEquipoRequestDTO
+     */
+    public List<Equipo> obtenerEquipos(ConsultaEquipoRequestDTO request) {
+        Specification<Equipo> spec = buildSpecification(request);
+        return equipoRepository.findAll(spec);
+    }
 
-        /**
-         * Actualiza la información de un equipo existente en la base de datos. El
-         * método
-         * primero verifica que el equipo con el ID proporcionado exista, luego
-         * actualiza
-         * 
-         * @param id
-         * @param equipoRequestDTO
-         * @return MessegeGlobalDTO con un mensaje de éxito si el equipo se actualizó
-         *         correctamente
-         */
-        public MessegeGlobalDTO actualizarEquipo(Long id, EquipoRequestDTO equipoRequestDTO) {
-                Equipo equipo = equipoRepository.findById(id)
-                                .orElseThrow(() -> new RuntimeException("Equipo no encontrado"));
+    private Specification<Equipo> buildSpecification(ConsultaEquipoRequestDTO request) {
+        // root -> Entidad, query -> modificar consulta , cd - > construye WHERE
+        return (root, query, cb) -> {
+            // Especifica el tipo jakarta.persistence.criteria.Predicate
+            List<jakarta.persistence.criteria.Predicate> predicates = new ArrayList<>();
 
-                Proveedor proveedor = proveedorRepository
-                                .findById(equipoRequestDTO.getIdProveedor())
-                                .orElseThrow(() -> new RuntimeException("Proveedor no encontrado"));
+            // Búsqueda por nombre
+            if (StringUtils.isNotBlank(request.getNombre())) {
+                predicates.add(cb.like(cb.lower(root.get("nombre")),
+                        "%" + request.getNombre().toLowerCase() + "%")); // % comodin ->
+                                                                         // contiene
+            }
 
-                Sede sede = sedeRepository
-                                .findById(equipoRequestDTO.getIdSede())
-                                .orElseThrow(() -> new RuntimeException("Sede no encontrada"));
+            // Búsqueda por marca
+            if (StringUtils.isNotBlank(request.getMarca())) {
+                predicates.add(cb.like(cb.lower(root.get("marca")),
+                        "%" + request.getMarca().toLowerCase() + "%"));
+            }
 
-                equipo.setProveedor(proveedor);
-                equipo.setSede(sede);
+            // Búsqueda por ubicación
+            if (StringUtils.isNotBlank(request.getUbicacion())) {
+                predicates.add(cb.like(cb.lower(root.get("ubicacion")),
+                        "%" + request.getUbicacion().toLowerCase() + "%"));
+            }
 
-                equipo.setNombre(equipoRequestDTO.getNombre());
-                equipo.setMarca(equipoRequestDTO.getMarca());
-                equipo.setModelo(equipoRequestDTO.getModelo());
-                equipo.setNumeroSerie(equipoRequestDTO.getNumeroSerie());
-                equipo.setFechaAdquisicion(equipoRequestDTO.getFechaAdquisicion());
-                equipo.setFechaGarantia(equipoRequestDTO.getFechaGarantia());
-                equipo.setUbicacion(equipoRequestDTO.getUbicacion());
-                equipo.setEstado(equipoRequestDTO.getEstado());
-
-                equipoRepository.save(equipo);
-
-                MessegeGlobalDTO response = new MessegeGlobalDTO("Equipo actualizado correctamente");
-                return response;
-        }
-
-        /**
-         * Cambia el estado de un equipo existente en la base de datos.
-         * @param id
-         * @param estadoRequestDTO
-         * @return MessegeGlobalDTO con un mensaje de éxito si el estado del equipo se
-         *         actualizó correctamente
-         */
-        public MessegeGlobalDTO cambiarEstadoEquipo(Long id, EstadoEquipoRequestDTO estadoRequestDTO) {
-                Equipo equipo = equipoRepository.findById(id)
-                                .orElseThrow(() -> new RuntimeException("Equipo no encontrado"));
-
+            // Búsqueda por estado
+            if (StringUtils.isNotBlank(request.getEstado())) {
                 try {
-                        String nuevoEstado = estadoRequestDTO.getEstado().toUpperCase().trim();
-
-                        EnumEstado estadoEnum;
-                        try {
-                                estadoEnum = EnumEstado.valueOf(nuevoEstado);
-                        } catch (IllegalArgumentException e) {
-                                throw new RuntimeException("Estado no válido: '" + estadoRequestDTO.getEstado() +
-                                                "'. Los valores válidos son: OPERATIVO, EN_MANTENIMIENTO, FUERA_DE_SERVICIO, RETIRADO");
-                        }
-
-                        // Guardar estado anterior para el mensaje
-                        String estadoAnterior = equipo.getEstado() != null ? equipo.getEstado().name() : "SIN_ESTADO";
-
-                        // Actualizar el estado
-                        equipo.setEstado(estadoEnum);
-                        equipoRepository.save(equipo);
-
-                        // Retornar respuesta exitosa
-                        return new MessegeGlobalDTO(String.format(
-                                        "Estado del equipo actualizado correctamente de %s a %s",
-                                        estadoAnterior,
-                                        estadoEnum.name()));
-
-                } catch (RuntimeException e) {
-                        throw e;
-                } catch (Exception e) {
-                        throw new RuntimeException("Error al actualizar el estado del equipo: " + e.getMessage());
-                }
-        }
-
-        /**
-         * Reporta una falla en un equipo existente en la base de datos.
-         * @param idEquipo
-         * @param request
-         * @return MessegeGlobalDTO con un mensaje de éxito si la falla se reportó correctamente
-         */
-        @Transactional
-        public MessegeGlobalDTO reportarFalla(Long idEquipo, ReporteFallaDTO request) {
-                Equipo equipo = equipoRepository.findById(idEquipo)
-                                .orElseThrow(() -> new RuntimeException("Equipo no encontrado con ID: " + idEquipo));
-
-                // Validar urgencia
-                EnumUrgencia urgencia;
-                try {
-                        urgencia = EnumUrgencia.valueOf(request.getUrgencia().toUpperCase());
+                    EnumEstado estadoEnum = EnumEstado.valueOf(request.getEstado().toUpperCase());
+                    predicates.add(cb.equal(root.get("estado"), estadoEnum));
                 } catch (IllegalArgumentException e) {
-                        throw new RuntimeException("Urgencia no válida. Valores: BAJA, MEDIA, ALTA, CRITICA");
+                    // Estado no válido
                 }
+            }
 
-                // Actualizar equipo con la falla
-                equipo.setUrgenciaFalla(urgencia);
-                equipo.setDescripcionFalla(request.getDescripcion());
-                equipo.setEstadoReporte(EnumEstadoReporte.PENDIENTE);
+            // Búsqueda por sede
+            if (request.getIdSede() != null) {
+                predicates.add(cb.equal(root.get("sede").get("idSede"), request.getIdSede()));
+            }
 
-                // Si la urgencia es CRITICA, cambiar estado del equipo
-                if (urgencia == EnumUrgencia.CRITICA) {
-                        equipo.setEstado(EnumEstado.MANTENIMIENTO);
-                }
+            return cb.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
+        };
+    }
 
-                equipoRepository.save(equipo);
+    /**
+     * Actualiza la información de un equipo existente en la base de datos. El
+     * método
+     * primero verifica que el equipo con el ID proporcionado exista, luego
+     * actualiza
+     * 
+     * @param id
+     * @param equipoRequestDTO
+     * @return MessegeGlobalDTO con un mensaje de éxito si el equipo se actualizó
+     *         correctamente
+     */
+    public MessegeGlobalDTO actualizarEquipo(Long id, EquipoRequestDTO equipoRequestDTO) {
+        Equipo equipo = equipoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Equipo no encontrado"));
 
-                return new MessegeGlobalDTO("Falla reportada exitosamente para el equipo: " + equipo.getNombre());
+        Proveedor proveedor = proveedorRepository
+                .findById(equipoRequestDTO.getIdProveedor())
+                .orElseThrow(() -> new RuntimeException("Proveedor no encontrado"));
+
+        Sede sede = sedeRepository
+                .findById(equipoRequestDTO.getIdSede())
+                .orElseThrow(() -> new RuntimeException("Sede no encontrada"));
+
+        equipo.setProveedor(proveedor);
+        equipo.setSede(sede);
+
+        equipo.setNombre(equipoRequestDTO.getNombre());
+        equipo.setMarca(equipoRequestDTO.getMarca());
+        equipo.setModelo(equipoRequestDTO.getModelo());
+        equipo.setNumeroSerie(equipoRequestDTO.getNumeroSerie());
+        equipo.setFechaAdquisicion(equipoRequestDTO.getFechaAdquisicion());
+        equipo.setFechaGarantia(equipoRequestDTO.getFechaGarantia());
+        equipo.setUbicacion(equipoRequestDTO.getUbicacion());
+        equipo.setEstado(equipoRequestDTO.getEstado());
+
+        equipoRepository.save(equipo);
+
+        MessegeGlobalDTO response = new MessegeGlobalDTO("Equipo actualizado correctamente");
+        return response;
+    }
+
+    /**
+     * Cambia el estado de un equipo existente en la base de datos.
+     * 
+     * @param id
+     * @param estadoRequestDTO
+     * @return MessegeGlobalDTO con un mensaje de éxito si el estado del equipo se
+     *         actualizó correctamente
+     */
+    public MessegeGlobalDTO cambiarEstadoEquipo(Long id, EstadoEquipoRequestDTO estadoRequestDTO) {
+        Equipo equipo = equipoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Equipo no encontrado"));
+
+        try {
+            String nuevoEstado = estadoRequestDTO.getEstado().toUpperCase().trim();
+
+            EnumEstado estadoEnum;
+            try {
+                estadoEnum = EnumEstado.valueOf(nuevoEstado);
+            } catch (IllegalArgumentException e) {
+                throw new RuntimeException("Estado no válido: '" + estadoRequestDTO.getEstado() +
+                        "'. Los valores válidos son: OPERATIVO, EN_MANTENIMIENTO, FUERA_DE_SERVICIO, RETIRADO");
+            }
+
+            // Guardar estado anterior para el mensaje
+            String estadoAnterior = equipo.getEstado() != null ? equipo.getEstado().name() : "SIN_ESTADO";
+
+            // Actualizar el estado
+            equipo.setEstado(estadoEnum);
+            equipoRepository.save(equipo);
+
+            // Retornar respuesta exitosa
+            return new MessegeGlobalDTO(String.format(
+                    "Estado del equipo actualizado correctamente de %s a %s",
+                    estadoAnterior,
+                    estadoEnum.name()));
+
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException("Error al actualizar el estado del equipo: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Reporta una falla en un equipo existente en la base de datos.
+     * 
+     * @param idEquipo
+     * @param request
+     * @return MessegeGlobalDTO con un mensaje de éxito si la falla se reportó
+     *         correctamente
+     */
+    @Transactional
+    public MessegeGlobalDTO reportarFalla(Long idEquipo, ReporteFallaDTO request) {
+        Equipo equipo = equipoRepository.findById(idEquipo)
+                .orElseThrow(() -> new RuntimeException("Equipo no encontrado con ID: " + idEquipo));
+
+        // Validar urgencia
+        EnumUrgencia urgencia;
+        try {
+            urgencia = EnumUrgencia.valueOf(request.getUrgencia().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Urgencia no válida. Valores: BAJA, MEDIA, ALTA, CRITICA");
         }
 
-        /**
-         * Actualiza el estado de un reporte de falla existente en la base de datos.
-         * @param idEquipo
-         * @param request
-         * @return MessegeGlobalDTO con un mensaje de éxito si el estado del reporte de falla se actualizó correctamente
-         */
-        @Transactional
-        public MessegeGlobalDTO actualizarEstadoReporte(Long idEquipo, ActualizarEstadoReporteDTO request) {
-                Equipo equipo = equipoRepository.findById(idEquipo)
-                                .orElseThrow(() -> new RuntimeException("Equipo no encontrado con ID: " + idEquipo));
+        // Actualizar equipo con la falla
+        equipo.setUrgenciaFalla(urgencia);
+        equipo.setDescripcionFalla(request.getDescripcion());
+        equipo.setEstadoReporte(EnumEstadoReporte.PENDIENTE);
 
-                // Validar estado
-                EnumEstadoReporte nuevoEstado;
+        // Si la urgencia es CRITICA, cambiar estado del equipo
+        if (urgencia == EnumUrgencia.CRITICA) {
+            equipo.setEstado(EnumEstado.MANTENIMIENTO);
+        }
+
+        equipoRepository.save(equipo);
+
+        return new MessegeGlobalDTO("Falla reportada exitosamente para el equipo: " + equipo.getNombre());
+    }
+
+    /**
+     * Actualiza el estado de un reporte de falla existente en la base de datos.
+     * 
+     * @param idEquipo
+     * @param request
+     * @return MessegeGlobalDTO con un mensaje de éxito si el estado del reporte de
+     *         falla se actualizó correctamente
+     */
+    @Transactional
+    public MessegeGlobalDTO actualizarEstadoReporte(Long idEquipo, ActualizarEstadoReporteDTO request) {
+        Equipo equipo = equipoRepository.findById(idEquipo)
+                .orElseThrow(() -> new RuntimeException("Equipo no encontrado con ID: " + idEquipo));
+
+        // Validar estado
+        EnumEstadoReporte nuevoEstado;
+        try {
+            nuevoEstado = EnumEstadoReporte.valueOf(request.getEstado().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException(
+                    "Estado no válido. Valores: PENDIENTE, EN_REVISION, EN_REPARACION, RESUELTO");
+        }
+
+        String estadoAnterior = equipo.getEstadoReporte() != null ? equipo.getEstadoReporte().name()
+                : "NINGUNO";
+        equipo.setEstadoReporte(nuevoEstado);
+
+        // Si se resuelve, limpiar la falla
+        if (nuevoEstado == EnumEstadoReporte.RESUELTO) {
+            equipo.setUrgenciaFalla(EnumUrgencia.NINGUNA);
+            equipo.setDescripcionFalla(null);
+            // Si el equipo estaba en mantenimiento por esta falla, volver a operativo
+            if (equipo.getEstado() == EnumEstado.MANTENIMIENTO) {
+                equipo.setEstado(EnumEstado.OPERATIVO);
+            }
+        }
+
+        equipoRepository.save(equipo);
+
+        return new MessegeGlobalDTO(String.format(
+                "Estado del reporte actualizado de %s a %s para el equipo: %s",
+                estadoAnterior, nuevoEstado.name(), equipo.getNombre()));
+    }
+
+    /**
+     * Consulta los reportes de falla de los equipos que coinciden con los criterios
+     * de búsqueda especificados.
+     * 
+     * @param idEquipo
+     * @param estado
+     * @param urgencia
+     * @return Lista de equipos que coinciden con los criterios de búsqueda
+     */
+    public List<Equipo> consultarReportesFalla(Long idEquipo, String estado, String urgencia) {
+        Specification<Equipo> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            // Solo equipos que tienen reportes de falla (excluir NINGUNA)
+            predicates.add(cb.notEqual(root.get("urgenciaFalla"), EnumUrgencia.NINGUNA));
+
+            // Filtro por ID de equipo
+            if (idEquipo != null) {
+                predicates.add(cb.equal(root.get("idEquipo"), idEquipo));
+            }
+
+            // Filtro por estado
+            if (estado != null && !estado.isEmpty()) {
                 try {
-                        nuevoEstado = EnumEstadoReporte.valueOf(request.getEstado().toUpperCase());
+                    EnumEstadoReporte estadoEnum = EnumEstadoReporte.valueOf(estado.toUpperCase());
+                    predicates.add(cb.equal(root.get("estadoReporte"), estadoEnum));
                 } catch (IllegalArgumentException e) {
-                        throw new RuntimeException(
-                                        "Estado no válido. Valores: PENDIENTE, EN_REVISION, EN_REPARACION, RESUELTO");
+                    // Ignorar
                 }
+            }
 
-                String estadoAnterior = equipo.getEstadoReporte() != null ? equipo.getEstadoReporte().name()
-                                : "NINGUNO";
-                equipo.setEstadoReporte(nuevoEstado);
-
-                // Si se resuelve, limpiar la falla
-                if (nuevoEstado == EnumEstadoReporte.RESUELTO) {
-                        equipo.setUrgenciaFalla(EnumUrgencia.NINGUNA);
-                        equipo.setDescripcionFalla(null);
-                        // Si el equipo estaba en mantenimiento por esta falla, volver a operativo
-                        if (equipo.getEstado() == EnumEstado.MANTENIMIENTO) {
-                                equipo.setEstado(EnumEstado.OPERATIVO);
-                        }
+            // Filtro por urgencia
+            if (urgencia != null && !urgencia.isEmpty()) {
+                try {
+                    EnumUrgencia urgenciaEnum = EnumUrgencia.valueOf(urgencia.toUpperCase());
+                    predicates.add(cb.equal(root.get("urgenciaFalla"), urgenciaEnum));
+                } catch (IllegalArgumentException e) {
+                    // Ignorar
                 }
+            }
 
-                equipoRepository.save(equipo);
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
 
-                return new MessegeGlobalDTO(String.format(
-                                "Estado del reporte actualizado de %s a %s para el equipo: %s",
-                                estadoAnterior, nuevoEstado.name(), equipo.getNombre()));
-        }
-
-        /**
-         * Consulta los reportes de falla de los equipos que coinciden con los criterios de búsqueda especificados.
-         * @param idEquipo
-         * @param estado
-         * @param urgencia
-         * @return Lista de equipos que coinciden con los criterios de búsqueda
-         */
-        public List<Equipo> consultarReportesFalla(Long idEquipo, String estado, String urgencia) {
-                Specification<Equipo> spec = (root, query, cb) -> {
-                        List<Predicate> predicates = new ArrayList<>();
-
-                        // Solo equipos que tienen reportes de falla (excluir NINGUNA)
-                        predicates.add(cb.notEqual(root.get("urgenciaFalla"), EnumUrgencia.NINGUNA));
-
-                        // Filtro por ID de equipo
-                        if (idEquipo != null) {
-                                predicates.add(cb.equal(root.get("idEquipo"), idEquipo));
-                        }
-
-                        // Filtro por estado
-                        if (estado != null && !estado.isEmpty()) {
-                                try {
-                                        EnumEstadoReporte estadoEnum = EnumEstadoReporte.valueOf(estado.toUpperCase());
-                                        predicates.add(cb.equal(root.get("estadoReporte"), estadoEnum));
-                                } catch (IllegalArgumentException e) {
-                                        // Ignorar
-                                }
-                        }
-
-                        // Filtro por urgencia
-                        if (urgencia != null && !urgencia.isEmpty()) {
-                                try {
-                                        EnumUrgencia urgenciaEnum = EnumUrgencia.valueOf(urgencia.toUpperCase());
-                                        predicates.add(cb.equal(root.get("urgenciaFalla"), urgenciaEnum));
-                                } catch (IllegalArgumentException e) {
-                                        // Ignorar
-                                }
-                        }
-
-                        return cb.and(predicates.toArray(new Predicate[0]));
-                };
-
-                return equipoRepository.findAll(spec);
-        }
+        return equipoRepository.findAll(spec);
+    }
 
 }
