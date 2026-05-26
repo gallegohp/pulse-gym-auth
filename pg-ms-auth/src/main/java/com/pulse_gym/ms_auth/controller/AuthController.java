@@ -25,7 +25,10 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @RequestMapping("/auth")
 public class AuthController {
-
+    
+    /**
+     *  Inyeccion de AuthService para manejar la lógica de autenticación 
+     */
     private final AuthService authService;
 
     /**

@@ -50,7 +50,9 @@ public class JwtValidationFilter implements GlobalFilter, Ordered {
 
         Long userId = jwtService.extractUserId(token);
         String rol = jwtService.extractRol(token);
+        String rol = jwtService.extractRol(token);
         String username = jwtService.extractUsername(token);
+
 
         System.out.println("userId: " + userId);
         System.out.println("rol: " + rol);
@@ -58,6 +60,8 @@ public class JwtValidationFilter implements GlobalFilter, Ordered {
 
         ServerHttpRequest mutatedRequest = exchange.getRequest().mutate()
                 .header("X-User-Id", userId != null ? userId.toString() : "")
+                .header("X-User-Name", username != null ? username : "")
+                .header("X-User-Rol", rol != null ? rol : "")
                 .header("X-User-Name", username != null ? username : "")
                 .header("X-User-Rol", rol != null ? rol : "")
                 .build();
@@ -76,6 +80,7 @@ public class JwtValidationFilter implements GlobalFilter, Ordered {
      * @return true si la ruta es pública, false si requiere autenticación
      */
     private boolean isPublicPath(String path) {
+        return path.startsWith("/pg-ms-auth/auth/login")
         return path.startsWith("/pg-ms-auth/auth/login")
                 || path.startsWith("/pg-ms-auth/auth/register")
                 || path.startsWith("/pg-ms-auth/auth/refresh")

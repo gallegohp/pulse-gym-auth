@@ -100,4 +100,37 @@ public class UsuarioPerfilService {
             return dto;
         }).collect(Collectors.toList());
     }
+
+    /**
+     * NUEVO MÉTODO: Obtener usuario por ID (sin validación de rol)
+     */
+    @Transactional(readOnly = true)
+    public UsuarioPerfilResponseDTO obtenerUsuarioPorId(Long idUsuario) {
+        UsuarioPerfil usuario = usuarioRepository.findById(idUsuario)
+            .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + idUsuario));
+        
+        UsuarioPerfilResponseDTO dto = new UsuarioPerfilResponseDTO();
+        dto.setIdUsuario(usuario.getIdUsuario());
+        dto.setRol(usuario.getRol());
+        dto.setNombre(usuario.getNombre());
+        dto.setApellido(usuario.getApellido());
+        dto.setTelefono(usuario.getTelefono());
+        dto.setDocumentoIdentidad(usuario.getDocumentoIdentidad());
+        dto.setFotoUrl(usuario.getFotoUrl());
+        dto.setFechaContratacion(usuario.getFechaContratacion());
+        dto.setEspecialidad(usuario.getEspecialidad());
+        dto.setAnosExperiencia(usuario.getAnosExperiencia());
+        dto.setHorarioDisponibilidad(usuario.getHorarioDisponibilidad());
+        dto.setTarifaHora(usuario.getTarifaHora());
+        dto.setTurno(usuario.getTurno());
+        dto.setFechaNacimiento(usuario.getFechaNacimiento());
+        dto.setContactoEmergenciaNombre(usuario.getContactoEmergenciaNombre());
+        dto.setContactoEmergenciaTelefono(usuario.getContactoEmergenciaTelefono());
+        dto.setObjetivoPrincipal(usuario.getObjetivoPrincipal());
+        dto.setNivelExperiencia(usuario.getNivelExperiencia());
+        dto.setFechaRegistro(usuario.getFechaRegistro());
+        dto.setIdSede(usuario.getIdSede());
+        
+        return dto;
+    }
 }

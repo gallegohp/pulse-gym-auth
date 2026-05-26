@@ -24,6 +24,10 @@ spring:
         prefer-ip-address: false
         instance-id: ${spring.application.name}:${random.value}
 
+microservicio:
+  usuarios:
+    url: http://pg-ms-users:8081  # Para Docker
+
 management:
   endpoints:
     web:
@@ -37,3 +41,7 @@ security:
   jwt:
     secret-key: oMYOYPCjKGRjXEHQqcG0F/KwhgMZ7yej4cBdqeMVZsk=
     token-expiration: 3600000
+
+logging:
+  level:
+    com.pulse_gym: DEBUG

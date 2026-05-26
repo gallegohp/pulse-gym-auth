@@ -23,35 +23,51 @@ import lombok.Data;
 @Data
 @Table(name = "usuarios_auth")
 public class User {
-
-    /** Identificador único del usuario (autogenerado) */
+    
+    /**
+     * Identificador único del usuario, generado automáticamente por la base de
+     * datos
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Long id;
 
-    /** Correo electrónico del usuario (único y obligatorio) */
+    /**
+     * Nombre de usuario único para autenticación
+     */
     @Column(name = "email", nullable = false, length = 150)
     private String email;
 
-    /** Contraseña encriptada del usuario */
+    /**
+     * Contraseña cifrada del usuario
+     */
     @Column(name = "password", nullable = false, length = 255)
     private String password;
 
-    /** Nombre de usuario para inicio de sesión */
+    /**
+     * Rol asignado al usuario dentro del gimnasio. Se persiste como texto mediante
+     * un ENUM nativo
+     */
     @Column(name = "username", nullable = false, length = 50)
     private String username;
 
-    /** Rol del usuario (administrador, entrenador, recepcionista, socio) */
+    /**
+     * Rol del usuario
+     */
     @Enumerated(EnumType.STRING)
     @Column(name = "rol", nullable = false, length = 20)
     private EnumRol rol;
 
-    /** Estado del usuario (activo = true, inactivo = false) */
+    /**
+     * Estado de la cuenta (activo/inactivo)
+     */
     @Column(name = "estado", nullable = false)
     private Boolean estado;
 
-    /** Fecha y hora de registro del usuario */
+    /**
+     * Fecha y hora de creación del usuario
+     */
     @Column(name = "fecha_registro", nullable = false)
     private LocalDateTime fechaRegistro;
 
