@@ -28,35 +28,62 @@ import lombok.Setter;
 @AllArgsConstructor
 public class Mantenimiento {
 
+    /**
+     * Identificador único del mantenimiento, generado automáticamente por la base de datos
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_mantenimiento")
     private Long idMantenimiento;
 
+    /**
+     * Equipo al que se le realiza el mantenimiento
+     */
     @ManyToOne
     @JoinColumn(name = "id_equipo", nullable = false)
     private Equipo equipo;
 
+    /**
+     * Proveedor que realiza el mantenimiento (puede ser null si es un mantenimiento interno)
+     */
     @ManyToOne
-    @JoinColumn(name = "id_proveedor")
+    @JoinColumn(name = "id_proveedor", nullable = true)
     private Proveedor proveedor;
 
+    /**
+     * Fecha en la que se realizó el mantenimiento
+     */
     @Column(name = "fecha_servicio", nullable = false)
     private LocalDate fechaServicio;
 
+    /**
+     * Tipo de mantenimiento realizado (preventivo, correctivo)
+     */
     @Enumerated(EnumType.STRING)
     @Column(name = "tipo", nullable = false)
     private EnumTipoMantenimiento tipo;
 
-    @Column(name = "descripcion", columnDefinition = "TEXT")
+    /**
+     * Descripción detallada del mantenimiento realizado
+     */
+    @Column(name = "descripcion", nullable = true ,columnDefinition = "TEXT")
     private String descripcion;
 
+    /**
+     * Costo del mantenimiento
+     */
     @Column(name = "costo", nullable = false, precision = 10, scale = 2)
     private BigDecimal costo;
 
-    @Column(name = "tecnico_responsable", length = 100)
+    /**
+     * Técnico responsable del mantenimiento
+     */
+    @Column(name = "tecnico_responsable",nullable = true ,length = 100)
     private String tecnicoResponsable;
 
-    @Column(name = "proximo_mantenimiento")
+    /**
+     * Fecha estimada del próximo mantenimiento (puede ser null si no se ha programado)
+     */
+    @Column(name = "proximo_mantenimiento", nullable = true)
     private LocalDate proximoMantenimiento;
 }
