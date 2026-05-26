@@ -1,7 +1,8 @@
 package com.pulse_gym.ms_operation.controller;
 
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,11 +17,11 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/asistencias")
 public class AsistenciaController {
 
-    @Autowired
-    private AsistenciaService asistenciaService;
+    private final AsistenciaService asistenciaService;
 
     /**
      * Registrar entrada de socio (desde WEB o APP)

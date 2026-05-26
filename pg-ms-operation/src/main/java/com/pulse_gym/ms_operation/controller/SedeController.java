@@ -54,6 +54,11 @@ public class SedeController {
         }
     }
 
+    /**
+     * Endpoint para obtener todas las sedes registradas en la base de datos
+     * GET /api/sedes
+     * @return ResponseEntity<Map<String, Object>> con la respuesta de la consulta
+     */
     @GetMapping
     public ResponseEntity<Map<String, Object>> obtenerTodasLasSedes() {
         try {
@@ -75,6 +80,12 @@ public class SedeController {
         }
     }
 
+    /**
+     * Endpoint para obtener una sede por su ID
+     * GET /api/sedes/{id}
+     * @param id
+     * @return ResponseEntity<Map<String, Object>> con la respuesta de la consulta
+     */
     @GetMapping("/{id}")
     public ResponseEntity<Map<String, Object>> obtenerSedePorId(@PathVariable Long id) {
         try {
@@ -95,6 +106,13 @@ public class SedeController {
         }
     }
 
+    /**
+     * Endpoint para actualizar una sede
+     * PUT /api/sedes/{id}
+     * @param id
+     * @param request
+     * @return ResponseEntity<Map<String, Object>> con la respuesta de la actualización
+     */
     @PutMapping("/{id}")
     public ResponseEntity<Map<String, Object>> actualizarSede(
             @PathVariable Long id,
@@ -116,6 +134,12 @@ public class SedeController {
         }
     }
 
+    /**
+     * Endpoint para eliminar una sede por su ID
+     * DELETE /api/sedes/{id}
+     * @param id
+     * @return ResponseEntity<Map<String, Object>> con la respuesta de la eliminación
+     */
     @DeleteMapping("/{id}")
     public ResponseEntity<Map<String, Object>> eliminarSede(@PathVariable Long id) {
         try {
@@ -135,6 +159,12 @@ public class SedeController {
         }
     }
 
+    /**
+     * Endpoint para buscar sedes por su nombre (por completo)
+     * GET /api/sedes/buscar/nombre
+     * @param nombre
+     * @return ResponseEntity<Map<String, Object>> con la respuesta de la consulta
+     */
     @GetMapping("/buscar/nombre")
     public ResponseEntity<Map<String, Object>> buscarSedesPorNombre(@RequestParam String nombre) {
         try {
@@ -156,6 +186,11 @@ public class SedeController {
         }
     }
 
+    /**
+     * Endpoint para buscar sedes por su ciudad 
+     * @param ciudad
+     * @return ResponseEntity<Map<String, Object>> con la respuesta de la consulta
+     */
     @GetMapping("/buscar/ciudad")
     public ResponseEntity<Map<String, Object>> buscarSedesPorCiudad(@RequestParam String ciudad) {
         try {
@@ -177,29 +212,4 @@ public class SedeController {
         }
     }
 
-    @GetMapping("/paginado")
-    public ResponseEntity<Map<String, Object>> obtenerSedesPaginado(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        try {
-            Page<SedeResponseDTO> sedesPage = sedeService.obtenerSedesPaginado(page, size);
-            
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "Consulta exitosa");
-            response.put("currentPage", sedesPage.getNumber());
-            response.put("totalItems", sedesPage.getTotalElements());
-            response.put("totalPages", sedesPage.getTotalPages());
-            response.put("pageSize", sedesPage.getSize());
-            response.put("data", sedesPage.getContent());
-            
-            return ResponseEntity.ok(response);
-            
-        } catch (Exception e) {
-            Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("success", false);
-            errorResponse.put("message", e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
-        }
-    }
 }

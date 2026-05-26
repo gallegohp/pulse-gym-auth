@@ -25,10 +25,29 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AsistenciaService {
 
+    /**
+     * Inyeccion de AsistenciaRepository para manejar la lógica de negocio relacionada con
+     * las asistencias, como el registro y la obtención de asistencias.
+     */
     private final AsistenciaRepository asistenciaRepository;
-    private final SedeRepository sedeRepository;
-    private final UsuarioClient usuarioClient;  // ← Feign Client (no RestTemplate)
 
+    /**
+     * Inyeccion de SedeRepository para manejar la lógica de negocio relacionada con
+     * las sedes, como el registro y la obtención de sedes.
+     */ 
+    private final SedeRepository sedeRepository;
+
+    /**
+     * Inyeccion de UsuarioClient para manejar la lógica de negocio relacionada con
+     * los usuarios, como el registro y la obtención de usuarios.
+     */
+    private final UsuarioClient usuarioClient;  
+
+    /**
+     * Registra una nueva asistencia en la base de datos.
+     * @param request
+     * @return MessegeGlobalDTO con un mensaje de éxito si la asistencia se registró correctamente
+     */ 
     @Transactional
     public MessegeGlobalDTO registrarEntrada(RegistroAsistenciaDTO request) {
 
@@ -70,6 +89,11 @@ public class AsistenciaService {
                 sede.getNombreSede()));
     }
 
+    /**
+     * Obtiene los registros de asistencias de un usuario.
+     * @param idUsuario
+     * @return List<AsistenciaResponseDTO> con los registros de asistencias encontrados     
+     */
     public List<AsistenciaResponseDTO> consultarHistorialUsuario(Long idUsuario) {
         List<Asistencia> asistencias = asistenciaRepository.findByIdUsuarioOrderByFechaHoraEntradaDesc(idUsuario);
 
@@ -82,6 +106,11 @@ public class AsistenciaService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Obtiene los registros de asistencias de una sede.
+     * @param idSede
+     * @return List<AsistenciaResponseDTO> con los registros de asistencias encontrados   
+     */
     public List<AsistenciaResponseDTO> consultarAsistenciasPorSede(Long idSede) {
         
         Sede sede = sedeRepository.findById(idSede)
@@ -98,6 +127,10 @@ public class AsistenciaService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Obtiene los registros de asistencias del día actual.
+     * @return List<AsistenciaResponseDTO> con los registros de asistencias encontrados   
+     */
     public List<AsistenciaResponseDTO> consultarAsistenciasDelDia() {
         LocalDateTime inicio = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0);
         LocalDateTime fin = LocalDateTime.now().withHour(23).withMinute(59).withSecond(59);
@@ -109,6 +142,14 @@ public class AsistenciaService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Registra un acceso denegado en la base de datos.
+     * @param request
+     * @param sede
+     * @param tipoAcceso
+     * @param motivo
+     * @return MessegeGlobalDTO con un mensaje de éxito si el acceso se registró correctamente
+     */
     private MessegeGlobalDTO registrarAccesoDenegado(RegistroAsistenciaDTO request, Sede sede,
             EnumTipoAcceso tipoAcceso, String motivo) {
         Asistencia asistencia = new Asistencia();
@@ -124,6 +165,11 @@ public class AsistenciaService {
         throw new RuntimeException("Acceso denegado: " + motivo);
     }
 
+    /**
+     * Convierte un objeto Asistencia a un objeto AsistenciaResponseDTO.
+     * @param asistencia
+     * @return AsistenciaResponseDTO con los datos del asistencia
+     */ 
     private AsistenciaResponseDTO convertirAResponseDTO(Asistencia asistencia) {
         AsistenciaResponseDTO dto = new AsistenciaResponseDTO();
         dto.setIdAsistencia(asistencia.getIdAsistencia());
