@@ -23,10 +23,22 @@ import lombok.RequiredArgsConstructor;
 
 public class MantenimientoService {
 
+    /**
+     * Inyeccion de ProveedorRepository para manejar las operaciones de base de
+     * datos relacionadas con los proveedores
+     */
     private final ProveedorRepository proveedorRepository;
 
+    /**
+     * Inyeccion de EquipoRepository para manejar las operaciones de base de datos
+     * relacionadas con las sedes
+     */ 
     private final EquipoRepository equipoRepository;
 
+    /**
+     * Inyeccion de MantenimientoRepository para manejar las operaciones de base de datos
+     * relacionadas con los mantenimientos
+     */
     private final MantenimientoRepository mantenimientoRepository;
     
     /**
@@ -75,6 +87,11 @@ public class MantenimientoService {
         return new MessegeGlobalDTO("Mantenimiento registrado exitosamente");
     }
 
+    /**
+     * Obtiene los registros de mantenimiento de un equipo.
+     * @param idEquipo
+     * @return List<HistorialMantenimientoDTO> con los registros de mantenimiento encontrados   
+     */
     public List<HistorialMantenimientoDTO> obtenerHistorialPorEquipo(Long idEquipo) {
 
         Equipo equipo = equipoRepository.findById(idEquipo)

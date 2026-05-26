@@ -7,6 +7,8 @@ import com.pulse_gym.lb_common.dto.ProveedorResponseDTO;
 import com.pulse_gym.lb_common.entity.operation.Proveedor;
 import com.pulse_gym.ms_operation.repository.ProveedorRepository;
 
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -19,14 +21,14 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class ProveedorService {
 
     /**
      * Inyeccion de ProveedorRepository para manejar la lógica de negocio relacionada con
      * los proveedores, como el registro y la obtención de proveedores.
      */
-    @Autowired
-    private ProveedorRepository proveedorRepository;
+    private final ProveedorRepository proveedorRepository;
 
     /**
      * Registra un nuevo proveedor en la base de datos.

@@ -22,8 +22,17 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SedeService {
 
+    /**
+     * Inyeccion de SedeRepository para manejar la lógica de negocio relacionada con
+     * las sedes, como el registro y la obtención de sedes.
+     */
     private final SedeRepository sedeRepository;
 
+    /**
+     * Registra una nueva sede en la base de datos.
+     * @param request
+     * @return MessegeGlobalDTO con un mensaje de éxito si la sede se registró correctamente
+     */ 
     @Transactional
     public MessegeGlobalDTO crearSede(SedeRequestDTO request) {
         if (sedeRepository.existsByNombreSede(request.getNombreSede())) {
@@ -41,6 +50,10 @@ public class SedeService {
         return new MessegeGlobalDTO("Sede creada exitosamente con ID: " + saved.getIdSede());
     }
 
+    /**
+     * Obtiene todas las sedes registradas en la base de datos.
+     * @return List<SedeResponseDTO> con las sedes registradas
+     */ 
     public List<SedeResponseDTO> obtenerTodasLasSedes() {
         List<Sede> sedes = sedeRepository.findAll(Sort.by(Sort.Direction.ASC, "nombreSede"));
         
@@ -53,6 +66,11 @@ public class SedeService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Obtiene una sede por su ID.
+     * @param id
+     * @return SedeResponseDTO con la sede encontrada
+     */ 
     public SedeResponseDTO obtenerSedePorId(Long id) {
         Sede sede = sedeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Sede no encontrada con ID: " + id));
@@ -60,6 +78,12 @@ public class SedeService {
         return convertirAResponseDTO(sede);
     }
 
+    /**
+     * Actualiza una sede existente en la base de datos.
+     * @param id
+     * @param request
+     * @return MessegeGlobalDTO con un mensaje de éxito si la sede se actualizó correctamente
+     */
     @Transactional
     public MessegeGlobalDTO actualizarSede(Long id, SedeUpdateDTO request) {
         Sede sede = sedeRepository.findById(id)
@@ -87,6 +111,11 @@ public class SedeService {
         return new MessegeGlobalDTO("Sede actualizada exitosamente");
     }
 
+    /**
+     * Elimina una sede existente en la base de datos.
+     * @param id
+     * @return MessegeGlobalDTO con un mensaje de éxito si la sede se eliminó correctamente 
+     */
     @Transactional
     public MessegeGlobalDTO eliminarSede(Long id) {
         Sede sede = sedeRepository.findById(id)
@@ -102,6 +131,11 @@ public class SedeService {
         return new MessegeGlobalDTO("Sede eliminada exitosamente");
     }
 
+    /**
+     * Busca sedes por su nombre (por completo).
+     * @param nombre
+     * @return List<SedeResponseDTO> con las sedes encontradas  
+     */ 
     public List<SedeResponseDTO> buscarSedesPorNombre(String nombre) {
         List<Sede> sedes = sedeRepository.findByNombreSedeContainingIgnoreCase(nombre);
         
@@ -114,6 +148,11 @@ public class SedeService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Busca sedes por su ciudad.
+     * @param ciudad
+     * @return List<SedeResponseDTO> con las sedes encontradas  
+     */
     public List<SedeResponseDTO> buscarSedesPorCiudad(String ciudad) {
         List<Sede> sedes = sedeRepository.findByCiudadContainingIgnoreCase(ciudad);
         
@@ -126,17 +165,12 @@ public class SedeService {
                 .collect(Collectors.toList());
     }
 
-    public Page<SedeResponseDTO> obtenerSedesPaginado(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("nombreSede").ascending());
-        Page<Sede> sedesPage = sedeRepository.findAll(pageable);
-        
-        if (sedesPage.isEmpty() && page == 0) {
-            throw new RuntimeException("No hay sedes registradas");
-        }
-        
-        return sedesPage.map(this::convertirAResponseDTO);
-    }
 
+    /**
+     * Convierte un objeto Sede a un objeto SedeResponseDTO.
+     * @param sede
+     * @return SedeResponseDTO con los datos del sede
+     */
     private SedeResponseDTO convertirAResponseDTO(Sede sede) {
         SedeResponseDTO dto = new SedeResponseDTO();
         dto.setIdSede(sede.getIdSede());

@@ -2,7 +2,8 @@
 package com.pulse_gym.ms_operation.controller;
 
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,10 +20,14 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/proveedores")
+@RequiredArgsConstructor
 public class ProveedorController {
 
-    @Autowired
-    private ProveedorService proveedorService;
+    /**
+     * Inyeccion de ProveedorService para manejar la lógica de negocio relacionada con
+     * los proveedores, como el registro y la obtención de proveedores.
+     */
+    private final ProveedorService proveedorService;
 
     /**
      * Endpoint para registrar un nuevo proveedor. Recibe un objeto ProveedorRequestDTO en
