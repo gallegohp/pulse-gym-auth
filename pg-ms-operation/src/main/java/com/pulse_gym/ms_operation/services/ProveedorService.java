@@ -5,6 +5,7 @@ import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
 import com.pulse_gym.lb_common.dto.ProveedorRequestDTO;
 import com.pulse_gym.lb_common.dto.ProveedorResponseDTO;
 import com.pulse_gym.lb_common.entity.operation.Proveedor;
+import com.pulse_gym.lb_common.services.ValidacionDeRoles;
 import com.pulse_gym.ms_operation.repository.ProveedorRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -32,11 +33,18 @@ public class ProveedorService {
 
     /**
      * Registra un nuevo proveedor en la base de datos.
+     * 
+     * Se valida que la peticion solo la puede hacer un entrenador, recepcionista o admin
+     * 
      * @param request
+     * @param userRol Rol del usuario que hace la petición (desde header X-User-Rol)}
      * @return MessegeGlobalDTO con un mensaje de éxito si el proveedor se registró correctamente
      */
     @Transactional
-    public MessegeGlobalDTO registrarProveedor(ProveedorRequestDTO request) {
+    public MessegeGlobalDTO registrarProveedor(ProveedorRequestDTO request, String userRol) {
+
+        ValidacionDeRoles.validarAdminOEntrenadorORecepcionista(userRol);
+
         // Validar si ya existe un proveedor con el mismo email
         if (request.getEmail() != null && proveedorRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("Ya existe un proveedor registrado con el email: " + request.getEmail());
@@ -56,9 +64,17 @@ public class ProveedorService {
     
     /**
      * Consulta todos los proveedores registrados en la base de datos.
+     * 
+     * Se valida que la peticion solo la puede hacer un Entrenador, recepcionista o admin
+     * 
+     * @param userRol Rol del usuario
      * @return Lista de proveedores registrados
      */
-    public List<ProveedorResponseDTO> consultarTodosProveedores() {
+    public List<ProveedorResponseDTO> consultarTodosProveedores(String userRol) {
+
+        ValidacionDeRoles.validarAdminOEntrenadorORecepcionista(userRol);
+
+
         List<Proveedor> proveedores = proveedorRepository.findAll(Sort.by(Sort.Direction.ASC, "nombreEmpresa"));
         
         if (proveedores.isEmpty()) {
@@ -72,39 +88,37 @@ public class ProveedorService {
     
     /**
      * Consulta un proveedor por su ID.
+     * 
+     * Se valida que la peticion solo la puede hacer un Entrenador, recepcionista o admin
+     * 
      * @param id
+     * @param userRol Rol del usuario
      * @return ProveedorResponseDTO con los datos del proveedor
      */
-    public ProveedorResponseDTO consultarProveedorPorId(Long id) {
+    public ProveedorResponseDTO consultarProveedorPorId(Long id, String userRol) {
+
+        ValidacionDeRoles.validarAdminOEntrenadorORecepcionista(userRol);
+
         Proveedor proveedor = proveedorRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Proveedor no encontrado con ID: " + id));
         
         return convertirAResponseDTO(proveedor);
     }
     
-    /**
-     * Consulta los proveedores registrados en la base de datos paginados.
-     * @param page
-     * @param size
-     * @return Page<ProveedorResponseDTO> con los proveedores registrados
-     */
-    public Page<ProveedorResponseDTO> consultarProveedoresPaginado(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("nombreEmpresa").ascending());
-        Page<Proveedor> proveedoresPage = proveedorRepository.findAll(pageable);
-        
-        if (proveedoresPage.isEmpty() && page == 0) {
-            throw new RuntimeException("No hay proveedores registrados");
-        }
-        
-        return proveedoresPage.map(this::convertirAResponseDTO);
-    }
     
     /**
      * Busca proveedores por su nombre.
+     * 
+     * Se valida que la peticion solo la puede hacer un Entrenador, recepcionista o admin
+     * 
      * @param nombre
+     * @param userRol Rol del usuario
      * @return Lista de proveedores que coinciden con el nombre
      */
-    public List<ProveedorResponseDTO> buscarProveedoresPorNombre(String nombre) {
+    public List<ProveedorResponseDTO> buscarProveedoresPorNombre(String nombre, String userRol) {
+
+        ValidacionDeRoles.validarAdminOEntrenadorORecepcionista(userRol);
+
         List<Proveedor> proveedores = proveedorRepository.findByNombreEmpresaContainingIgnoreCase(nombre);
         
         if (proveedores.isEmpty()) {
