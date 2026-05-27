@@ -3,6 +3,7 @@ package com.pulse_gym.ms_auth.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -10,11 +11,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
 import com.pulse_gym.lb_common.dto.RestablecerContraseña;
+import com.pulse_gym.lb_common.entity.auth.User;
+import com.pulse_gym.lb_common.dto.AuthUserDTO;
 import com.pulse_gym.lb_common.dto.ContrasenaOlvidad;
 import com.pulse_gym.lb_common.dto.HttpGlobalResponse;
 import com.pulse_gym.lb_common.dto.JwtDTO;
 import com.pulse_gym.ms_auth.dto.LoginRequestDTO;
 import com.pulse_gym.ms_auth.dto.RegisterRequestDTO;
+import com.pulse_gym.ms_auth.repository.UserAuthRepository;
 import com.pulse_gym.ms_auth.services.AuthService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,12 +29,13 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @RequestMapping("/auth")
 public class AuthController {
-    
+
     /**
-     *  Inyeccion de AuthService para manejar la lógica de autenticación 
+     * Inyeccion de AuthService para manejar la lógica de autenticación
      */
     private final AuthService authService;
 
+    private final UserAuthRepository userAuthRepository;
     /**
      * Registro de usuario
      * 
@@ -126,5 +131,19 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new MessegeGlobalDTO("Error al restablecer la contraseña"));
         }
+    }
+
+    @GetMapping("/api/internal/users/email/{email}")
+    public ResponseEntity<AuthUserDTO> getUserByEmail(@PathVariable String email) {
+        User user = userAuthRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        AuthUserDTO dto = new AuthUserDTO();
+        dto.setId(user.getId());
+        dto.setEmail(user.getEmail());
+        dto.setUsername(user.getUsername());
+        dto.setRol(user.getRol());
+        dto.setEstado(user.getEstado());
+        return ResponseEntity.ok(dto);
     }
 }
