@@ -6,6 +6,7 @@ import com.pulse_gym.lb_common.dto.SedeRequestDTO;
 import com.pulse_gym.lb_common.dto.SedeResponseDTO;
 import com.pulse_gym.lb_common.dto.SedeUpdateDTO;
 import com.pulse_gym.lb_common.entity.operation.Sede;
+import com.pulse_gym.lb_common.services.ValidacionDeRoles;
 import com.pulse_gym.ms_operation.repository.SedeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
@@ -27,11 +28,18 @@ public class SedeService {
 
     /**
      * Registra una nueva sede en la base de datos.
+     * 
+     * Se valida que la peticion solo la puede hacer un admin
+     * 
      * @param request
+     * @param userRol Rol del usuario que hace la petición (desde header X-User-Rol)}
      * @return MessegeGlobalDTO con un mensaje de éxito si la sede se registró correctamente
      */ 
     @Transactional
-    public MessegeGlobalDTO crearSede(SedeRequestDTO request) {
+    public MessegeGlobalDTO crearSede(SedeRequestDTO request, String userRol) {
+
+        ValidacionDeRoles.validarAdmin(userRol);
+        
         if (sedeRepository.existsByNombreSede(request.getNombreSede())) {
             throw new RuntimeException("Ya existe una sede con el nombre: " + request.getNombreSede());
         }
@@ -49,9 +57,15 @@ public class SedeService {
 
     /**
      * Obtiene todas las sedes registradas en la base de datos.
+     * 
+     * Se valida que la peticion solo la puede hacer un admin
+     * 
+     * @param userRol Rol del usuario
      * @return List<SedeResponseDTO> con las sedes registradas
      */ 
-    public List<SedeResponseDTO> obtenerTodasLasSedes() {
+    public List<SedeResponseDTO> obtenerTodasLasSedes( String userRol) {
+
+        ValidacionDeRoles.validarAdmin(userRol);
         List<Sede> sedes = sedeRepository.findAll(Sort.by(Sort.Direction.ASC, "nombreSede"));
         
         if (sedes.isEmpty()) {
@@ -77,12 +91,19 @@ public class SedeService {
 
     /**
      * Actualiza una sede existente en la base de datos.
+     * 
+     * Se valida que la peticion solo la puede hacer un admin
+     * 
      * @param id
      * @param request
+     * @param userRol Rol del usuario que hace la petición (desde header X-User-Rol)}
      * @return MessegeGlobalDTO con un mensaje de éxito si la sede se actualizó correctamente
      */
     @Transactional
-    public MessegeGlobalDTO actualizarSede(Long id, SedeUpdateDTO request) {
+    public MessegeGlobalDTO actualizarSede(Long id, SedeUpdateDTO request, String userRol) {
+
+        ValidacionDeRoles.validarAdmin(userRol);
+
         Sede sede = sedeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Sede no encontrada con ID: " + id));
 
@@ -110,11 +131,17 @@ public class SedeService {
 
     /**
      * Elimina una sede existente en la base de datos.
+     * 
+     * Se valida que la peticion solo la puede hacer un admin
      * @param id
+     * @param userRol Rol del usuario que hace la petición (desde header X-User-Rol)}
      * @return MessegeGlobalDTO con un mensaje de éxito si la sede se eliminó correctamente 
      */
     @Transactional
-    public MessegeGlobalDTO eliminarSede(Long id) {
+    public MessegeGlobalDTO eliminarSede(Long id, String userRol) {
+
+        ValidacionDeRoles.validarAdmin(userRol);
+
         Sede sede = sedeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Sede no encontrada con ID: " + id));
 
@@ -130,10 +157,16 @@ public class SedeService {
 
     /**
      * Busca sedes por su nombre (por completo).
+     * 
+     * Se valida que la peticion solo la puede hacer un admin
      * @param nombre
+     * @param userRol Rol del usuario
      * @return List<SedeResponseDTO> con las sedes encontradas  
      */ 
-    public List<SedeResponseDTO> buscarSedesPorNombre(String nombre) {
+    public List<SedeResponseDTO> buscarSedesPorNombre(String nombre, String userRol) {
+
+        ValidacionDeRoles.validarAdmin(userRol);
+
         List<Sede> sedes = sedeRepository.findByNombreSedeContainingIgnoreCase(nombre);
         
         if (sedes.isEmpty()) {
@@ -147,10 +180,16 @@ public class SedeService {
 
     /**
      * Busca sedes por su ciudad.
+     * 
+     * Se valida que la peticion solo la puede hacer un admin
      * @param ciudad
+     * @param userRol Rol del usuario
      * @return List<SedeResponseDTO> con las sedes encontradas  
      */
-    public List<SedeResponseDTO> buscarSedesPorCiudad(String ciudad) {
+    public List<SedeResponseDTO> buscarSedesPorCiudad(String ciudad, String userRol) {
+
+        ValidacionDeRoles.validarAdmin(userRol);
+
         List<Sede> sedes = sedeRepository.findByCiudadContainingIgnoreCase(ciudad);
         
         if (sedes.isEmpty()) {
