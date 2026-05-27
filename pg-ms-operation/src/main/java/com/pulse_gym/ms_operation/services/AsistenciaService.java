@@ -8,6 +8,7 @@ import com.pulse_gym.lb_common.entity.operation.Asistencia;
 import com.pulse_gym.lb_common.entity.operation.Sede;
 import com.pulse_gym.lb_common.enums.EnumEstadoAcceso;
 import com.pulse_gym.lb_common.enums.EnumTipoAcceso;
+import com.pulse_gym.lb_common.services.ValidacionDeRoles;
 import com.pulse_gym.ms_operation.client.UsuarioClient;
 import com.pulse_gym.ms_operation.repository.AsistenciaRepository;
 import com.pulse_gym.ms_operation.repository.SedeRepository;
@@ -45,11 +46,17 @@ public class AsistenciaService {
 
     /**
      * Registra una nueva asistencia en la base de datos.
+     * 
+     * Se valida que la peticion solo la puede hacer un socio
+     * 
      * @param request
+     * @param userRol Rol del usuario que hace la petición (desde header X-User-Rol)
      * @return MessegeGlobalDTO con un mensaje de éxito si la asistencia se registró correctamente
      */ 
     @Transactional
-    public MessegeGlobalDTO registrarEntrada(RegistroAsistenciaDTO request) {
+    public MessegeGlobalDTO registrarEntrada(RegistroAsistenciaDTO request, String userRol) {
+
+        ValidacionDeRoles.validarSocio(userRol);
 
         Sede sede = sedeRepository.findById(request.getIdSede())
                 .orElseThrow(() -> new RuntimeException("Sede no encontrada con ID: " + request.getIdSede()));
@@ -61,7 +68,6 @@ public class AsistenciaService {
             throw new RuntimeException("Tipo de acceso no válido. Debe ser WEB o APP");
         }
 
-        // ¡Así de simple! Parece una llamada local
         UsuarioPerfilResponseDTO usuario = usuarioClient.obtenerUsuarioPorId(request.getIdUsuario());
 
         if (usuario == null) {
@@ -92,9 +98,13 @@ public class AsistenciaService {
     /**
      * Obtiene los registros de asistencias de un usuario.
      * @param idUsuario
+     * @param userRol Rol del usuario que hace la petición (desde header X-User-Rol)
      * @return List<AsistenciaResponseDTO> con los registros de asistencias encontrados     
      */
-    public List<AsistenciaResponseDTO> consultarHistorialUsuario(Long idUsuario) {
+    public List<AsistenciaResponseDTO> consultarHistorialUsuario(Long idUsuario, String userRol) {
+        
+        ValidacionDeRoles.validarCualquierRol(userRol);
+
         List<Asistencia> asistencias = asistenciaRepository.findByIdUsuarioOrderByFechaHoraEntradaDesc(idUsuario);
 
         if (asistencias.isEmpty()) {
@@ -108,11 +118,17 @@ public class AsistenciaService {
 
     /**
      * Obtiene los registros de asistencias de una sede.
+     * 
+     * Se valida que la peticion solo la puede hacer un entrenador, recepcionista o admin
+     * 
      * @param idSede
+     * @param userRol Rol del usuario
      * @return List<AsistenciaResponseDTO> con los registros de asistencias encontrados   
      */
-    public List<AsistenciaResponseDTO> consultarAsistenciasPorSede(Long idSede) {
+    public List<AsistenciaResponseDTO> consultarAsistenciasPorSede(Long idSede, String userRol) {
         
+        ValidacionDeRoles.validarAdminOEntrenadorORecepcionista(userRol);
+
         Sede sede = sedeRepository.findById(idSede)
                 .orElseThrow(() -> new RuntimeException("Sede no encontrada con ID: " + idSede));
 
@@ -129,9 +145,15 @@ public class AsistenciaService {
 
     /**
      * Obtiene los registros de asistencias del día actual.
-     * @return List<AsistenciaResponseDTO> con los registros de asistencias encontrados   
+     * 
+     * Se valida que la peticion solo la puede hacer un entrenador, recepcionista o admin
+     * @param userRol Rol del usuario
+     * @return List<AsistenciaResponseDTO> con los registros de asistencias encontrados
      */
-    public List<AsistenciaResponseDTO> consultarAsistenciasDelDia() {
+    public List<AsistenciaResponseDTO> consultarAsistenciasDelDia(String userRol) {
+
+        ValidacionDeRoles.validarAdminOEntrenadorORecepcionista(userRol);
+
         LocalDateTime inicio = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0);
         LocalDateTime fin = LocalDateTime.now().withHour(23).withMinute(59).withSecond(59);
 
@@ -150,8 +172,7 @@ public class AsistenciaService {
      * @param motivo
      * @return MessegeGlobalDTO con un mensaje de éxito si el acceso se registró correctamente
      */
-    private MessegeGlobalDTO registrarAccesoDenegado(RegistroAsistenciaDTO request, Sede sede,
-            EnumTipoAcceso tipoAcceso, String motivo) {
+    private MessegeGlobalDTO registrarAccesoDenegado(RegistroAsistenciaDTO request, Sede sede, EnumTipoAcceso tipoAcceso, String motivo) {
         Asistencia asistencia = new Asistencia();
         asistencia.setIdUsuario(request.getIdUsuario());
         asistencia.setSede(sede);
