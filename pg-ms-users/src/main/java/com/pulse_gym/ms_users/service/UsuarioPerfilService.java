@@ -3,9 +3,13 @@ package com.pulse_gym.ms_users.service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
+import com.pulse_gym.lb_common.dto.AuthUserDTO;
+import com.pulse_gym.lb_common.dto.CompletarPerfilRequestDTO;
 import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
 import com.pulse_gym.lb_common.dto.UsuarioPerfilRequestDTO;
 import com.pulse_gym.lb_common.dto.UsuarioPerfilResponseDTO;
@@ -20,6 +24,12 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class UsuarioPerfilService {
+
+    /** */
+    private final RestTemplate restTemplate;
+
+    /** */
+    private final String authServiceUrl = "http://pg-ms-auth/auth";
 
     /**
      * Repositorio para operaciones de base de datos de usuarios
@@ -58,26 +68,49 @@ public class UsuarioPerfilService {
         return dto;
     }
 
+    private void enrichWithRol(UsuarioPerfilResponseDTO dto, UsuarioPerfil usuario) {
+        try {
+            ResponseEntity<AuthUserDTO> authResponse = restTemplate.getForEntity(
+                    authServiceUrl + "/api/internal/users/email/" + usuario.getEmail(),
+                    AuthUserDTO.class);
+
+            if (authResponse.getBody() != null && authResponse.getBody().getRol() != null) {
+                dto.setRol(authResponse.getBody().getRol());
+            }
+        } catch (Exception e) {
+            System.err.println("Error al obtener rol para " + usuario.getEmail() + ": " + e.getMessage());
+        }
+    }
+
     /**
-     * Crea un nuevo usuario en el sistema
+     * Completa el perfil de un usuario que ya existe en el sistema de autenticación
      * 
-     * @param requestDTO Datos del usuario a crear
+     * @param email      Email del usuario (identificador único)
+     * @param requestDTO Datos del perfil a completar
      * @param userRol    Rol del usuario autenticado
+     * @param userEmail  Email del usuario autenticado (para validar que solo
+     *                   complete su propio perfil)
      * @return Mensaje de confirmación
      */
     @Transactional
-    public MessegeGlobalDTO crearUsuario(UsuarioPerfilRequestDTO requestDTO, String userRol) {
-        ValidacionDeRoles.validarAdminORecepcionista(userRol);
+    public MessegeGlobalDTO completarPerfil(String email, CompletarPerfilRequestDTO requestDTO,
+            String userRol, String userEmail) {
 
-        if (usuarioRepository.findByDocumentoIdentidad(requestDTO.getDocumentoIdentidad()).isPresent()) {
-            throw new RuntimeException("El número de documento ya existe, por favor ingrese uno diferente: "
-                    + requestDTO.getDocumentoIdentidad());
+        // Verificar que el usuario autenticado solo complete su propio perfil
+        if (!userEmail.equals(email)) {
+            throw new SecurityAuthorizationException("Acceso denegado. Solo puede completar su propio perfil");
         }
 
+        // Verificar que el email no tenga ya un perfil completado
+        if (usuarioRepository.findByEmail(email).isPresent()) {
+            throw new RuntimeException("El usuario ya tiene un perfil completado");
+        }
+
+        // Crear el perfil del usuario
         UsuarioPerfil usuario = new UsuarioPerfil();
+        usuario.setEmail(email);
         usuario.setNombre(requestDTO.getNombre());
         usuario.setApellido(requestDTO.getApellido());
-        usuario.setEmail(requestDTO.getEmail());
         usuario.setTelefono(requestDTO.getTelefono());
         usuario.setDocumentoIdentidad(requestDTO.getDocumentoIdentidad());
         usuario.setFotoUrl(requestDTO.getFotoUrl());
@@ -96,7 +129,7 @@ public class UsuarioPerfilService {
         usuario.setEstado(EnumEstadoUsuario.ACTIVO);
 
         usuarioRepository.save(usuario);
-        return new MessegeGlobalDTO("Usuario creado ¡Correctamente!");
+        return new MessegeGlobalDTO("Perfil completado correctamente");
     }
 
     /**
@@ -110,7 +143,12 @@ public class UsuarioPerfilService {
         ValidacionDeRoles.validarAdminOEntrenadorORecepcionista(userRol);
 
         return usuarioRepository.findByEstado(EnumEstadoUsuario.ACTIVO).stream()
-                .map(this::convertirADTO)
+                .map(usuario -> {
+                    UsuarioPerfilResponseDTO dto = convertirADTO(usuario);
+                    enrichWithRol(dto, usuario);
+
+                    return dto;
+                })
                 .collect(Collectors.toList());
     }
 
@@ -119,7 +157,13 @@ public class UsuarioPerfilService {
         ValidacionDeRoles.validarAdminOEntrenadorORecepcionista(userRol);
 
         return usuarioRepository.findByEstado(EnumEstadoUsuario.INACTIVO).stream()
-                .map(this::convertirADTO)
+                .map(usuario -> {
+                    UsuarioPerfilResponseDTO dto = convertirADTO(usuario);
+
+                    enrichWithRol(dto, usuario);
+
+                    return dto;
+                })
                 .collect(Collectors.toList());
     }
 
@@ -128,7 +172,13 @@ public class UsuarioPerfilService {
         ValidacionDeRoles.validarAdminOEntrenadorORecepcionista(userRol);
 
         return usuarioRepository.findAll().stream()
-                .map(this::convertirADTO)
+                .map(usuario -> {
+                    UsuarioPerfilResponseDTO dto = convertirADTO(usuario);
+
+                    enrichWithRol(dto, usuario);
+
+                    return dto;
+                })
                 .collect(Collectors.toList());
     }
 
@@ -139,6 +189,23 @@ public class UsuarioPerfilService {
      * @param userRol   Rol del usuario autenticado
      * @return DTO con los datos del usuario
      */
+    // @Transactional(readOnly = true)
+    // public UsuarioPerfilResponseDTO obtenerUsuarioPorId(Long idUsuario, String
+    // userRol) {
+    // ValidacionDeRoles.validarAdminORecepcionista(userRol);
+
+    // if (idUsuario == null) {
+    // throw new RuntimeException("El ID del usuario no puede ser nulo");
+    // }
+
+    // UsuarioPerfil usuario = usuarioRepository.findByIdAndEstado(idUsuario,
+    // EnumEstadoUsuario.ACTIVO)
+    // .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " +
+    // idUsuario));
+
+    // return convertirADTO(usuario);
+    // }
+
     @Transactional(readOnly = true)
     public UsuarioPerfilResponseDTO obtenerUsuarioPorId(Long idUsuario, String userRol) {
         ValidacionDeRoles.validarAdminORecepcionista(userRol);
@@ -147,10 +214,13 @@ public class UsuarioPerfilService {
             throw new RuntimeException("El ID del usuario no puede ser nulo");
         }
 
-        UsuarioPerfil usuario = usuarioRepository.findByIdAndEstado(idUsuario, EnumEstadoUsuario.ACTIVO)
+        UsuarioPerfil usuario = usuarioRepository.findById(idUsuario)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + idUsuario));
 
-        return convertirADTO(usuario);
+        UsuarioPerfilResponseDTO dto = convertirADTO(usuario);
+        enrichWithRol(dto, usuario);
+
+        return dto;
     }
 
     /**
@@ -173,7 +243,10 @@ public class UsuarioPerfilService {
                 .orElseThrow(() -> new RuntimeException(
                         "Usuario no encontrado con número de documento: " + documentoIdentidad));
 
-        return convertirADTO(usuario);
+        UsuarioPerfilResponseDTO dto = convertirADTO(usuario);
+        enrichWithRol(dto, usuario);
+
+        return dto;
     }
 
     /**
@@ -183,27 +256,31 @@ public class UsuarioPerfilService {
      * @param userRol Rol del usuario autenticado
      * @return DTO con los datos del usuario
      */
-    @Transactional(readOnly = true)
-    public List<UsuarioPerfilResponseDTO> obtenerUsuariosPorNombre(String nombre, String userRol) {
-        ValidacionDeRoles.validarCualquierRol(userRol);
+@Transactional(readOnly = true)
+public List<UsuarioPerfilResponseDTO> obtenerUsuariosPorNombre(String nombre, String userRol) {
+    ValidacionDeRoles.validarCualquierRol(userRol);
 
-        if (nombre == null || nombre.trim().isEmpty()) {
-            throw new RuntimeException("El nombre del usuario no puede ser nulo o vacío");
-        }
-
-        String nombreLimpio = nombre.trim();
-
-        List<UsuarioPerfil> usuarios = usuarioRepository
-                .findByNombreIgnoreCaseAndEstado(nombreLimpio, EnumEstadoUsuario.ACTIVO);
-
-        if (usuarios.isEmpty()) {
-            throw new RuntimeException("No se encontraron usuarios con nombre: " + nombre);
-        }
-
-        return usuarios.stream()
-                .map(this::convertirADTO)
-                .collect(Collectors.toList());
+    if (nombre == null || nombre.trim().isEmpty()) {
+        throw new RuntimeException("El nombre del usuario no puede ser nulo o vacío");
     }
+
+    String nombreLimpio = nombre.trim();
+
+    List<UsuarioPerfil> usuarios = usuarioRepository
+            .findByNombreIgnoreCaseAndEstado(nombreLimpio, EnumEstadoUsuario.ACTIVO);
+
+    if (usuarios.isEmpty()) {
+        throw new RuntimeException("No se encontraron usuarios con nombre: " + nombre);
+    }
+
+    return usuarios.stream()
+            .map(usuario -> {
+                UsuarioPerfilResponseDTO dto = convertirADTO(usuario);
+                enrichWithRol(dto, usuario);
+                return dto;
+            })
+            .collect(Collectors.toList());
+}
 
     /**
      * Actualiza los datos de un usuario según el rol

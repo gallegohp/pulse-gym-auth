@@ -21,12 +21,12 @@ spring:
         register: true
         health-check-path: /actuator/health
         prefer-ip-address: false
-        instance-id: ${spring.application.name}:${random.value}
+        instance-id: ${spring.application.name}
   mail:
     host: smtp.gmail.com
     port: 587
     username: juanjosemorenobenavides207@gmail.com
-    password: exckanzbhayznpjm # NO es tu contraseña normal
+    password: exckanzbhayznpjm
     properties:
       mail:
         smtp:
