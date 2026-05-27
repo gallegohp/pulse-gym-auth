@@ -12,6 +12,7 @@ import com.pulse_gym.lb_common.entity.operation.Equipo;
 import com.pulse_gym.lb_common.entity.operation.Mantenimiento;
 import com.pulse_gym.lb_common.entity.operation.Proveedor;
 import com.pulse_gym.lb_common.enums.EnumTipoMantenimiento;
+import com.pulse_gym.lb_common.services.ValidacionDeRoles;
 import com.pulse_gym.ms_operation.repository.EquipoRepository;
 import com.pulse_gym.ms_operation.repository.MantenimientoRepository;
 import com.pulse_gym.ms_operation.repository.ProveedorRepository;
@@ -45,10 +46,16 @@ public class MantenimientoService {
      * Registra un nuevo mantenimiento en el sistema. Primero verifica que el proveedor y el equipo existan.
      * Luego, convierte el tipo de mantenimiento a su representación enum y crea un nuevo objeto Mantenimiento.
      * Finalmente, guarda el mantenimiento en la base de datos.
+     * 
+     * se valida que la peticion solo la puede hacer un Entrenador, recepcionista o admin
+     * 
      * @param mantenimientoRequestDTO
+     * @param userRol Rol del usuario que hace la petición (desde header X-User-Rol)
      * @return MessegeGlobalDTO con el resultado del registro
      */
-    public MessegeGlobalDTO registrarMantenimiento(MantenimientoRequestDTO mantenimientoRequestDTO) {
+    public MessegeGlobalDTO registrarMantenimiento(MantenimientoRequestDTO mantenimientoRequestDTO, String userRol) {
+
+        ValidacionDeRoles.validarAdminOEntrenadorORecepcionista(userRol);
 
         Proveedor proveedor = null;
         if (mantenimientoRequestDTO.getIdProveedor() != null) {
@@ -89,10 +96,16 @@ public class MantenimientoService {
 
     /**
      * Obtiene los registros de mantenimiento de un equipo.
+     * 
+     * Se valida que la peticion solo la puede hacer un Entrenador, recepcionista o admin
+     * 
      * @param idEquipo
+     * @param userRol Rol del usuario
      * @return List<HistorialMantenimientoDTO> con los registros de mantenimiento encontrados   
      */
-    public List<HistorialMantenimientoDTO> obtenerHistorialPorEquipo(Long idEquipo) {
+    public List<HistorialMantenimientoDTO> obtenerHistorialPorEquipo(Long idEquipo, String userRol) {
+
+        ValidacionDeRoles.validarAdminOEntrenadorORecepcionista(userRol);
 
         Equipo equipo = equipoRepository.findById(idEquipo)
                 .orElseThrow(() -> new RuntimeException("Equipo no encontrado con ID: " + idEquipo));
