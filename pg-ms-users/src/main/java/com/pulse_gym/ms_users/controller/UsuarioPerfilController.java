@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.pulse_gym.lb_common.dto.CompletarPerfilRequestDTO;
 import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
 import com.pulse_gym.lb_common.dto.UsuarioPerfilRequestDTO;
 import com.pulse_gym.lb_common.dto.UsuarioPerfilResponseDTO;
@@ -36,28 +37,21 @@ public class UsuarioPerfilController {
      */
     private final UsuarioPerfilService usuarioService;
 
-    /**
-     * Crea un nuevo usuario en el sistema
-     * 
-     * @param requestDTO Datos del usuario a crear
-     * @param userRol    Rol del usuario que hace la petición (desde header
-     *                   X-User-Rol)
-     * @return Respuesta con mensaje de éxito o error
-     */
-    @PostMapping
-    public ResponseEntity<MessegeGlobalDTO> crearUsuario(
-            @Valid @RequestBody UsuarioPerfilRequestDTO requestDTO,
-            @RequestHeader(value = "X-User-Rol", required = false) String userRol) {
+    @PostMapping("/completar-perfil/{email}")
+    public ResponseEntity<MessegeGlobalDTO> completarPerfil(
+            @PathVariable String email,
+            @Valid @RequestBody CompletarPerfilRequestDTO requestDTO,
+            @RequestHeader(value = "X-User-Rol", required = false) String userRol,
+            @RequestHeader(value = "X-User-Email", required = false) String userEmail) {
         try {
-            MessegeGlobalDTO response = usuarioService.crearUsuario(requestDTO, userRol);
-            return new ResponseEntity<>(response, HttpStatus.CREATED);
+            MessegeGlobalDTO response = usuarioService.completarPerfil(email, requestDTO, userRol, userEmail);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (SecurityAuthorizationException e) {
-            throw e;
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
         } catch (RuntimeException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         } catch (Exception e) {
-            return new ResponseEntity<>(new MessegeGlobalDTO("Error interno del servidor: " + e.getMessage()),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al completar el perfil", e);
         }
     }
 
