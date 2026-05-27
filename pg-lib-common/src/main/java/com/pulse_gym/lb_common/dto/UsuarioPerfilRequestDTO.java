@@ -3,7 +3,6 @@ package com.pulse_gym.lb_common.dto;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-import com.pulse_gym.lb_common.enums.EnumRol;
 import com.pulse_gym.lb_common.enums.NivelExperiencia;
 import com.pulse_gym.lb_common.enums.Turno;
 
@@ -20,12 +19,6 @@ import lombok.Data;
 public class UsuarioPerfilRequestDTO {
 
     /**
-     * Rol asignado al usuario. Es obligatorio.
-     */
-    @NotNull(message = "El rol es obligatorio.")
-    private EnumRol rol;
-
-    /**
      * Nombre(s) del usuario. No puede estar vacío ni superar los 100 caracteres.
      */
     @NotBlank(message = "El nombre no puede estar vacío.")
@@ -38,6 +31,10 @@ public class UsuarioPerfilRequestDTO {
     @NotBlank(message = "El apellido no puede estar vacío.")
     @Size(max = 100, message = "El apellido no puede superar los 100 caracteres.")
     private String apellido;
+
+    /** El correo del usuario */
+    @NotBlank(message = "El Correo no puede estar vacío.")
+    private String email;
 
     /**
      * Número de teléfono de contacto. Opcional, pero si se envía no puede superar

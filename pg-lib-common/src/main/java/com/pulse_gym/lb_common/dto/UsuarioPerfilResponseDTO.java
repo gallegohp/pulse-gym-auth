@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import com.pulse_gym.lb_common.enums.EnumEstadoUsuario;
 import com.pulse_gym.lb_common.enums.EnumRol;
 import com.pulse_gym.lb_common.enums.NivelExperiencia;
 import com.pulse_gym.lb_common.enums.Turno;
@@ -23,6 +24,17 @@ public class UsuarioPerfilResponseDTO {
      */
     private EnumRol rol;
 
+    /**
+     * Estado actual del usuario, indicando si está activo, inactivo o suspendido
+     */
+    private EnumEstadoUsuario estado;
+
+    /**
+     * Correo electrónico registrado del usuario, utilizado para comunicaciones y
+     * autenticación
+     */
+
+    private String email;
     /**
      * Nombres completos del usuario
      */
