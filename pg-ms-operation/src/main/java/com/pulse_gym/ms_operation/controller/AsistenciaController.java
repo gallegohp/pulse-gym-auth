@@ -28,7 +28,7 @@ public class AsistenciaController {
      * POST /api/asistencias/entrada
      */
     @PostMapping("/entrada")
-    public ResponseEntity<Map<String, Object>> registrarEntrada(@Valid @RequestBody RegistroAsistenciaDTO request) {
+    public ResponseEntity<Map<String, Object>> registrarEntrada(@Valid @RequestBody RegistroAsistenciaDTO request, @RequestHeader(value = "X-User-Rol", required = false) String userRol) {
         try {
             MessegeGlobalDTO response = asistenciaService.registrarEntrada(request);
             

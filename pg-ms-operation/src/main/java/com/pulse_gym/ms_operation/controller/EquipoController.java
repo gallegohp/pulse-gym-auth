@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -47,9 +48,10 @@ public class EquipoController {
      * @return ResponseEntity<MessegeGlobalDTO>
      */
     @PostMapping
-    public ResponseEntity<MessegeGlobalDTO> registrarEquipo(@Valid @RequestBody EquipoRequestDTO equipoRequestDTO) {
+    public ResponseEntity<MessegeGlobalDTO> registrarEquipo(@Valid @RequestBody EquipoRequestDTO equipoRequestDTO, 
+                                                            @RequestHeader(value = "X-User-Rol", required = false) String userRol) {
         try {
-            MessegeGlobalDTO response = equipoService.registrarEquipo(equipoRequestDTO);
+            MessegeGlobalDTO response = equipoService.registrarEquipo(equipoRequestDTO, userRol);
             return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
         } catch (Exception e) {
             e.printStackTrace();
