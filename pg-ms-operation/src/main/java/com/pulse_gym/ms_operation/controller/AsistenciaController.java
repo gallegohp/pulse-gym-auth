@@ -26,11 +26,19 @@ public class AsistenciaController {
     /**
      * Registrar entrada de socio (desde WEB o APP)
      * POST /api/asistencias/entrada
+     * 
+     * Se valida que la peticion solo la puede hacer un socio
+     * 
+     * @param request
+     * @param userRol Rol del usuario que hace la petición (desde header X-User-Rol)
+     * @return ResponseEntity<Map<String, Object>> con el resultado de la operación
+     * 
      */
     @PostMapping("/entrada")
-    public ResponseEntity<Map<String, Object>> registrarEntrada(@Valid @RequestBody RegistroAsistenciaDTO request) {
+    public ResponseEntity<Map<String, Object>> registrarEntrada(@Valid @RequestBody RegistroAsistenciaDTO request, 
+                                                                @RequestHeader(value = "X-User-Rol", required = false) String userRol) {
         try {
-            MessegeGlobalDTO response = asistenciaService.registrarEntrada(request);
+            MessegeGlobalDTO response = asistenciaService.registrarEntrada(request, userRol);
             
             Map<String, Object> respuesta = new HashMap<>();
             respuesta.put("success", true);
@@ -47,13 +55,19 @@ public class AsistenciaController {
     }
 
     /**
-     * Consultar historial de asistencias de un socio
-     * GET /api/asistencias/historial/usuario/{idUsuario}
+     * Consultar historial de asistencias de un socio.
+     * 
+     * @param idUsuario ID del socio
+     * @param userRol Rol del socio
+     * @return ResponseEntity<Map<String, Object>> con el resultado de la operación
      */
+     
     @GetMapping("/historial/usuario/{idUsuario}")
-    public ResponseEntity<Map<String, Object>> consultarHistorialUsuario(@PathVariable Long idUsuario) {
+    public ResponseEntity<Map<String, Object>> consultarHistorialUsuario(@PathVariable Long idUsuario,
+                                                                        @RequestHeader(value = "X-User-Rol", required = false) String userRol
+    ) {
         try {
-            List<AsistenciaResponseDTO> historial = asistenciaService.consultarHistorialUsuario(idUsuario);
+            List<AsistenciaResponseDTO> historial = asistenciaService.consultarHistorialUsuario(idUsuario, userRol);
             
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
@@ -72,13 +86,18 @@ public class AsistenciaController {
     }
 
     /**
-     * Consultar asistencias por sede
-     * GET /api/asistencias/sede/{idSede}
+     * Consultar asistencias por sede.
+     * 
+     * @param idSede ID de la sede 
+     * @param userRol Rol del socio
+     * @return ResponseEntity<Map<String, Object>> con el resultado de la operación
      */
     @GetMapping("/sede/{idSede}")
-    public ResponseEntity<Map<String, Object>> consultarAsistenciasPorSede(@PathVariable Long idSede) {
+    public ResponseEntity<Map<String, Object>> consultarAsistenciasPorSede(@PathVariable Long idSede, 
+                                                                          @RequestHeader(value = "X-User-Rol", required = false) String userRol) 
+    {
         try {
-            List<AsistenciaResponseDTO> asistencias = asistenciaService.consultarAsistenciasPorSede(idSede);
+            List<AsistenciaResponseDTO> asistencias = asistenciaService.consultarAsistenciasPorSede(idSede, userRol);
             
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
@@ -97,13 +116,14 @@ public class AsistenciaController {
     }
 
     /**
-     * Consultar asistencias del día actual
-     * GET /api/asistencias/hoy
+     * Consultar asistencias del día actual.
+     * @param userRol Rol del usuario
+     * @return ResponseEntity<Map<String, Object>> con el resultado de la operación
      */
     @GetMapping("/hoy")
-    public ResponseEntity<Map<String, Object>> consultarAsistenciasDelDia() {
+    public ResponseEntity<Map<String, Object>> consultarAsistenciasDelDia(@RequestHeader(value = "X-User-Rol", required = false) String userRol) {
         try {
-            List<AsistenciaResponseDTO> asistencias = asistenciaService.consultarAsistenciasDelDia();
+            List<AsistenciaResponseDTO> asistencias = asistenciaService.consultarAsistenciasDelDia(userRol);
             
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);

@@ -18,6 +18,7 @@ import com.pulse_gym.lb_common.entity.operation.Sede;
 import com.pulse_gym.lb_common.enums.EnumEstado;
 import com.pulse_gym.lb_common.enums.EnumEstadoReporte;
 import com.pulse_gym.lb_common.enums.EnumUrgencia;
+import com.pulse_gym.lb_common.services.ValidacionDeRoles;
 import com.pulse_gym.ms_operation.repository.EquipoRepository;
 import com.pulse_gym.ms_operation.repository.ProveedorRepository;
 import com.pulse_gym.ms_operation.repository.SedeRepository;
@@ -51,11 +52,16 @@ public class EquipoService {
      * Registra un nuevo equipo en el sistema. Primero verifica que el número de
      * serie del equipo no exista ya en la base de datos
      * 
+     * Se valida que solo pueda hacer la peticion un Admin, un Entrenador o un Recepcionista
+     * 
      * @param equipoRequestDTO
+     * @param userRol Rol del usuario que hace la petición (desde header X-User-Rol)
      * @return MessegeGlobalDTO con un mensaje de éxito si el equipo se registró
      *         correctamente
      */
-    public MessegeGlobalDTO registrarEquipo(EquipoRequestDTO equipoRequestDTO) {
+    public MessegeGlobalDTO registrarEquipo(EquipoRequestDTO equipoRequestDTO, String userRol) {
+        
+        ValidacionDeRoles.validarAdminOEntrenadorORecepcionista(userRol);
 
         if (equipoRepository.findByNumeroSerie(equipoRequestDTO.getNumeroSerie()).isPresent()) {
 
@@ -97,15 +103,28 @@ public class EquipoService {
      * Utiliza Specification para construir una consulta dinámica basada en los
      * criterios de búsqueda proporcionados.
      * 
+     * Se valida que solo pueda hacer la peticion un Cualquier Rol
+     * 
      * @param request
+     * @param userRol Rol del usuario que hace la petición (desde header X-User-Rol)
      * @return Lista de equipos que coinciden con los criterios de búsqueda
      *         especificados en el objeto ConsultaEquipoRequestDTO
      */
-    public List<Equipo> obtenerEquipos(ConsultaEquipoRequestDTO request) {
+    public List<Equipo> obtenerEquipos(ConsultaEquipoRequestDTO request, String userRol) {
+
+        ValidacionDeRoles.validarCualquierRol(userRol);
+
         Specification<Equipo> spec = buildSpecification(request);
+
         return equipoRepository.findAll(spec);
     }
 
+    /**
+     * Construye una especificación de búsqueda para la consulta de equipos
+     * 
+     * @param request
+     * @return
+     */
     private Specification<Equipo> buildSpecification(ConsultaEquipoRequestDTO request) {
         // root -> Entidad, query -> modificar consulta , cd - > construye WHERE
         return (root, query, cb) -> {
@@ -116,7 +135,7 @@ public class EquipoService {
             if (StringUtils.isNotBlank(request.getNombre())) {
                 predicates.add(cb.like(cb.lower(root.get("nombre")),
                         "%" + request.getNombre().toLowerCase() + "%")); // % comodin ->
-                                                                         // contiene
+                                                                         
             }
 
             // Búsqueda por marca
@@ -156,12 +175,18 @@ public class EquipoService {
      * primero verifica que el equipo con el ID proporcionado exista, luego
      * actualiza
      * 
+     * Se valida que solo pueda hacer la peticion un Admin, un Entrenador o un Recepcionista
+     * 
      * @param id
      * @param equipoRequestDTO
+     * @param userRol Rol del usuario que hace la petición (desde header X-User-Rol)
      * @return MessegeGlobalDTO con un mensaje de éxito si el equipo se actualizó
      *         correctamente
      */
-    public MessegeGlobalDTO actualizarEquipo(Long id, EquipoRequestDTO equipoRequestDTO) {
+    public MessegeGlobalDTO actualizarEquipo(Long id, EquipoRequestDTO equipoRequestDTO, String userRol) {
+
+        ValidacionDeRoles.validarAdminOEntrenadorORecepcionista(userRol);
+
         Equipo equipo = equipoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Equipo no encontrado"));
 
@@ -194,12 +219,18 @@ public class EquipoService {
     /**
      * Cambia el estado de un equipo existente en la base de datos.
      * 
+     * Se valida que la ruta solo pueda hacer la peticion un Admin, un Entrenador o un Recepcionista
+     * 
      * @param id
      * @param estadoRequestDTO
+     * @param userRol Rol del usuario que hace la petición (desde header X-User-Rol)
      * @return MessegeGlobalDTO con un mensaje de éxito si el estado del equipo se
      *         actualizó correctamente
      */
-    public MessegeGlobalDTO cambiarEstadoEquipo(Long id, EstadoEquipoRequestDTO estadoRequestDTO) {
+    public MessegeGlobalDTO cambiarEstadoEquipo(Long id, EstadoEquipoRequestDTO estadoRequestDTO, String userRol) {
+
+        ValidacionDeRoles.validarAdminOEntrenadorORecepcionista(userRol);
+
         Equipo equipo = equipoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Equipo no encontrado"));
 
@@ -237,13 +268,19 @@ public class EquipoService {
     /**
      * Reporta una falla en un equipo existente en la base de datos.
      * 
+     * Se valida que la ruta solo pueda hacer la peticion un Admin, un Entrenador o un Recepcionista
+     * 
      * @param idEquipo
      * @param request
+     * @param userRol Rol del usuario que hace la petición (desde header X-User-Rol)
      * @return MessegeGlobalDTO con un mensaje de éxito si la falla se reportó
      *         correctamente
      */
     @Transactional
-    public MessegeGlobalDTO reportarFalla(Long idEquipo, ReporteFallaDTO request) {
+    public MessegeGlobalDTO reportarFalla(Long idEquipo, ReporteFallaDTO request, String userRol) {
+
+        ValidacionDeRoles.validarAdminOEntrenadorORecepcionista(userRol);
+
         Equipo equipo = equipoRepository.findById(idEquipo)
                 .orElseThrow(() -> new RuntimeException("Equipo no encontrado con ID: " + idEquipo));
 
@@ -273,13 +310,19 @@ public class EquipoService {
     /**
      * Actualiza el estado de un reporte de falla existente en la base de datos.
      * 
+     * Se valida que la ruta solo pueda hacer la peticion un Admin, un Entrenador o un Recepcionista
+     * 
      * @param idEquipo
      * @param request
+     * @param userRol Rol del usuario que hace la petición (desde header X-User-Rol)
      * @return MessegeGlobalDTO con un mensaje de éxito si el estado del reporte de
      *         falla se actualizó correctamente
      */
     @Transactional
-    public MessegeGlobalDTO actualizarEstadoReporte(Long idEquipo, ActualizarEstadoReporteDTO request) {
+    public MessegeGlobalDTO actualizarEstadoReporte(Long idEquipo, ActualizarEstadoReporteDTO request, String userRol) {
+
+        ValidacionDeRoles.validarAdminOEntrenadorORecepcionista(userRol);
+
         Equipo equipo = equipoRepository.findById(idEquipo)
                 .orElseThrow(() -> new RuntimeException("Equipo no encontrado con ID: " + idEquipo));
 
@@ -317,12 +360,18 @@ public class EquipoService {
      * Consulta los reportes de falla de los equipos que coinciden con los criterios
      * de búsqueda especificados.
      * 
+     * 
+     * 
      * @param idEquipo
      * @param estado
      * @param urgencia
+     * @param userRol Rol del usuario que hace la petición (desde header X-User-Rol)
      * @return Lista de equipos que coinciden con los criterios de búsqueda
      */
-    public List<Equipo> consultarReportesFalla(Long idEquipo, String estado, String urgencia) {
+    public List<Equipo> consultarReportesFalla(Long idEquipo, String estado, String urgencia, String userRol) {
+
+        ValidacionDeRoles.validarAdminOEntrenadorORecepcionista(userRol);
+
         Specification<Equipo> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
