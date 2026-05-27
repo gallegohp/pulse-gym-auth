@@ -33,12 +33,15 @@ public class ProveedorController {
      * Endpoint para registrar un nuevo proveedor. Recibe un objeto ProveedorRequestDTO en
      * el cuerpo de la solicitud, y registra el proveedor en la base de datos.
      * @param request
+     * @param userRol Rol del usuario que hace la petición (desde header X-User-Rol)
      * @return ResponseEntity<Map<String, Object>> con el resultado del registro
      */
     @PostMapping("/registrar")
-    public ResponseEntity<Map<String, Object>> registrarProveedor(@Valid @RequestBody ProveedorRequestDTO request) {
+    public ResponseEntity<Map<String, Object>> registrarProveedor(@Valid @RequestBody ProveedorRequestDTO request, 
+                                                                  @RequestHeader(value = "X-User-Rol", required = false) String userRol
+    ) {
         try {
-            MessegeGlobalDTO response = proveedorService.registrarProveedor(request);
+            MessegeGlobalDTO response = proveedorService.registrarProveedor(request, userRol);
             
             Map<String, Object> respuesta = new HashMap<>();
             respuesta.put("success", true);
@@ -56,12 +59,13 @@ public class ProveedorController {
 
     /**
      * Endpoint para consultar todos los proveedores registrados en la base de datos.
+     * @param userRol Rol del usuario que hace la petición (desde header X-User-Rol)
      * @return ResponseEntity<Map<String, Object>> con los proveedores registrados
      */
     @GetMapping("/todos")
-    public ResponseEntity<Map<String, Object>> consultarTodosProveedores() {
+    public ResponseEntity<Map<String, Object>> consultarTodosProveedores(@RequestHeader(value = "X-User-Rol", required = false) String userRol) {
         try {
-            List<ProveedorResponseDTO> proveedores = proveedorService.consultarTodosProveedores();
+            List<ProveedorResponseDTO> proveedores = proveedorService.consultarTodosProveedores(userRol);
             
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
@@ -85,9 +89,11 @@ public class ProveedorController {
      * @return ResponseEntity<Map<String, Object>> con el proveedor encontrado
      */
     @GetMapping("/{id}")
-    public ResponseEntity<Map<String, Object>> consultarProveedorPorId(@PathVariable Long id) {
+    public ResponseEntity<Map<String, Object>> consultarProveedorPorId(@PathVariable Long id,
+                                                                        @RequestHeader(value = "X-User-Rol", required = false) String userRol
+    ) {
         try {
-            ProveedorResponseDTO proveedor = proveedorService.consultarProveedorPorId(id);
+            ProveedorResponseDTO proveedor = proveedorService.consultarProveedorPorId(id, userRol);
             
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
@@ -105,46 +111,17 @@ public class ProveedorController {
     }
 
     /**
-     * Endpoint para consultar los proveedores registrados en la base de datos paginados.
-     * @param page
-     * @param size
-     * @return ResponseEntity<Map<String, Object>> con los proveedores registrados
-     */
-    @GetMapping("/paginado")
-    public ResponseEntity<Map<String, Object>> consultarProveedoresPaginado(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        try {
-            Page<ProveedorResponseDTO> proveedoresPage = proveedorService.consultarProveedoresPaginado(page, size);
-            
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "Consulta exitosa");
-            response.put("currentPage", proveedoresPage.getNumber());
-            response.put("totalItems", proveedoresPage.getTotalElements());
-            response.put("totalPages", proveedoresPage.getTotalPages());
-            response.put("pageSize", proveedoresPage.getSize());
-            response.put("data", proveedoresPage.getContent());
-            
-            return ResponseEntity.ok(response);
-            
-        } catch (Exception e) {
-            Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("success", false);
-            errorResponse.put("message", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
-        }
-    }
-
-    /**
      * Endpoint para buscar proveedores por su nombre.
-     * @param nombre
+     * @param nombre+
+     * @param userRol Rol del usuario que hace la petición (desde header X-User-Rol)
      * @return ResponseEntity<Map<String, Object>> con los proveedores encontrados
      */
     @GetMapping("/buscar")
-    public ResponseEntity<Map<String, Object>> buscarProveedoresPorNombre(@RequestParam String nombre) {
-        try {
-            List<ProveedorResponseDTO> proveedores = proveedorService.buscarProveedoresPorNombre(nombre);
+    public ResponseEntity<Map<String, Object>> buscarProveedoresPorNombre(@RequestParam String nombre, 
+                                                                          @RequestHeader(value = "X-User-Rol", required = false) String userRol
+    ) {
+        try { 
+            List<ProveedorResponseDTO> proveedores = proveedorService.buscarProveedoresPorNombre(nombre, userRol);
             
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
