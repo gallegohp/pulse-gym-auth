@@ -18,6 +18,7 @@ import com.pulse_gym.lb_common.entity.operation.Sede;
 import com.pulse_gym.lb_common.enums.EnumEstado;
 import com.pulse_gym.lb_common.enums.EnumEstadoReporte;
 import com.pulse_gym.lb_common.enums.EnumUrgencia;
+import com.pulse_gym.lb_common.services.ValidacionDeRoles;
 import com.pulse_gym.ms_operation.repository.EquipoRepository;
 import com.pulse_gym.ms_operation.repository.ProveedorRepository;
 import com.pulse_gym.ms_operation.repository.SedeRepository;
@@ -55,7 +56,8 @@ public class EquipoService {
      * @return MessegeGlobalDTO con un mensaje de éxito si el equipo se registró
      *         correctamente
      */
-    public MessegeGlobalDTO registrarEquipo(EquipoRequestDTO equipoRequestDTO) {
+    public MessegeGlobalDTO registrarEquipo(EquipoRequestDTO equipoRequestDTO, String userRol) {
+        ValidacionDeRoles.validarAdminOEntrenadorORecepcionista(userRol);
 
         if (equipoRepository.findByNumeroSerie(equipoRequestDTO.getNumeroSerie()).isPresent()) {
 
