@@ -1,4 +1,4 @@
-package com.pulse_gym.ms_operation.client;
+package com.pulse_gym.lb_common.client;
 
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;

@@ -1,5 +1,6 @@
 package com.pulse_gym.ms_operation.services;
 
+import com.pulse_gym.lb_common.client.UsuarioClient;
 import com.pulse_gym.lb_common.dto.AsistenciaResponseDTO;
 import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
 import com.pulse_gym.lb_common.dto.RegistroAsistenciaDTO;
@@ -9,7 +10,6 @@ import com.pulse_gym.lb_common.entity.operation.Sede;
 import com.pulse_gym.lb_common.enums.EnumEstadoAcceso;
 import com.pulse_gym.lb_common.enums.EnumTipoAcceso;
 import com.pulse_gym.lb_common.services.ValidacionDeRoles;
-import com.pulse_gym.ms_operation.client.UsuarioClient;
 import com.pulse_gym.ms_operation.repository.AsistenciaRepository;
 import com.pulse_gym.ms_operation.repository.SedeRepository;
 
