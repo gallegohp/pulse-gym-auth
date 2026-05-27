@@ -22,7 +22,7 @@ spring:
         register: true
         health-check-path: /actuator/health
         prefer-ip-address: false
-        instance-id: ${spring.application.name}:${random.value}
+        instance-id: ${spring.application.name}
 
 microservicio:
   usuarios:

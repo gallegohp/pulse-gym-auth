@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -41,15 +42,17 @@ public class EquipoController {
 
     /**
      * Endpoint para registrar un nuevo equipo. Recibe un objeto EquipoRequestDTO en
-     * el cuerpo de la solicitud,
+     * el cuerpo de la solicitud
      * 
      * @param equipoRequestDTO
+     * @param userRol Rol del usuario que hace la petición (desde header X-User-Rol)
      * @return ResponseEntity<MessegeGlobalDTO>
      */
     @PostMapping
-    public ResponseEntity<MessegeGlobalDTO> registrarEquipo(@Valid @RequestBody EquipoRequestDTO equipoRequestDTO) {
+    public ResponseEntity<MessegeGlobalDTO> registrarEquipo(@Valid @RequestBody EquipoRequestDTO equipoRequestDTO, 
+                                                            @RequestHeader(value = "X-User-Rol", required = false) String userRol) {
         try {
-            MessegeGlobalDTO response = equipoService.registrarEquipo(equipoRequestDTO);
+            MessegeGlobalDTO response = equipoService.registrarEquipo(equipoRequestDTO, userRol);
             return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
         } catch (Exception e) {
             e.printStackTrace();
@@ -67,12 +70,15 @@ public class EquipoController {
      * solicitud
      * 
      * @param request
+     * @param userRol Rol del usuario que hace la petición (desde header X-User-Rol)
      * @return ResponseEntity<Map<String, Object>> con la respuesta de la consulta
      */
     @PostMapping("/consultar")
-    public ResponseEntity<Map<String, Object>> consultarEquipos(@RequestBody ConsultaEquipoRequestDTO request) {
+    public ResponseEntity<Map<String, Object>> consultarEquipos(@RequestBody ConsultaEquipoRequestDTO request,
+                                                                @RequestHeader(value = "X-User-Rol", required = false) String userRol   
+    ) {
         try {
-            List<Equipo> equipos = equipoService.obtenerEquipos(request);
+            List<Equipo> equipos = equipoService.obtenerEquipos(request, userRol);
 
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
@@ -109,9 +115,11 @@ public class EquipoController {
      */
     @PutMapping("/{id}")
     public ResponseEntity<MessegeGlobalDTO> actualizarEquipo(@PathVariable Long id,
-            @Valid @RequestBody EquipoRequestDTO equipoRequestDTO) {
+                                                            @Valid @RequestBody EquipoRequestDTO equipoRequestDTO,
+                                                            @RequestHeader(value = "X-User-Rol", required = false) String userRol
+    ) {
         try {
-            MessegeGlobalDTO response = equipoService.actualizarEquipo(id, equipoRequestDTO);
+            MessegeGlobalDTO response = equipoService.actualizarEquipo(id, equipoRequestDTO, userRol);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             e.printStackTrace();
@@ -122,20 +130,22 @@ public class EquipoController {
 
     /**
      * Endpoint para cambiar el estado de un equipo. Recibe el ID del equipo como
-     * parte de la URL y un objeto
-     * EstadoEquipoRequestDTO con el nuevo estado en el cuerpo de la solicitud.
+     * parte de la URL, un objeto EstadoEquipoRequestDTO con el nuevo estado en el cuerpo de la solicitud 
+     * y el rol del usuario que hace la petición.
      * 
      * @param id
      * @param estadoRequestDTO
+     * @param userRol Rol del usuario que hace la petición (desde header X-User-Rol)
      * @return ResponseEntity<MessegeGlobalDTO> con el resultado del cambio de
      *         estado
      */
     @PatchMapping("/{id}/estado")
-    public ResponseEntity<MessegeGlobalDTO> cambiarEstadoEquipo(
-            @PathVariable Long id,
-            @Valid @RequestBody EstadoEquipoRequestDTO estadoRequestDTO) {
+    public ResponseEntity<MessegeGlobalDTO> cambiarEstadoEquipo(@PathVariable Long id,
+                                                                @Valid @RequestBody EstadoEquipoRequestDTO estadoRequestDTO,
+                                                                @RequestHeader(value = "X-User-Rol", required = false) String userRol ) 
+    {
         try {
-            MessegeGlobalDTO response = equipoService.cambiarEstadoEquipo(id, estadoRequestDTO);
+            MessegeGlobalDTO response = equipoService.cambiarEstadoEquipo(id, estadoRequestDTO, userRol);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             e.printStackTrace();
@@ -146,17 +156,20 @@ public class EquipoController {
 
     /**
      * Endpoint para reportar una falla en un equipo. Recibe el ID del equipo como
-     * parte de la URL y un objeto ReporteFallaDTO con los datos de la falla en el cuerpo de la solicitud.
+     * parte de la URL y un objeto ReporteFallaDTO con los datos de la falla en el cuerpo de la solicitud
+     * y el rol del usuario que hace la petición.
      * @param idEquipo
      * @param request
+     * @param userRol Rol del usuario que hace la petición (desde header X-User-Rol)
      * @return ResponseEntity<Map<String, Object>> con el resultado del reporte de la falla
      */
     @PostMapping("/{idEquipo}/reportar-falla")
-    public ResponseEntity<Map<String, Object>> reportarFalla(
-            @PathVariable Long idEquipo,
-            @Valid @RequestBody ReporteFallaDTO request) {
+    public ResponseEntity<Map<String, Object>> reportarFalla(@PathVariable Long idEquipo,
+                                                            @Valid @RequestBody ReporteFallaDTO request,
+                                                            @RequestHeader(value = "X-User-Rol", required = false) String userRol )
+    {
         try {
-            MessegeGlobalDTO response = equipoService.reportarFalla(idEquipo, request);
+            MessegeGlobalDTO response = equipoService.reportarFalla(idEquipo, request, userRol);
 
             Map<String, Object> respuesta = new HashMap<>();
             respuesta.put("success", true);
@@ -175,16 +188,21 @@ public class EquipoController {
     /**
      * Endpoint para actualizar el estado de un reporte de falla. Recibe el ID del equipo como
      * parte de la URL y un objeto ActualizarEstadoReporteDTO con el nuevo estado en el cuerpo de la solicitud.
+     * 
+     * Se valida que la ruta solo pueda hacer la peticion un Admin, un Entrenador o un Recepcionista
+     * 
      * @param idEquipo
      * @param request
+     * @param userRol Rol del usuario que hace la petición (desde header X-User-Rol)
      * @return ResponseEntity<Map<String, Object>> con el resultado de la actualización del estado del reporte de falla
      */
     @PatchMapping("/{idEquipo}/estado-reporte")
-    public ResponseEntity<Map<String, Object>> actualizarEstadoReporte(
-            @PathVariable Long idEquipo,
-            @Valid @RequestBody ActualizarEstadoReporteDTO request) {
+    public ResponseEntity<Map<String, Object>> actualizarEstadoReporte(@PathVariable Long idEquipo,
+                                                                        @Valid @RequestBody ActualizarEstadoReporteDTO request,
+                                                                        @RequestHeader(value = "X-User-Rol", required = false) String userRol)
+    {
         try {
-            MessegeGlobalDTO response = equipoService.actualizarEstadoReporte(idEquipo, request);
+            MessegeGlobalDTO response = equipoService.actualizarEstadoReporte(idEquipo, request, userRol);
 
             Map<String, Object> respuesta = new HashMap<>();
             respuesta.put("success", true);
@@ -205,15 +223,17 @@ public class EquipoController {
      * @param idEquipo
      * @param estado
      * @param urgencia
+     * @param userRol Rol del usuario que hace la petición (desde header X-User-Rol)
      * @return ResponseEntity<Map<String, Object>> con los reportes de falla encontrados
      */
     @GetMapping("/reportes-falla")
-    public ResponseEntity<Map<String, Object>> consultarReportesFalla(
-            @RequestParam(required = false) Long idEquipo,
-            @RequestParam(required = false) String estado,
-            @RequestParam(required = false) String urgencia) {
+    public ResponseEntity<Map<String, Object>> consultarReportesFalla(@RequestParam(required = false) Long idEquipo,
+                                                                        @RequestParam(required = false) String estado,
+                                                                        @RequestParam(required = false) String urgencia,
+                                                                        @RequestHeader(value = "X-User-Rol", required = false) String userRol)
+    {
         try {
-            List<Equipo> equipos = equipoService.consultarReportesFalla(idEquipo, estado, urgencia);
+            List<Equipo> equipos = equipoService.consultarReportesFalla(idEquipo, estado, urgencia, userRol);
 
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
