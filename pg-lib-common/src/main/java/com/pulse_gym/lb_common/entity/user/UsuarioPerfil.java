@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-import com.pulse_gym.lb_common.enums.EnumRol;
+import com.pulse_gym.lb_common.enums.EnumEstadoUsuario;
 import com.pulse_gym.lb_common.enums.NivelExperiencia;
 import com.pulse_gym.lb_common.enums.Turno;
 
@@ -34,24 +34,29 @@ public class UsuarioPerfil {
     private Long idUsuario;
 
     /**
-     * Rol asignado al usuario dentro del gimnasio. Se persiste como texto mediante
-     * un ENUM nativo
-     */
-    @Enumerated(EnumType.STRING)
-    @Column(name = "rol", nullable = false)
-    private EnumRol rol;
-
-    /**
      * Nombres del usuario
      */
     @Column(name = "nombre", nullable = false, length = 100)
     private String nombre;
 
     /**
+     * Correo de usuario
+     */
+    @Column(name = "email", nullable = false, length = 150)
+    private String email;
+
+    /**
      * Apellidos del usuario
      */
     @Column(name = "apellido", nullable = false, length = 100)
     private String apellido;
+
+    /**
+     * Estado del usuario (ACTIVO/INACTIVO)
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "estado", nullable = false)
+    private EnumEstadoUsuario estado = EnumEstadoUsuario.ACTIVO;
 
     /**
      * Número de teléfono de contacto del usuario
