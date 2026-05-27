@@ -15,7 +15,10 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @EnableJpaRepositories(basePackages = {
     "com.pulse_gym.ms_operation.repository",  
 })
-@EnableFeignClients(basePackages = "com.pulse_gym.ms_operation.client")  
+@EnableFeignClients(basePackages = {
+    "com.pulse_gym.lb_common.client",
+    "com.pulse_gym.ms_operation.client"
+})
 
 public class MsOperationApplication {
 

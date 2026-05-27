@@ -8,7 +8,6 @@ import com.pulse_gym.lb_common.dto.SedeUpdateDTO;
 import com.pulse_gym.ms_operation.services.SedeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -33,12 +32,14 @@ public class SedeController {
      * el cuerpo de la solicitud,
      * 
      * @param request
+     * @param userRol Rol del usuario que hace la petición (desde header X-User-Rol)
      * @return ResponseEntity<Map<String, Object>> con la respuesta de la creación
      */
     @PostMapping
-    public ResponseEntity<Map<String, Object>> crearSede(@Valid @RequestBody SedeRequestDTO request) {
+    public ResponseEntity<Map<String, Object>> crearSede(@Valid @RequestBody SedeRequestDTO request, 
+                                                        @RequestHeader(value = "X-User-Rol", required = false) String userRol) {
         try {
-            MessegeGlobalDTO response = sedeService.crearSede(request);
+            MessegeGlobalDTO response = sedeService.crearSede(request, userRol);
             
             Map<String, Object> respuesta = new HashMap<>();
             respuesta.put("success", true);
@@ -60,9 +61,9 @@ public class SedeController {
      * @return ResponseEntity<Map<String, Object>> con la respuesta de la consulta
      */
     @GetMapping
-    public ResponseEntity<Map<String, Object>> obtenerTodasLasSedes() {
+    public ResponseEntity<Map<String, Object>> obtenerTodasLasSedes(@RequestHeader(value = "X-User-Rol", required = false) String userRol) {
         try {
-            List<SedeResponseDTO> sedes = sedeService.obtenerTodasLasSedes();
+            List<SedeResponseDTO> sedes = sedeService.obtenerTodasLasSedes(userRol);
             
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
@@ -109,16 +110,19 @@ public class SedeController {
     /**
      * Endpoint para actualizar una sede
      * PUT /api/sedes/{id}
+     * 
      * @param id
      * @param request
+     * @param userRol Rol del usuario que hace la petición (desde header X-User-Rol)
      * @return ResponseEntity<Map<String, Object>> con la respuesta de la actualización
      */
     @PutMapping("/{id}")
-    public ResponseEntity<Map<String, Object>> actualizarSede(
-            @PathVariable Long id,
-            @Valid @RequestBody SedeUpdateDTO request) {
+    public ResponseEntity<Map<String, Object>> actualizarSede(@PathVariable Long id,
+                                                            @Valid @RequestBody SedeUpdateDTO request,
+                                                            @RequestHeader(value = "X-User-Rol", required = false) String userRol) 
+    {
         try {
-            MessegeGlobalDTO response = sedeService.actualizarSede(id, request);
+            MessegeGlobalDTO response = sedeService.actualizarSede(id, request, userRol);
             
             Map<String, Object> respuesta = new HashMap<>();
             respuesta.put("success", true);
@@ -138,12 +142,15 @@ public class SedeController {
      * Endpoint para eliminar una sede por su ID
      * DELETE /api/sedes/{id}
      * @param id
+     * @param userRol Rol del usuario que hace la petición (desde header X-User-Rol)
      * @return ResponseEntity<Map<String, Object>> con la respuesta de la eliminación
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Map<String, Object>> eliminarSede(@PathVariable Long id) {
+    public ResponseEntity<Map<String, Object>> eliminarSede(@PathVariable Long id, 
+                                                            @RequestHeader(value = "X-User-Rol", required = false) String userRol)
+    {
         try {
-            MessegeGlobalDTO response = sedeService.eliminarSede(id);
+            MessegeGlobalDTO response = sedeService.eliminarSede(id, userRol);
             
             Map<String, Object> respuesta = new HashMap<>();
             respuesta.put("success", true);
@@ -163,12 +170,15 @@ public class SedeController {
      * Endpoint para buscar sedes por su nombre (por completo)
      * GET /api/sedes/buscar/nombre
      * @param nombre
+     * @param userRol Rol del usuario que hace la petición (desde header X-User-Rol)
      * @return ResponseEntity<Map<String, Object>> con la respuesta de la consulta
      */
     @GetMapping("/buscar/nombre")
-    public ResponseEntity<Map<String, Object>> buscarSedesPorNombre(@RequestParam String nombre) {
+    public ResponseEntity<Map<String, Object>> buscarSedesPorNombre(@RequestParam String nombre, 
+                                                                    @RequestHeader(value = "X-User-Rol", required = false) String userRol
+    ) {
         try {
-            List<SedeResponseDTO> sedes = sedeService.buscarSedesPorNombre(nombre);
+            List<SedeResponseDTO> sedes = sedeService.buscarSedesPorNombre(nombre, userRol);
             
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
@@ -189,12 +199,14 @@ public class SedeController {
     /**
      * Endpoint para buscar sedes por su ciudad 
      * @param ciudad
+     * @param userRol Rol del usuario que hace la petición (desde header X-User-Rol)
      * @return ResponseEntity<Map<String, Object>> con la respuesta de la consulta
      */
     @GetMapping("/buscar/ciudad")
-    public ResponseEntity<Map<String, Object>> buscarSedesPorCiudad(@RequestParam String ciudad) {
+    public ResponseEntity<Map<String, Object>> buscarSedesPorCiudad(@RequestParam String ciudad,
+                                                                    @RequestHeader(value = "X-User-Rol", required = false) String userRol) {
         try {
-            List<SedeResponseDTO> sedes = sedeService.buscarSedesPorCiudad(ciudad);
+            List<SedeResponseDTO> sedes = sedeService.buscarSedesPorCiudad(ciudad, userRol);
             
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
