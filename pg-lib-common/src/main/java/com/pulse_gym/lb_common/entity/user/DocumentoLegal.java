@@ -21,28 +21,35 @@ import lombok.Data;
 @Table(name = "documento_legal")
 public class DocumentoLegal {
 
+    /** El ID del documento es obligatorio */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_documento")
     private Long idDocumento;
 
+    /** El ID del usuario es obligatorio */
     @Column(name = "fk_id_usuario", nullable = false)
     private Long fkIdUsuario;
 
+    /** El tipo de documento es obligatorio */
     @Enumerated(EnumType.STRING)
     @Column(name = "tipo_documento", nullable = false)
     private EnumTipoDocumentoLegal tipoDocumento;
 
+    /** La fecha de firma es obligatoria */
     @Column(name = "fecha_firma", nullable = false)
     private LocalDateTime fechaFirma;
 
+    /** La URL del archivo firmado */
     @Column(name = "url_archivo_firmado", length = 255)
     private String urlArchivoFirmado;
 
+    /** El estado del documento es obligatorio */
     @Enumerated(EnumType.STRING)
     @Column(name = "estado", nullable = false)
     private EnumEstadoDocumentoLegal estado = EnumEstadoDocumentoLegal.Vigente;
 
+    /** La fecha de creación es obligatoria */
     @PrePersist
     protected void onCreate() {
         fechaFirma = LocalDateTime.now();
