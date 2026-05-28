@@ -3,11 +3,14 @@ package com.pulse_gym.lb_common.entity.user;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.pulse_gym.lb_common.enums.EnumEstadoUsuario;
 import com.pulse_gym.lb_common.enums.NivelExperiencia;
 import com.pulse_gym.lb_common.enums.Turno;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -15,6 +18,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.Data;
@@ -167,6 +171,30 @@ public class UsuarioPerfil {
     @PrePersist
     protected void onCreate() {
         fechaRegistro = LocalDateTime.now();
+    }
+
+    /**
+     * Lista de documentos legales asociados al usuario
+     */
+    @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<DocumentoLegal> documentosLegales = new ArrayList<>();
+
+    /**
+     * Agrega un documento legal a la lista de documentos asociados al usuario y establece la relación bidireccional entre el usuario y el documento.
+     * @param documento El documento legal a agregar al usuario
+     */
+    public void addDocumentoLegal(DocumentoLegal documento) {
+        documentosLegales.add(documento);
+        documento.setUsuario(this);
+    }
+
+    /**
+     * Elimina un documento legal de la lista de documentos asociados al usuario y rompe la relación bidireccional entre el usuario y el documento.
+     * @param documento El documento legal a eliminar del usuario
+     */
+    public void removeDocumentoLegal(DocumentoLegal documento) {
+        documentosLegales.remove(documento);
+        documento.setUsuario(null);
     }
 
 }

@@ -96,17 +96,14 @@ public class UsuarioPerfilService {
     public MessegeGlobalDTO completarPerfil(String email, CompletarPerfilRequestDTO requestDTO,
             String userRol, String userEmail) {
 
-        // Verificar que el usuario autenticado solo complete su propio perfil
         if (!userEmail.equals(email)) {
             throw new SecurityAuthorizationException("Acceso denegado. Solo puede completar su propio perfil");
         }
 
-        // Verificar que el email no tenga ya un perfil completado
         if (usuarioRepository.findByEmail(email).isPresent()) {
             throw new RuntimeException("El usuario ya tiene un perfil completado");
         }
 
-        // Crear el perfil del usuario
         UsuarioPerfil usuario = new UsuarioPerfil();
         usuario.setEmail(email);
         usuario.setNombre(requestDTO.getNombre());
