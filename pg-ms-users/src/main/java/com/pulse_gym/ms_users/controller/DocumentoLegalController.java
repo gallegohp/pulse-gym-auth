@@ -57,6 +57,25 @@ public class DocumentoLegalController {
     }
 
     /**
+     * Consulta todos los documentos legales vigentes.
+     * @param userRol El rol del usuario que realiza la consulta
+     * @return Una lista de documentos legales vigentes
+     */
+    @GetMapping()
+    public ResponseEntity<List<DocumentoLegalResponseDTO>> consultarTodosLosDocumentosLegales(
+            @RequestHeader(value = "X-User-Rol", required = false) String userRol) {
+        try {
+            List<DocumentoLegalResponseDTO> documentos = documentoLegalService
+                    .consultarTodosLosDocumentosLegales(userRol);
+            return ResponseEntity.ok(documentos);
+        } catch (SecurityAuthorizationException e) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al consultar documentos", e);
+        }
+    }
+
+    /**
      * Consulta los documentos legales vigentes de un usuario específico. Los
      * usuarios con rol SOCIO solo pueden consultar sus propios documentos, mientras
      * que los usuarios con rol ADMIN o RECEPCIONISTA pueden consultar los

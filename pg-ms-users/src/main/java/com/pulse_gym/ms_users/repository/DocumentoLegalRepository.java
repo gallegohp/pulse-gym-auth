@@ -42,5 +42,13 @@ public interface DocumentoLegalRepository extends JpaRepository<DocumentoLegal, 
             @Param("idUsuario") Long idUsuario,
             @Param("tipo") EnumTipoDocumentoLegal tipo,
             @Param("estado") EnumEstadoDocumentoLegal estado);
+
+    /**
+     * Busca los documentos legales por su estado.
+     * @param estado El estado del documento es obligatorio
+     * @return Una lista de documentos legales que coinciden con el estado especificado
+     */
+    List<DocumentoLegal> findByEstado(EnumEstadoDocumentoLegal estado);
+
 }
 

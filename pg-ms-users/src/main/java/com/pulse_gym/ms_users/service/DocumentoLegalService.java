@@ -98,6 +98,34 @@ public class DocumentoLegalService {
     }
 
     /**
+     * Consulta todos los documentos legales vigentes.
+     * @param userRol El rol del usuario que realiza la consulta
+     * @return Una lista de documentos legales vigentes
+     */
+    @Transactional(readOnly = true)
+    public List<DocumentoLegalResponseDTO> consultarTodosLosDocumentosLegales(String userRol) {
+
+        ValidacionDeRoles.validarAdminORecepcionista(userRol);
+
+        List<DocumentoLegal> documentos = documentoLegalRepository
+                .findByEstado(EnumEstadoDocumentoLegal.VIGENTE);
+
+        return documentos.stream()
+                .map(doc -> {
+                    DocumentoLegalResponseDTO dto = new DocumentoLegalResponseDTO();
+                    dto.setIdDocumento(doc.getIdDocumento());
+                    dto.setIdUsuario(doc.getUsuario().getIdUsuario());
+                    dto.setNombreUsuario(doc.getUsuario().getNombre() + " " + doc.getUsuario().getApellido());
+                    dto.setTipoDocumento(doc.getTipoDocumento());
+                    dto.setFechaFirma(doc.getFechaFirma());
+                    dto.setUrlArchivoFirmado(doc.getUrlArchivoFirmado());
+                    dto.setEstado(doc.getEstado());
+                    return dto;
+                })
+                .collect(Collectors.toList());
+    }
+
+    /**
      * Consulta los documentos legales vigentes de un usuario específico. Los
      * usuarios con rol SOCIO solo pueden consultar sus propios documentos, mientras
      * que los usuarios con rol ADMIN o RECE
