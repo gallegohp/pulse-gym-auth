@@ -3,11 +3,11 @@ package com.pulse_gym.lb_common.enums;
 public enum EnumTipoDocumentoLegal {
 
     /** Consentimiento informado */
-    Consentimiento_Informado,
+    CONSENTIEMIENTO_INFORMADO,
 
     /** Contrato */
-    Contrato,
+    CONTRATO,
 
     /** Exoneración */
-    Exoneracion
+    EXONERACION
 }

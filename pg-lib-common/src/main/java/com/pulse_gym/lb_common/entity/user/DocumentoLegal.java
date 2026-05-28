@@ -47,7 +47,7 @@ public class DocumentoLegal {
     /** El estado del documento es obligatorio */
     @Enumerated(EnumType.STRING)
     @Column(name = "estado", nullable = false)
-    private EnumEstadoDocumentoLegal estado = EnumEstadoDocumentoLegal.Vigente;
+    private EnumEstadoDocumentoLegal estado = EnumEstadoDocumentoLegal.VIGENTE;
 
     /** La fecha de creación es obligatoria */
     @PrePersist
