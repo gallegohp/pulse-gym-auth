@@ -98,11 +98,16 @@ public class DocumentoLegalService {
     }
 
     /**
-     * Consulta los documentos legales vigentes de un usuario específico. Los usuarios con rol SOCIO solo pueden consultar sus propios documentos, mientras que los usuarios con rol ADMIN o RECE
-     * @param idUsuario El ID del usuario cuyos documentos legales se desean consultar
-     * @param userRol El rol del usuario que realiza la consulta
+     * Consulta los documentos legales vigentes de un usuario específico. Los
+     * usuarios con rol SOCIO solo pueden consultar sus propios documentos, mientras
+     * que los usuarios con rol ADMIN o RECE
+     * 
+     * @param idUsuario         El ID del usuario cuyos documentos legales se desean
+     *                          consultar
+     * @param userRol           El rol del usuario que realiza la consulta
      * @param userIdAutenticado El ID del usuario autenticado
-     * @return Una lista de documentos legales vigentes asociados al usuario especificado
+     * @return Una lista de documentos legales vigentes asociados al usuario
+     *         especificado
      */
     @Transactional(readOnly = true)
     public List<DocumentoLegalResponseDTO> consultarDocumentosLegales(Long idUsuario, String userRol,
@@ -139,4 +144,24 @@ public class DocumentoLegalService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Elimina un documento legal vigente.
+     * 
+     * @param idDocumento El ID del documento legal a eliminar
+     * @param userRol     El rol del usuario que realiza la solicitud
+     * @return Un mensaje global indicando el resultado de la operación
+     */
+    @Transactional
+    public MessegeGlobalDTO eliminarDocumentoLegal(Long idDocumento, String userRol) {
+        ValidacionDeRoles.validarAdminORecepcionista(userRol);
+
+        DocumentoLegal documento = documentoLegalRepository
+                .findByIdDocumentoAndEstado(idDocumento, EnumEstadoDocumentoLegal.VIGENTE)
+                .orElseThrow(() -> new RuntimeException("Documento no encontrado o ya no está vigente"));
+
+        documento.setEstado(EnumEstadoDocumentoLegal.VENCIDO);
+        documentoLegalRepository.save(documento);
+
+        return new MessegeGlobalDTO("Documento legal eliminado correctamente");
+    }
 }
