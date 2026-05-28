@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -78,6 +79,28 @@ public class DocumentoLegalController {
             List<DocumentoLegalResponseDTO> documentos = documentoLegalService
                     .consultarDocumentosLegales(idUsuario, userRol, userIdAutenticado);
             return ResponseEntity.ok(documentos);
+        } catch (SecurityAuthorizationException e) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
+        } catch (RuntimeException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        }
+    }
+
+    /**
+     * Elimina un documento legal vigente. Solo los usuarios con rol ADMIN o
+     * RECEPCIONISTA pueden realizar esta acción.
+     * 
+     * @param idDocumento El ID del documento legal a eliminar
+     * @param userRol     El rol del usuario que realiza la solicitud
+     * @return Un mensaje global indicando el resultado de la operación
+     */
+    @DeleteMapping("/{idDocumento}")
+    public ResponseEntity<MessegeGlobalDTO> eliminarDocumentoLegal(
+            @PathVariable Long idDocumento,
+            @RequestHeader(value = "X-User-Rol", required = false) String userRol) {
+        try {
+            MessegeGlobalDTO response = documentoLegalService.eliminarDocumentoLegal(idDocumento, userRol);
+            return ResponseEntity.ok(response);
         } catch (SecurityAuthorizationException e) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
         } catch (RuntimeException e) {
