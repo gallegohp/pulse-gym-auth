@@ -29,24 +29,41 @@ public class Notificacion {
     @Column(name = "id_notification")
     private Long id_notification;
 
-    
+    /**
+     * Plantilla de la notificacion
+     */
     @ManyToOne
     @JoinColumn(name = "id_plantilla")
     private PlantillaNotificacion id_plantilla;
 
+    /**
+     * Usuario para enviar la notificacion
+     */
     @Column(name = "id_usuario", nullable = false)
     private Long id_usuario;
 
+    /**
+     * Titulo de la notificacion
+     */
     @Column(name = "titulo", nullable = false)
     private String titulo;
 
+    /**
+     * Contenido de la notificacion
+     */
     @Column(name = "contenido", nullable = false)
     private String contenido;
 
+    /**
+     * Estado de la notificacion
+     */
     @Enumerated(EnumType.STRING)
     @Column(name = "tipo", nullable = false)
     private EnumEstadoNotificacion estado;
 
+    /**
+     * Fecha de envio de la notificacion
+     */
     @Column(name = "fecha_envio", nullable = false)
     private LocalDateTime fechaEnvio;
 }
