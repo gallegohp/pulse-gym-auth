@@ -14,10 +14,29 @@ import feign.Param;
 
 public interface DocumentoLegalRepository extends JpaRepository<DocumentoLegal, Long> {
 
+    /**
+     * Busca los documentos legales de un usuario por su ID y estado.       
+     * @param fkIdUsuario El ID del usuario es obligatorio
+     * @param estado El estado del documento es obligatorio
+     * @return Una lista de documentos legales que coinciden con el ID del usuario y el estado especificados
+     */
     List<DocumentoLegal> findByFkIdUsuarioAndEstado(Long fkIdUsuario, EnumEstadoDocumentoLegal estado);
 
+    /**
+     * Busca un documento legal por su ID y estado.
+     * @param idDocumento El ID del documento es obligatorio
+     * @param estado El estado del documento es obligatorio
+     * @return Un Optional que contiene el documento legal si se encuentra, o vacío si no se encuentra o si el estado no coincide
+     */
     Optional<DocumentoLegal> findByIdDocumentoAndEstado(Long idDocumento, EnumEstadoDocumentoLegal estado);
 
+    /**
+     * Busca un documento legal por el ID del usuario, el tipo de documento y el estado.
+     * @param idUsuario El ID del usuario es obligatorio
+     * @param tipo El tipo de documento es obligatorio
+     * @param estado El estado del documento es obligatorio
+     * @return Un Optional que contiene el documento legal si se encuentra, o vacío si no se encuentra o si el estado no coincide
+     */
     @Query("SELECT d FROM DocumentoLegal d WHERE d.fkIdUsuario = :idUsuario AND d.tipoDocumento = :tipo AND d.estado = :estado")
     Optional<DocumentoLegal> findDocumentoPorTipo(
             @Param("idUsuario") Long idUsuario,
