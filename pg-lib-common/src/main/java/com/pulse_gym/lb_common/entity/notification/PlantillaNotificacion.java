@@ -13,14 +13,10 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
-@Table(name = "planilla_notificacion")
+@Table(name = "plantilla_notificacion")
 @Entity
-@NoArgsConstructor
-@AllArgsConstructor
 @Data
 public class PlantillaNotificacion {
 
@@ -30,7 +26,7 @@ public class PlantillaNotificacion {
     @Id
     @GeneratedValue (strategy = GenerationType.IDENTITY)
     @Column(name = "id_plantilla")
-    private String idPlantilla;
+    private Long idPlantilla;
 
     /**
      * Nombre de la plantilla de notificacion
@@ -70,6 +66,9 @@ public class PlantillaNotificacion {
     @Column(name = "estado", nullable = false)
     private Boolean estado;
 
+    /**
+     * fecha de creacion de la plantilla
+     */
     @Column(name = "fecha_creacion", nullable = false)
     private LocalDateTime fechaCreacion;
 
