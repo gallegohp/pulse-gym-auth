@@ -1,5 +1,8 @@
 package com.pulse_gym.ms_users.service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -7,11 +10,13 @@ import org.springframework.web.client.RestTemplate;
 
 import com.pulse_gym.lb_common.dto.AuthUserDTO;
 import com.pulse_gym.lb_common.dto.DocumentoLegalRequestDTO;
+import com.pulse_gym.lb_common.dto.DocumentoLegalResponseDTO;
 import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
 import com.pulse_gym.lb_common.entity.user.DocumentoLegal;
 import com.pulse_gym.lb_common.entity.user.UsuarioPerfil;
 import com.pulse_gym.lb_common.enums.EnumEstadoDocumentoLegal;
 import com.pulse_gym.lb_common.enums.EnumRol;
+import com.pulse_gym.lb_common.exception.SecurityAuthorizationException;
 import com.pulse_gym.lb_common.services.ValidacionDeRoles;
 import com.pulse_gym.ms_users.repository.DocumentoLegalRepository;
 import com.pulse_gym.ms_users.repository.UsuarioPerfilRepository;
@@ -21,7 +26,6 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class DocumentoLegalService {
-
 
     /** RestTemplate para llamar a auth-service */
     private final RestTemplate restTemplate;
@@ -46,7 +50,7 @@ public class DocumentoLegalService {
             ResponseEntity<AuthUserDTO> authResponse = restTemplate.getForEntity(
                     authServiceUrl + "/api/internal/users/email/" + email,
                     AuthUserDTO.class);
-            
+
             if (authResponse.getBody() != null && authResponse.getBody().getRol() != null) {
                 return authResponse.getBody().getRol();
             }
@@ -57,9 +61,13 @@ public class DocumentoLegalService {
     }
 
     /**
-     * Carga un documento legal para un usuario específico. Solo los usuarios con rol ADMIN o RECEPCIONISTA pueden realizar esta acción, y el documento solo puede ser cargado para usuarios con rol SOCIO.
+     * Carga un documento legal para un usuario específico. Solo los usuarios con
+     * rol ADMIN o RECEPCIONISTA pueden realizar esta acción, y el documento solo
+     * puede ser cargado para usuarios con rol SOCIO.
+     * 
      * @param requestDTO DTO con los datos del documento legal a cargar
-     * @param userRol Rol del usuario que realiza la acción (obtenido del token de autenticación)
+     * @param userRol    Rol del usuario que realiza la acción (obtenido del token
+     *                   de autenticación)
      * @return Mensaje de éxito o error en la carga del documento legal
      */
     @Transactional
@@ -70,11 +78,11 @@ public class DocumentoLegalService {
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + requestDTO.getIdUsuario()));
 
         EnumRol rolSocio = obtenerRolDesdeAuth(usuario.getEmail());
-        
+
         if (rolSocio == null) {
             throw new RuntimeException("No se pudo verificar el rol del usuario");
         }
-        
+
         if (rolSocio != EnumRol.socio) {
             throw new RuntimeException("Solo se pueden cargar documentos legales para socios. Rol actual: " + rolSocio);
         }
@@ -88,4 +96,47 @@ public class DocumentoLegalService {
         documentoLegalRepository.save(documento);
         return new MessegeGlobalDTO("Documento legal cargado correctamente");
     }
+
+    /**
+     * Consulta los documentos legales vigentes de un usuario específico. Los usuarios con rol SOCIO solo pueden consultar sus propios documentos, mientras que los usuarios con rol ADMIN o RECE
+     * @param idUsuario El ID del usuario cuyos documentos legales se desean consultar
+     * @param userRol El rol del usuario que realiza la consulta
+     * @param userIdAutenticado El ID del usuario autenticado
+     * @return Una lista de documentos legales vigentes asociados al usuario especificado
+     */
+    @Transactional(readOnly = true)
+    public List<DocumentoLegalResponseDTO> consultarDocumentosLegales(Long idUsuario, String userRol,
+            Long userIdAutenticado) {
+
+        if (userRol.equals(EnumRol.socio.name())) {
+            if (!userIdAutenticado.equals(idUsuario)) {
+                throw new SecurityAuthorizationException("Acceso denegado. Solo puede ver sus propios documentos");
+            }
+        } else if (!userRol.equals(EnumRol.administrador.name()) && !userRol.equals(EnumRol.recepcionista.name())) {
+            throw new SecurityAuthorizationException("Acceso denegado. Rol no autorizado");
+        }
+
+        UsuarioPerfil usuario = usuarioRepository.findById(idUsuario)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + idUsuario));
+
+        List<DocumentoLegal> documentos = documentoLegalRepository
+                .findByUsuario_IdUsuarioAndEstado(idUsuario, EnumEstadoDocumentoLegal.VIGENTE);
+
+        final String nombreCompleto = usuario.getNombre() + " " + usuario.getApellido();
+
+        return documentos.stream()
+                .map(doc -> {
+                    DocumentoLegalResponseDTO dto = new DocumentoLegalResponseDTO();
+                    dto.setIdDocumento(doc.getIdDocumento());
+                    dto.setIdUsuario(doc.getUsuario().getIdUsuario());
+                    dto.setNombreUsuario(nombreCompleto);
+                    dto.setTipoDocumento(doc.getTipoDocumento());
+                    dto.setFechaFirma(doc.getFechaFirma());
+                    dto.setUrlArchivoFirmado(doc.getUrlArchivoFirmado());
+                    dto.setEstado(doc.getEstado());
+                    return dto;
+                })
+                .collect(Collectors.toList());
+    }
+
 }
