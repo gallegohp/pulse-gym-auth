@@ -3,8 +3,8 @@ package com.pulse_gym.lb_common.enums;
 public enum EnumEstadoDocumentoLegal {
 
     /** Vigente */
-    Vigente,
+    VIGENTE,
 
     /** Vencido */
-    Vencido
+    VENCIDO
 }
