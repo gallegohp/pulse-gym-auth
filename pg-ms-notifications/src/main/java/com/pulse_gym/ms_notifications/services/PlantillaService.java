@@ -108,5 +108,18 @@ public class PlantillaService {
 
         return new MessegeGlobalDTO("Plantilla de notificacion inactivada correctamente");
     }
+
+
+    public MessegeGlobalDTO activarPlantilla(Long id, String userRol) {
+        ValidacionDeRoles.validarAdmin(userRol);
+
+        PlantillaNotificacion notificacion = plantillaNotificationRepository.findById(id).orElseThrow();
+
+        notificacion.setEstado(true);
+
+        plantillaNotificationRepository.save(notificacion);
+
+        return new MessegeGlobalDTO("Plantilla de notificacion activada correctamente");
+    }
     
 }
