@@ -21,6 +21,10 @@ import java.util.Map;
 @RequestMapping("/api/asistencias")
 public class AsistenciaController {
 
+    /**
+     * Inyeccion de AsistenciaService para manejar las operaciones de base de datos
+     * relacionadas con las asistencias
+     */
     private final AsistenciaService asistenciaService;
 
     /**
