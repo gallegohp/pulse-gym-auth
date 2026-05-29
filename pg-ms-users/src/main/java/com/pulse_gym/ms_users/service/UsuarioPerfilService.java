@@ -179,30 +179,13 @@ public class UsuarioPerfilService {
                 .collect(Collectors.toList());
     }
 
+
     /**
      * Obtiene un usuario activo por su ID
-     * 
      * @param idUsuario ID del usuario a buscar
-     * @param userRol   Rol del usuario autenticado
+     * @param userRol Rol del usuario autenticado
      * @return DTO con los datos del usuario
      */
-    // @Transactional(readOnly = true)
-    // public UsuarioPerfilResponseDTO obtenerUsuarioPorId(Long idUsuario, String
-    // userRol) {
-    // ValidacionDeRoles.validarAdminORecepcionista(userRol);
-
-    // if (idUsuario == null) {
-    // throw new RuntimeException("El ID del usuario no puede ser nulo");
-    // }
-
-    // UsuarioPerfil usuario = usuarioRepository.findByIdAndEstado(idUsuario,
-    // EnumEstadoUsuario.ACTIVO)
-    // .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " +
-    // idUsuario));
-
-    // return convertirADTO(usuario);
-    // }
-
     @Transactional(readOnly = true)
     public UsuarioPerfilResponseDTO obtenerUsuarioPorId(Long idUsuario, String userRol) {
         ValidacionDeRoles.validarAdminORecepcionista(userRol);
