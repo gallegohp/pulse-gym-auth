@@ -68,7 +68,7 @@ public class DocumentoLegalController {
         try {
             List<DocumentoLegalResponseDTO> documentos = documentoLegalService
                     .consultarTodosLosDocumentosLegales(userRol);
-            return ResponseEntity.ok(documentos);
+            return ResponseEntity.status(HttpStatus.OK).body(documentos);
         } catch (SecurityAuthorizationException e) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
         } catch (Exception e) {
@@ -98,7 +98,7 @@ public class DocumentoLegalController {
         try {
             List<DocumentoLegalResponseDTO> documentos = documentoLegalService
                     .consultarDocumentosLegales(idUsuario, userRol, userIdAutenticado);
-            return ResponseEntity.ok(documentos);
+            return ResponseEntity.status(HttpStatus.OK).body(documentos);
         } catch (SecurityAuthorizationException e) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
         } catch (RuntimeException e) {
@@ -122,7 +122,7 @@ public class DocumentoLegalController {
             @RequestHeader(value = "X-User-Rol", required = false) String userRol) {
         try {
             MessegeGlobalDTO response = documentoLegalService.eliminarDocumentoLegal(idDocumento, userRol);
-            return ResponseEntity.ok(response);
+            return ResponseEntity.status(HttpStatus.OK).body(response);
         } catch (SecurityAuthorizationException e) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
         } catch (RuntimeException e) {
@@ -150,7 +150,7 @@ public class DocumentoLegalController {
         try {
             Boolean tieneConsentimiento = documentoLegalService
                     .tieneConsentimientoDatosSensibles(idUsuario, userRol, userIdAutenticado);
-            return ResponseEntity.ok(tieneConsentimiento);
+            return ResponseEntity.status(HttpStatus.OK).body(tieneConsentimiento);
         } catch (SecurityAuthorizationException e) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
         } catch (RuntimeException e) {
