@@ -58,6 +58,7 @@ public class DocumentoLegalController {
 
     /**
      * Consulta todos los documentos legales vigentes.
+     * 
      * @param userRol El rol del usuario que realiza la consulta
      * @return Una lista de documentos legales vigentes
      */
@@ -102,6 +103,8 @@ public class DocumentoLegalController {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
         } catch (RuntimeException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al consultar documentos", e);
         }
     }
 
@@ -124,6 +127,36 @@ public class DocumentoLegalController {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
         } catch (RuntimeException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al eliminar documento", e);
+        }
+    }
+
+    /**
+     * Verifica si un usuario tiene un consentimiento informado vigente.
+     * 
+     * @param idUsuario         El ID del usuario para el cual se verifica el
+     *                          consentimiento informado
+     * @param userRol           El rol del usuario que realiza la consulta
+     * @param userIdAutenticado El ID del usuario autenticado
+     * @return true si el usuario tiene un consentimiento informado vigente, false
+     *         en caso contrario
+     */
+    @GetMapping("/consentimiento/{idUsuario}")
+    public ResponseEntity<Boolean> tieneConsentimientoDatosSensibles(
+            @PathVariable Long idUsuario,
+            @RequestHeader(value = "X-User-Rol", required = false) String userRol,
+            @RequestHeader(value = "X-User-Id", required = false) Long userIdAutenticado) {
+        try {
+            Boolean tieneConsentimiento = documentoLegalService
+                    .tieneConsentimientoDatosSensibles(idUsuario, userRol, userIdAutenticado);
+            return ResponseEntity.ok(tieneConsentimiento);
+        } catch (SecurityAuthorizationException e) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
+        } catch (RuntimeException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al verificar consentimiento", e);
         }
     }
 }

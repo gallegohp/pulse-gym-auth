@@ -16,6 +16,7 @@ import com.pulse_gym.lb_common.entity.user.DocumentoLegal;
 import com.pulse_gym.lb_common.entity.user.UsuarioPerfil;
 import com.pulse_gym.lb_common.enums.EnumEstadoDocumentoLegal;
 import com.pulse_gym.lb_common.enums.EnumRol;
+import com.pulse_gym.lb_common.enums.EnumTipoDocumentoLegal;
 import com.pulse_gym.lb_common.exception.SecurityAuthorizationException;
 import com.pulse_gym.lb_common.services.ValidacionDeRoles;
 import com.pulse_gym.ms_users.repository.DocumentoLegalRepository;
@@ -99,6 +100,7 @@ public class DocumentoLegalService {
 
     /**
      * Consulta todos los documentos legales vigentes.
+     * 
      * @param userRol El rol del usuario que realiza la consulta
      * @return Una lista de documentos legales vigentes
      */
@@ -191,5 +193,29 @@ public class DocumentoLegalService {
         documentoLegalRepository.save(documento);
 
         return new MessegeGlobalDTO("Documento legal eliminado correctamente");
+    }
+
+    /**
+     * Verifica si un usuario tiene un consentimiento informado vigente.
+     * @param idUsuario El ID del usuario para el cual se verifica el consentimiento informado
+     * @param userRol El rol del usuario que realiza la consulta
+     * @param userIdAutenticado El ID del usuario autenticado
+     * @return true si el usuario tiene un consentimiento informado vigente, false en caso contrario
+     */
+    @Transactional(readOnly = true)
+    public Boolean tieneConsentimientoDatosSensibles(Long idUsuario, String userRol, Long userIdAutenticado) {
+
+        if (userRol.equals(EnumRol.socio.name())) {
+            if (!userIdAutenticado.equals(idUsuario)) {
+                throw new SecurityAuthorizationException("Acceso denegado. Solo puede ver su propio consentimiento");
+            }
+        } else if (!userRol.equals(EnumRol.administrador.name()) && !userRol.equals(EnumRol.entrenador.name())) {
+            throw new SecurityAuthorizationException("Acceso denegado. Rol no autorizado");
+        }
+
+        return documentoLegalRepository
+                .findDocumentoPorTipo(idUsuario, EnumTipoDocumentoLegal.CONSENTIEMIENTO_INFORMADO,
+                        EnumEstadoDocumentoLegal.VIGENTE)
+                .isPresent();
     }
 }
