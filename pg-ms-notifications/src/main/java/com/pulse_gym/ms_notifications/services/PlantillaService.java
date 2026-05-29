@@ -21,8 +21,22 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class PlantillaService {
 
+    /**
+     * inyeccion del repositorio de plantillas de notificaciones
+     */
     private final PlantillaNotificationRepository plantillaNotificationRepository;
 
+    
+    /**
+     * Registra una nueva plantilla de notificacion en la base de datos.
+     * 
+     * Se valida que la peticion solo la puede hacer un Admin
+     * 
+     * @param request
+     * @param userRol Rol del usuario que hace la peticion (desde header X-User-Rol)
+     * @return MessegeGlobalDTO con un mensaje de éxito si la plantilla se registró
+     *         correctamente
+     */
     @Transactional
     public MessegeGlobalDTO crearPlantilla(PlantillaNotificacionRequestDTO request, String userRol) {
         ValidacionDeRoles.validarAdmin(userRol);
@@ -55,20 +69,44 @@ public class PlantillaService {
 
         plantillaNotificationRepository.save(notificacion);
 
-        return new MessegeGlobalDTO("Plantilla registrada correctamente");
+        return new MessegeGlobalDTO("Plantilla de notificacion registrada correctamente");
+
     }
 
+    
+    /**
+     * Obtiene las plantillas de notificaciones registradas en la base de datos.
+     * 
+     * Se valida que la peticion solo la puede hacer un Admin
+     * 
+     * @param userRol Rol del usuario que hace la peticion (desde header X-User-Rol)
+     * @return List<PlantillaNotificacion> con las plantillas de notificaciones
+     *         registradas
+     */
     public List<PlantillaNotificacion> leerPlantillas(String userRol) {
         ValidacionDeRoles.validarAdmin(userRol);
 
         List<PlantillaNotificacion> notificaciones = plantillaNotificationRepository.findAll();
 
         if (notificaciones.isEmpty()) {
-            MessegeGlobalDTO response = new MessegeGlobalDTO("No hay plantillas registradas");
-            throw new RuntimeException(response.getMessage());
+            throw new RuntimeException("No hay plantillas de notificaciones registradas");
         }
 
         return notificaciones;
+    }
+
+
+    public MessegeGlobalDTO inactivarPlantilla(Long id, String userRol) {
+
+        ValidacionDeRoles.validarAdmin(userRol);
+
+        PlantillaNotificacion notificacion = plantillaNotificationRepository.findById(id).orElseThrow();
+
+        notificacion.setEstado(false);
+
+        plantillaNotificationRepository.save(notificacion);
+
+        return new MessegeGlobalDTO("Plantilla de notificacion inactivada correctamente");
     }
     
 }
