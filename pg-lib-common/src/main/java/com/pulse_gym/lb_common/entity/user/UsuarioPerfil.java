@@ -3,11 +3,14 @@ package com.pulse_gym.lb_common.entity.user;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
-import com.pulse_gym.lb_common.enums.EnumRol;
+import com.pulse_gym.lb_common.enums.EnumEstadoUsuario;
 import com.pulse_gym.lb_common.enums.NivelExperiencia;
 import com.pulse_gym.lb_common.enums.Turno;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -15,6 +18,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.Data;
@@ -34,24 +38,29 @@ public class UsuarioPerfil {
     private Long idUsuario;
 
     /**
-     * Rol asignado al usuario dentro del gimnasio. Se persiste como texto mediante
-     * un ENUM nativo
-     */
-    @Enumerated(EnumType.STRING)
-    @Column(name = "rol", nullable = false)
-    private EnumRol rol;
-
-    /**
      * Nombres del usuario
      */
     @Column(name = "nombre", nullable = false, length = 100)
     private String nombre;
 
     /**
+     * Correo de usuario
+     */
+    @Column(name = "email", nullable = false, length = 150)
+    private String email;
+
+    /**
      * Apellidos del usuario
      */
     @Column(name = "apellido", nullable = false, length = 100)
     private String apellido;
+
+    /**
+     * Estado del usuario (ACTIVO/INACTIVO)
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "estado", nullable = false)
+    private EnumEstadoUsuario estado = EnumEstadoUsuario.ACTIVO;
 
     /**
      * Número de teléfono de contacto del usuario
@@ -162,6 +171,30 @@ public class UsuarioPerfil {
     @PrePersist
     protected void onCreate() {
         fechaRegistro = LocalDateTime.now();
+    }
+
+    /**
+     * Lista de documentos legales asociados al usuario
+     */
+    @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<DocumentoLegal> documentosLegales = new ArrayList<>();
+
+    /**
+     * Agrega un documento legal a la lista de documentos asociados al usuario y establece la relación bidireccional entre el usuario y el documento.
+     * @param documento El documento legal a agregar al usuario
+     */
+    public void addDocumentoLegal(DocumentoLegal documento) {
+        documentosLegales.add(documento);
+        documento.setUsuario(this);
+    }
+
+    /**
+     * Elimina un documento legal de la lista de documentos asociados al usuario y rompe la relación bidireccional entre el usuario y el documento.
+     * @param documento El documento legal a eliminar del usuario
+     */
+    public void removeDocumentoLegal(DocumentoLegal documento) {
+        documentosLegales.remove(documento);
+        documento.setUsuario(null);
     }
 
 }
