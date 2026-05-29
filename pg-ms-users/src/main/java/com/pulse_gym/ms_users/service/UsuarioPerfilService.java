@@ -96,17 +96,14 @@ public class UsuarioPerfilService {
     public MessegeGlobalDTO completarPerfil(String email, CompletarPerfilRequestDTO requestDTO,
             String userRol, String userEmail) {
 
-        // Verificar que el usuario autenticado solo complete su propio perfil
         if (!userEmail.equals(email)) {
             throw new SecurityAuthorizationException("Acceso denegado. Solo puede completar su propio perfil");
         }
 
-        // Verificar que el email no tenga ya un perfil completado
         if (usuarioRepository.findByEmail(email).isPresent()) {
             throw new RuntimeException("El usuario ya tiene un perfil completado");
         }
 
-        // Crear el perfil del usuario
         UsuarioPerfil usuario = new UsuarioPerfil();
         usuario.setEmail(email);
         usuario.setNombre(requestDTO.getNombre());
@@ -182,30 +179,13 @@ public class UsuarioPerfilService {
                 .collect(Collectors.toList());
     }
 
+
     /**
      * Obtiene un usuario activo por su ID
-     * 
      * @param idUsuario ID del usuario a buscar
-     * @param userRol   Rol del usuario autenticado
+     * @param userRol Rol del usuario autenticado
      * @return DTO con los datos del usuario
      */
-    // @Transactional(readOnly = true)
-    // public UsuarioPerfilResponseDTO obtenerUsuarioPorId(Long idUsuario, String
-    // userRol) {
-    // ValidacionDeRoles.validarAdminORecepcionista(userRol);
-
-    // if (idUsuario == null) {
-    // throw new RuntimeException("El ID del usuario no puede ser nulo");
-    // }
-
-    // UsuarioPerfil usuario = usuarioRepository.findByIdAndEstado(idUsuario,
-    // EnumEstadoUsuario.ACTIVO)
-    // .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " +
-    // idUsuario));
-
-    // return convertirADTO(usuario);
-    // }
-
     @Transactional(readOnly = true)
     public UsuarioPerfilResponseDTO obtenerUsuarioPorId(Long idUsuario, String userRol) {
         ValidacionDeRoles.validarAdminORecepcionista(userRol);
