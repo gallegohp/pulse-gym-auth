@@ -9,7 +9,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "configuracion_global")
-public class ConfiguracionGlobar {
+public class ConfiguracionGlobal {
     
     /**
      * Identificador de la configuración global
@@ -29,5 +29,5 @@ public class ConfiguracionGlobar {
      */
     @Column(name = "max_notificaciones_por_minuto", nullable = false)
     private Long max_notificaciones_por_minuto;
-    
+
 }
