@@ -1,6 +1,7 @@
 package com.pulse_gym.ms_notifications.services;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.springframework.stereotype.Service;
 
@@ -55,6 +56,19 @@ public class PlantillaService {
         plantillaNotificationRepository.save(notificacion);
 
         return new MessegeGlobalDTO("Plantilla registrada correctamente");
+    }
+
+    public List<PlantillaNotificacion> leerPlantillas(String userRol) {
+        ValidacionDeRoles.validarAdmin(userRol);
+
+        List<PlantillaNotificacion> notificaciones = plantillaNotificationRepository.findAll();
+
+        if (notificaciones.isEmpty()) {
+            MessegeGlobalDTO response = new MessegeGlobalDTO("No hay plantillas registradas");
+            throw new RuntimeException(response.getMessage());
+        }
+
+        return notificaciones;
     }
     
 }
