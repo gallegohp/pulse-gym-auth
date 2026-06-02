@@ -11,17 +11,35 @@ import org.springframework.stereotype.Service;
 @Service
 public class EmailService {
     
+    /**
+     * Logger para la clase
+     */
     private static final Logger logger = LoggerFactory.getLogger(EmailService.class);
     
+    /**
+     * Inyeccion de JavaMailSender para enviar emails
+     */
     @Autowired
     private JavaMailSender mailSender;
     
+    /**
+     * Email del remitente
+     */
     @Value("${spring.mail.username:}")
     private String fromEmail;
     
+    /**
+     * Indica si el envío de emails está habilitado
+     */
     @Value("${notificaciones.email.enabled:true}")
     private boolean emailEnabled;
     
+    /**
+     * Método para enviar un email a un destinatario
+     * @param destinatario Email del destinatario
+     * @param asunto       Asunto del email
+     * @param contenido    Contenido del email
+     */
     public void enviarEmail(String destinatario, String asunto, String contenido) {
         if (!emailEnabled) {
             logger.warn("Envío de emails deshabilitado. Email no enviado a: {}", destinatario);
