@@ -101,8 +101,10 @@ services:
     networks:
       - pulsegym
 
-    pg-ms-notifications:
-    build: ./pg-ms-notifications
+  pg-ms-notifications:
+    build:
+      context: .
+      dockerfile: pg-ms-notifications/Dockerfile
     container_name: pg-ms-notifications
     ports:
       - "8083:8083"
@@ -110,20 +112,17 @@ services:
       - consul
       - db-notifications
     environment:
-      # Configuración existente
-      SPRING_DATASOURCE_URL: jdbc:mysql://db-notifications:3306/notifications_db?allowPublicKeyRetrieval=true&useSSL=false
+      SPRING_DATASOURCE_URL: jdbc:mysql://db-notifications:3306/notifications_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
       SPRING_DATASOURCE_USERNAME: pulsegym
       SPRING_DATASOURCE_PASSWORD: 123
-      
-    
       MAIL_HOST: smtp.gmail.com
       MAIL_PORT: 587
-      MAIL_USERNAME: ${MAIL_USERNAME}        
-      MAIL_PASSWORD: ${MAIL_PASSWORD}        
-      MAIL_FROM: ${MAIL_FROM}                
-      MAIL_ENABLED: ${MAIL_ENABLED:-true}    
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      MAIL_FROM: ${MAIL_FROM}
+      MAIL_ENABLED: ${MAIL_ENABLED:-true}
     env_file:
-      - .env  
+      - .env
     networks:
       - pulsegym
 

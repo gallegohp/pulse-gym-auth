@@ -23,8 +23,18 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/notificaciones")
 public class NotificacionEnvioController {
     
+    /**
+     * Inyeccion de NotificacionService para manejar las operaciones de base de datos
+     * relacionadas con las notificaciones
+     */
     private final NotificacionService notificacionService;
     
+    /**
+     * Endpoint para enviar una notificación a un usuario específico o a un grupo de usuarios.
+     * @param request     Objeto con los datos necesarios para enviar la notificación
+     * @param userRol     Rol del usuario que hace la peticion (desde header X-User-Rol)
+     * @return ResponseEntity<Map<String, Object>> con el resultado de la operación
+     */
     @PostMapping("/enviar")
     public ResponseEntity<Map<String, Object>> enviarNotificacion(
             @Valid @RequestBody EnvioNotificacionDTO request,

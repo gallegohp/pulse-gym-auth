@@ -124,6 +124,14 @@ public class PlantillaService {
         return new MessegeGlobalDTO("Plantilla de notificacion activada correctamente");
     }
 
+    /**
+     * Método para actualizar una plantilla de notificación
+     * @param id Identificador de la plantilla de notificación a actualizar
+     * @param request Objeto con los datos necesarios para actualizar la plantilla
+     * @param userRol Rol del usuario que hace la peticion (desde header X-User-Rol)
+     * @return MessegeGlobalDTO con un mensaje de éxito si la plantilla se actualizó
+     *         correctamente
+     */
     public MessegeGlobalDTO actualizarPlantilla(Long id, PlantillaNotificacionRequestDTO request,
             String userRol) {
         
