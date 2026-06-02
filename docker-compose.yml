@@ -101,7 +101,7 @@ services:
     networks:
       - pulsegym
 
-  pg-ms-notifications:
+    pg-ms-notifications:
     build: ./pg-ms-notifications
     container_name: pg-ms-notifications
     ports:
@@ -110,9 +110,20 @@ services:
       - consul
       - db-notifications
     environment:
+      # Configuración existente
       SPRING_DATASOURCE_URL: jdbc:mysql://db-notifications:3306/notifications_db?allowPublicKeyRetrieval=true&useSSL=false
       SPRING_DATASOURCE_USERNAME: pulsegym
       SPRING_DATASOURCE_PASSWORD: 123
+      
+    
+      MAIL_HOST: smtp.gmail.com
+      MAIL_PORT: 587
+      MAIL_USERNAME: ${MAIL_USERNAME}        
+      MAIL_PASSWORD: ${MAIL_PASSWORD}        
+      MAIL_FROM: ${MAIL_FROM}                
+      MAIL_ENABLED: ${MAIL_ENABLED:-true}    
+    env_file:
+      - .env  
     networks:
       - pulsegym
 
