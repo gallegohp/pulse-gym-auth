@@ -6,6 +6,6 @@ import org.springframework.stereotype.Repository;
 import com.pulse_gym.lb_common.entity.notification.Notificacion;
 
 @Repository
-public interface NotificacionRepository  extends JpaRepository<Notificacion, Long> {
-    
+public interface NotificacionRepository extends JpaRepository<Notificacion, Long> {
+
 }

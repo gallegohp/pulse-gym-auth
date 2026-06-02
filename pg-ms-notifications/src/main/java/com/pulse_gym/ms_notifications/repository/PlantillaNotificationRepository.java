@@ -7,5 +7,5 @@ import com.pulse_gym.lb_common.entity.notification.PlantillaNotificacion;
 
 @Repository
 public interface PlantillaNotificationRepository extends JpaRepository<PlantillaNotificacion, Long> {
-    
+
 }

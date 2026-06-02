@@ -1,33 +1,44 @@
 package com.pulse_gym.lb_common.dto;
 
+import com.pulse_gym.lb_common.enums.EnumEventoAsociado;
+import com.pulse_gym.lb_common.enums.EnumTipoPlantilla;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
 public class PlantillaNotificacionRequestDTO {
+
     /**
      * Nombre de la plantilla de notificacion
      */
+    @NotBlank(message = "El nombre de la plantilla es obligatorio")
     private String nombre;
 
     /**
      * Descripcion de la plantilla de notificacion
-     */                                 
+     */  
+    @NotBlank(message = "La descripcion de la plantilla es obligatoria")
     private String descripcion;
 
     /**
      * Contenido de la notificacion
      */
+    @NotBlank(message = "El contenido de la plantilla es obligatorio")
     private String contenido;
 
     /**
      * Plantilla que pertenece al canal seleccionado            
      */
-    private String tipoPlantilla;
+    @NotNull(message = "El tipo de plantilla es obligatorio")
+    private EnumTipoPlantilla tipoPlantilla;
 
     /**
      * Que tipo (evento) de notificacion esta siendo mandado
      */
-    private String eventoAsociado;
+    @NotNull(message = "El evento asociado a la plantilla es obligatorio")
+    private EnumEventoAsociado eventoAsociado;
 
     /**
      * Estado de la plantilla (Activa/Inactiva) True/False
