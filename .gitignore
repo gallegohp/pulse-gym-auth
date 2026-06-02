@@ -17,3 +17,10 @@ target/
 # OS
 .DS_Store
 Thumbs.db
+
+# Database
+*.db
+*.sqlite    
+
+#variables de entorno
+.env
