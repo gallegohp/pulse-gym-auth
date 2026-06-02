@@ -9,11 +9,13 @@ spring:
     url: jdbc:mysql://db-notifications:3306/notifications_db?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false
     username: pulsegym
     password: 123
+    
   jpa: 
     database-platform: org.hibernate.dialect.MySQLDialect
     hibernate:
       ddl-auto: update
     show-sql: true
+    
   cloud:
     consul:
       host: consul
@@ -23,6 +25,24 @@ spring:
         health-check-path: /actuator/health
         prefer-ip-address: false
         instance-id: ${spring.application.name}
+  
+  # Configuración de envío de emails
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    protocol: smtp
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+    default-encoding: UTF-8
 
 management:
   endpoints:
@@ -41,3 +61,9 @@ security:
 logging:
   level:
     com.pulse_gym: DEBUG
+    org.springframework.mail: INFO
+
+# Configuración personalizada de notificaciones
+notificaciones:
+  email:
+    enabled: ${MAIL_ENABLED:true}

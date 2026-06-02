@@ -2,8 +2,8 @@ package com.pulse_gym.lb_common.entity.notification;
 
 import java.time.LocalDateTime;
 
+import com.pulse_gym.lb_common.enums.EnumCanalNotificacion;
 import com.pulse_gym.lb_common.enums.EnumEventoAsociado;
-import com.pulse_gym.lb_common.enums.EnumTipoPlantilla;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -51,7 +51,7 @@ public class PlantillaNotificacion {
      */
     @Enumerated(EnumType.STRING)
     @Column(name = "tipo", nullable = false)
-    private EnumTipoPlantilla tipoPlantilla;
+    private EnumCanalNotificacion tipoPlantilla;
 
     /**
      * Que tipo (evento) de notificacion esta siendo mandado

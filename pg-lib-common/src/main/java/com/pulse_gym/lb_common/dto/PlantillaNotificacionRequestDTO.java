@@ -1,7 +1,7 @@
 package com.pulse_gym.lb_common.dto;
 
+import com.pulse_gym.lb_common.enums.EnumCanalNotificacion;
 import com.pulse_gym.lb_common.enums.EnumEventoAsociado;
-import com.pulse_gym.lb_common.enums.EnumTipoPlantilla;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -32,7 +32,7 @@ public class PlantillaNotificacionRequestDTO {
      * Plantilla que pertenece al canal seleccionado            
      */
     @NotNull(message = "El tipo de plantilla es obligatorio")
-    private EnumTipoPlantilla tipoPlantilla;
+    private EnumCanalNotificacion tipoPlantilla;
 
     /**
      * Que tipo (evento) de notificacion esta siendo mandado

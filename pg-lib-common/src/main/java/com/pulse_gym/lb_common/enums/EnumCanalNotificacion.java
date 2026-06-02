@@ -1,6 +1,6 @@
 package com.pulse_gym.lb_common.enums;
 
-public enum EnumTipoPlantilla {
+public enum EnumCanalNotificacion {
     
     /**
      * La notificacion se envia por Email
