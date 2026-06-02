@@ -1,14 +1,19 @@
 package com.pulse_gym.ms_users.service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.pulse_gym.lb_common.client.AuthServiceClient;
 import com.pulse_gym.lb_common.dto.CertificacionRequestDTO;
+import com.pulse_gym.lb_common.dto.CertificacionResponseDTO;
 import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
 import com.pulse_gym.lb_common.entity.user.Certificacion;
 import com.pulse_gym.lb_common.entity.user.UsuarioPerfil;
 import com.pulse_gym.lb_common.enums.EnumRol;
+import com.pulse_gym.lb_common.exception.SecurityAuthorizationException;
 import com.pulse_gym.lb_common.services.ValidacionDeRoles;
 import com.pulse_gym.ms_users.repository.CertificacionRepository;
 import com.pulse_gym.ms_users.repository.UsuarioPerfilRepository;
@@ -30,6 +35,7 @@ public class CertificacionService {
 
     /**
      * Registra una nueva certificación para un entrenador específico.
+     * 
      * @param requestDTO DTO con los datos de la certificación a registrar
      * @param userRol    Rol del usuario que realiza la acción (obtenido del token
      *                   de autenticación)
@@ -40,7 +46,8 @@ public class CertificacionService {
         ValidacionDeRoles.validarAdminORecepcionista(userRol);
 
         UsuarioPerfil entrenador = usuarioRepository.findById(requestDTO.getIdEntrenador())
-                .orElseThrow(() -> new RuntimeException("Entrenador no encontrado con ID: " + requestDTO.getIdEntrenador()));
+                .orElseThrow(
+                        () -> new RuntimeException("Entrenador no encontrado con ID: " + requestDTO.getIdEntrenador()));
 
         EnumRol rolEntrenador = authServiceClient.obtenerRolPorEmail(entrenador.getEmail());
 
@@ -49,7 +56,9 @@ public class CertificacionService {
         }
 
         if (rolEntrenador != EnumRol.entrenador) {
-            throw new RuntimeException("Solo se pueden registrar certificaciones para usuarios con rol ENTRENADOR. Rol actual: " + rolEntrenador);
+            throw new RuntimeException(
+                    "Solo se pueden registrar certificaciones para usuarios con rol ENTRENADOR. Rol actual: "
+                            + rolEntrenador);
         }
 
         Certificacion certificacion = new Certificacion();
@@ -60,5 +69,60 @@ public class CertificacionService {
         certificacionRepository.save(certificacion);
         return new MessegeGlobalDTO("Certificación registrada correctamente");
     }
-}
 
+    /**
+     * Consulta las certificaciones de un entrenador específico.
+     * 
+     * @param idEntrenador       ID del entrenador del cual se quieren consultar las certificaciones
+     * @param userRol            Rol del usuario que realiza la acción (obtenido del token de autenticación)
+     * @param userIdAutenticado  ID del usuario autenticado
+     * @return Lista de certificaciones del entrenador
+     */
+    @Transactional(readOnly = true)
+    public List<CertificacionResponseDTO> consultarCertificaciones(Long idEntrenador, String userRol,
+            Long userIdAutenticado) {
+
+        if (userRol.equals(EnumRol.socio.name())) {
+            throw new SecurityAuthorizationException("Acceso denegado. Los socios no pueden ver certificaciones");
+        }
+
+        if (userRol.equals(EnumRol.entrenador.name())) {
+            if (!userIdAutenticado.equals(idEntrenador)) {
+                throw new SecurityAuthorizationException("Acceso denegado. Solo puede ver sus propias certificaciones");
+            }
+        } else if (!userRol.equals(EnumRol.administrador.name()) && !userRol.equals(EnumRol.recepcionista.name())) {
+            throw new SecurityAuthorizationException("Acceso denegado. Rol no autorizado");
+        }
+
+        UsuarioPerfil entrenador = usuarioRepository.findById(idEntrenador)
+                .orElseThrow(() -> new RuntimeException("Entrenador no encontrado con ID: " + idEntrenador));
+
+        EnumRol rolEntrenador = authServiceClient.obtenerRolPorEmail(entrenador.getEmail());
+
+        if (rolEntrenador == null) {
+            throw new RuntimeException("No se pudo verificar el rol del usuario");
+        }
+
+        if (rolEntrenador != EnumRol.entrenador) {
+            throw new RuntimeException("El usuario no es un entrenador. Rol actual: " + rolEntrenador);
+        }
+
+        List<Certificacion> certificaciones = certificacionRepository.findByEntrenador_IdUsuario(idEntrenador);
+
+        final String nombreEntrenador = entrenador.getNombre() + " " + entrenador.getApellido();
+
+        return certificaciones.stream()
+                .map(cert -> {
+                    CertificacionResponseDTO dto = new CertificacionResponseDTO();
+                    dto.setIdCertificacion(cert.getIdCertificacion());
+                    dto.setIdEntrenador(cert.getEntrenador().getIdUsuario());
+                    dto.setNombreEntrenador(nombreEntrenador);
+                    dto.setNombreCertificacion(cert.getNombre());
+                    dto.setUrlPdf(cert.getUrlPdf());
+                    dto.setFechaSubida(cert.getFechaSubida());
+                    return dto;
+                })
+                .collect(Collectors.toList());
+    }
+
+}
