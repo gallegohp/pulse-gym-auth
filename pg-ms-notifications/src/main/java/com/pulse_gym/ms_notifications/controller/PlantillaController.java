@@ -7,7 +7,6 @@ import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -37,14 +36,15 @@ public class PlantillaController {
 
     /**
      * Controlador para crear una nueva plantilla de notificacion
+     * 
      * @param request objeto con los datos necesarios
      * @param userRol Rol del usuario que hace la peticion
      * @return ResponseEntity<Map<String, Object>> con el resultado de la operación
      */
     @PostMapping("/crear")
-    public ResponseEntity<Map<String, Object>> crearPlantilla(@Valid @RequestBody PlantillaNotificacionRequestDTO request,
-                                                               @RequestHeader(value = "X-User-Rol", required = false) String userRol) 
-    {
+    public ResponseEntity<Map<String, Object>> crearPlantilla(
+            @Valid @RequestBody PlantillaNotificacionRequestDTO request,
+            @RequestHeader(value = "X-User-Rol", required = false) String userRol) {
         try {
             MessegeGlobalDTO response = plantillaService.crearPlantilla(request, userRol);
 
@@ -64,22 +64,24 @@ public class PlantillaController {
 
     /**
      * Consulta las plantillas de notificaciones
+     * 
      * @param userRol Rol del usuario
      * @return ResponseEntity<Map<String, Object>> con el resultado de la operación
      */
     @GetMapping("/leer")
-    public ResponseEntity<Map<String, Object>> leerPlantilla(@RequestHeader(value = "X-User-Rol", required = false) String userRol) {
+    public ResponseEntity<Map<String, Object>> leerPlantilla(
+            @RequestHeader(value = "X-User-Rol", required = false) String userRol) {
         try {
-            List<PlantillaNotificacion> notificaciones = plantillaService.leerPlantillas(userRol);            
-            
+            List<PlantillaNotificacion> notificaciones = plantillaService.leerPlantillas(userRol);
+
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("message", "Plantillas encontradas");
             response.put("count", notificaciones.size());
             response.put("data", notificaciones);
-            
+
             return ResponseEntity.ok(response);
-            
+
         } catch (Exception e) {
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("success", false);
@@ -88,17 +90,24 @@ public class PlantillaController {
         }
     }
 
-    @PostMapping("/inaviliar/{id}")
-    public ResponseEntity<Map<String, Object>> inactivarPlantilla(@PathVariable Long id, @RequestHeader(value = "X-User-Rol", required = false) String userRol) {
+    /**
+     * Controlador para inactivar una plantilla de notificacion
+     * @param id Identificador de la plantilla de notificacion a inactivar
+     * @param userRol Rol del usuario que hace la peticion (desde header X-User-Rol)
+     * @return ResponseEntity<Map<String, Object>> con el resultado de la operación 
+     */
+    @PostMapping("/inactivar/{id}")
+    public ResponseEntity<Map<String, Object>> inactivarPlantilla(@PathVariable Long id,
+            @RequestHeader(value = "X-User-Rol", required = false) String userRol) {
         try {
             MessegeGlobalDTO response = plantillaService.inactivarPlantilla(id, userRol);
-            
+
             Map<String, Object> respuesta = new HashMap<>();
             respuesta.put("success", true);
             respuesta.put("message", response.getMessage());
-            
+
             return ResponseEntity.ok(respuesta);
-            
+
         } catch (Exception e) {
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("success", false);
@@ -107,17 +116,53 @@ public class PlantillaController {
         }
     }
 
-    @PutMapping("/activar/{id}")
-    public ResponseEntity<Map<String, Object>> activarPlantilla(@PathVariable Long id, @RequestHeader(value = "X-User-Rol", required = false) String userRol) {
+    /**
+     * Controlador para activar una plantilla de notificacion
+     * @param id Identificador de la plantilla de notificacion a activar
+     * @param userRol Rol del usuario que hace la peticion (desde header X-User-Rol)
+     * @return ResponseEntity<Map<String, Object>> con el resultado de la operación
+     */
+    @PostMapping("/activar/{id}")
+    public ResponseEntity<Map<String, Object>> activarPlantilla(@PathVariable Long id,
+            @RequestHeader(value = "X-User-Rol", required = false) String userRol) {
         try {
             MessegeGlobalDTO response = plantillaService.activarPlantilla(id, userRol);
-            
+
             Map<String, Object> respuesta = new HashMap<>();
             respuesta.put("success", true);
             respuesta.put("message", response.getMessage());
-            
+
             return ResponseEntity.ok(respuesta);
-            
+
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        }
+    }
+
+    /**
+     * Controlador para actualizar una plantilla de notificacion
+     * @param id Identificador de la plantilla de notificacion a actualizar
+     * @param request Objeto con los datos necesarios para actualizar la plantilla
+     * @param userRol Rol del usuario que hace la peticion (desde header X-User-Rol)
+     * @return ResponseEntity<Map<String, Object>> con el resultado de la operación
+     */
+    @PutMapping("/actualizar/{id}")
+    public ResponseEntity<Map<String, Object>> actualizarPlantilla(@PathVariable Long id,
+            @Valid @RequestBody PlantillaNotificacionRequestDTO request,
+            @RequestHeader(value = "X-User-Rol", required = false) String userRol) {
+
+        try {
+            MessegeGlobalDTO response = plantillaService.actualizarPlantilla(id, request, userRol);
+
+            Map<String, Object> respuesta = new HashMap<>();
+            respuesta.put("success", true);
+            respuesta.put("message", response.getMessage());
+
+            return ResponseEntity.ok(respuesta);
+
         } catch (Exception e) {
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("success", false);
