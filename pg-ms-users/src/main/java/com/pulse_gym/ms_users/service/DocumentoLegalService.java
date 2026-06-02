@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
+import com.pulse_gym.lb_common.client.AuthServiceClient;
 import com.pulse_gym.lb_common.dto.AuthUserDTO;
 import com.pulse_gym.lb_common.dto.DocumentoLegalRequestDTO;
 import com.pulse_gym.lb_common.dto.DocumentoLegalResponseDTO;
@@ -28,38 +29,14 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class DocumentoLegalService {
 
-    /** RestTemplate para llamar a auth-service */
-    private final RestTemplate restTemplate;
-
-    /** URL del servicio de autenticación */
-    private final String authServiceUrl = "http://pg-ms-auth/auth";
+    /** Cliente para interactuar con el servicio de autenticación */
+    private final AuthServiceClient authServiceClient;
 
     /** Repositorio de documentos legales */
     private final DocumentoLegalRepository documentoLegalRepository;
 
     /** Repositorio de perfiles de usuario */
     private final UsuarioPerfilRepository usuarioRepository;
-
-    /**
-     * Obtiene el rol de un usuario desde auth-service
-     * 
-     * @param email Email del usuario
-     * @return Rol del usuario o null si no se encuentra
-     */
-    private EnumRol obtenerRolDesdeAuth(String email) {
-        try {
-            ResponseEntity<AuthUserDTO> authResponse = restTemplate.getForEntity(
-                    authServiceUrl + "/api/internal/users/email/" + email,
-                    AuthUserDTO.class);
-
-            if (authResponse.getBody() != null && authResponse.getBody().getRol() != null) {
-                return authResponse.getBody().getRol();
-            }
-        } catch (Exception e) {
-            System.err.println("Error al obtener rol para " + email + ": " + e.getMessage());
-        }
-        return null;
-    }
 
     /**
      * Carga un documento legal para un usuario específico. Solo los usuarios con
@@ -78,7 +55,7 @@ public class DocumentoLegalService {
         UsuarioPerfil usuario = usuarioRepository.findById(requestDTO.getIdUsuario())
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + requestDTO.getIdUsuario()));
 
-        EnumRol rolSocio = obtenerRolDesdeAuth(usuario.getEmail());
+        EnumRol rolSocio = authServiceClient.obtenerRolPorEmail(usuario.getEmail());
 
         if (rolSocio == null) {
             throw new RuntimeException("No se pudo verificar el rol del usuario");
@@ -197,10 +174,13 @@ public class DocumentoLegalService {
 
     /**
      * Verifica si un usuario tiene un consentimiento informado vigente.
-     * @param idUsuario El ID del usuario para el cual se verifica el consentimiento informado
-     * @param userRol El rol del usuario que realiza la consulta
+     * 
+     * @param idUsuario         El ID del usuario para el cual se verifica el
+     *                          consentimiento informado
+     * @param userRol           El rol del usuario que realiza la consulta
      * @param userIdAutenticado El ID del usuario autenticado
-     * @return true si el usuario tiene un consentimiento informado vigente, false en caso contrario
+     * @return true si el usuario tiene un consentimiento informado vigente, false
+     *         en caso contrario
      */
     @Transactional(readOnly = true)
     public Boolean tieneConsentimientoDatosSensibles(Long idUsuario, String userRol, Long userIdAutenticado) {
