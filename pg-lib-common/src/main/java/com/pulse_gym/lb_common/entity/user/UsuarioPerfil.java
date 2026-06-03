@@ -180,7 +180,9 @@ public class UsuarioPerfil {
     private List<DocumentoLegal> documentosLegales = new ArrayList<>();
 
     /**
-     * Agrega un documento legal a la lista de documentos asociados al usuario y establece la relación bidireccional entre el usuario y el documento.
+     * Agrega un documento legal a la lista de documentos asociados al usuario y
+     * establece la relación bidireccional entre el usuario y el documento.
+     * 
      * @param documento El documento legal a agregar al usuario
      */
     public void addDocumentoLegal(DocumentoLegal documento) {
@@ -189,7 +191,9 @@ public class UsuarioPerfil {
     }
 
     /**
-     * Elimina un documento legal de la lista de documentos asociados al usuario y rompe la relación bidireccional entre el usuario y el documento.
+     * Elimina un documento legal de la lista de documentos asociados al usuario y
+     * rompe la relación bidireccional entre el usuario y el documento.
+     * 
      * @param documento El documento legal a eliminar del usuario
      */
     public void removeDocumentoLegal(DocumentoLegal documento) {
@@ -197,4 +201,31 @@ public class UsuarioPerfil {
         documento.setUsuario(null);
     }
 
+    /**
+     * Lista de certificaciones asociadas al usuario
+     */
+    @OneToMany(mappedBy = "entrenador", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Certificacion> certificaciones = new ArrayList<>();
+
+    /**
+     * Agrega una certificación a la lista de certificaciones asociadas al usuario y
+     * establece la relación bidireccional entre el usuario y la certificación.
+     * 
+     * @param certificacion La certificación a agregar al usuario
+     */
+    public void addCertificacion(Certificacion certificacion) {
+        certificaciones.add(certificacion);
+        certificacion.setEntrenador(this);
+    }
+
+    /**
+     * Elimina una certificación de la lista de certificaciones asociadas al usuario y
+     * rompe la relación bidireccional entre el usuario y la certificación.
+     * 
+     * @param certificacion La certificación a eliminar del usuario
+     */
+    public void removeCertificacion(Certificacion certificacion) {
+        certificaciones.remove(certificacion);
+        certificacion.setEntrenador(null);
+    }
 }

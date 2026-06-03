@@ -49,7 +49,9 @@ public class DocumentoLegalController {
             MessegeGlobalDTO response = documentoLegalService.cargarDocumentoLegal(requestDTO, userRol);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (SecurityAuthorizationException e) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
+            throw e;
+        } catch (RuntimeException e) {
+            throw e;
         } catch (Exception e) {
             e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
@@ -70,7 +72,9 @@ public class DocumentoLegalController {
                     .consultarTodosLosDocumentosLegales(userRol);
             return ResponseEntity.status(HttpStatus.OK).body(documentos);
         } catch (SecurityAuthorizationException e) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
+            throw e;
+        } catch (RuntimeException e) {
+            throw e;
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al consultar documentos", e);
         }
@@ -100,9 +104,9 @@ public class DocumentoLegalController {
                     .consultarDocumentosLegales(idUsuario, userRol, userIdAutenticado);
             return ResponseEntity.status(HttpStatus.OK).body(documentos);
         } catch (SecurityAuthorizationException e) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
+            throw e;
         } catch (RuntimeException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+            throw e;
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al consultar documentos", e);
         }
@@ -124,9 +128,9 @@ public class DocumentoLegalController {
             MessegeGlobalDTO response = documentoLegalService.eliminarDocumentoLegal(idDocumento, userRol);
             return ResponseEntity.status(HttpStatus.OK).body(response);
         } catch (SecurityAuthorizationException e) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
+            throw e;
         } catch (RuntimeException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+            throw e;
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al eliminar documento", e);
         }
@@ -152,9 +156,9 @@ public class DocumentoLegalController {
                     .tieneConsentimientoDatosSensibles(idUsuario, userRol, userIdAutenticado);
             return ResponseEntity.status(HttpStatus.OK).body(tieneConsentimiento);
         } catch (SecurityAuthorizationException e) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
+            throw e;
         } catch (RuntimeException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+            throw e;
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al verificar consentimiento", e);
         }
