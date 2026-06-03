@@ -1,17 +1,23 @@
 package com.pulse_gym.lb_common.entity.notification;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 import com.pulse_gym.lb_common.enums.EnumCanalNotificacion;
 import com.pulse_gym.lb_common.enums.EnumEventoAsociado;
 
+import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
 import lombok.Data;
 
@@ -63,6 +69,21 @@ public class PlantillaNotificacion {
     @Enumerated(EnumType.STRING)
     @Column(name = "evento_asociado", nullable = false)
     private EnumEventoAsociado eventoAsociado;
+
+    /**
+     * Eventos asociados a la plantilla para envios automaticos
+     */
+    @ElementCollection(fetch = FetchType.EAGER)
+    @Enumerated(EnumType.STRING)
+    @CollectionTable(name = "plantilla_evento", joinColumns = @JoinColumn(name = "id_plantilla"))
+    @Column(name = "evento")
+    private Set<EnumEventoAsociado> eventosAsociados = new HashSet<>();
+
+    /**
+     * Indica si la plantilla fue eliminada mediante soft delete
+     */
+    @Column(name = "eliminada", nullable = false)
+    private Boolean eliminada = false;
 
     /**
      * Estado de la plantilla (Activa/Inactiva) True/False

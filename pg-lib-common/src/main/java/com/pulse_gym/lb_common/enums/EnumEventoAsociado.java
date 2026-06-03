@@ -20,5 +20,10 @@ public enum EnumEventoAsociado {
     /**
      * Evento de notificacion para alerta de mantenimiento
      */
-    MAINTENANCE_ALERT
+    MAINTENANCE_ALERT,
+
+    /**
+     * Evento de notificacion promocional
+     */
+    PROMOTION
 }

@@ -1,9 +1,12 @@
 package com.pulse_gym.lb_common.dto;
 
+import java.util.Set;
+
 import com.pulse_gym.lb_common.enums.EnumCanalNotificacion;
 import com.pulse_gym.lb_common.enums.EnumEventoAsociado;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
@@ -40,8 +43,13 @@ public class PlantillaNotificacionRequestDTO {
     /**
      * Que tipo (evento) de notificacion esta siendo mandado
      */
-    @NotNull(message = "El evento asociado a la plantilla es obligatorio")
     private EnumEventoAsociado eventoAsociado;
+
+    /**
+     * Eventos asociados a la plantilla
+     */
+    @NotEmpty(message = "Debe indicar al menos un evento asociado")
+    private Set<EnumEventoAsociado> eventosAsociados;
 
     /**
      * Estado de la plantilla (Activa/Inactiva) True/False

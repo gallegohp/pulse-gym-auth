@@ -11,4 +11,10 @@ public interface UsuarioClient {
     
     @GetMapping("/api/v1/usuarios/{idUsuario}")
     UsuarioPerfilResponseDTO obtenerUsuarioPorId(@PathVariable("idUsuario") Long idUsuario);
+
+    /**
+     * Obtiene el perfil de usuario por email para integracion entre microservicios
+     */
+    @GetMapping("/api/internal/usuarios/email/{email}")
+    UsuarioPerfilResponseDTO obtenerUsuarioPorEmail(@PathVariable("email") String email);
 }
