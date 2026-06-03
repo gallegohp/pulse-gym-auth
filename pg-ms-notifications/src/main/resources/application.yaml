@@ -35,7 +35,7 @@ management:
       
 security:
   jwt:
-    secret-key: oMYOYPCjKGRjXEHQqcG0F/KwhgMZ7yej4cBdqeMVZsk=
+    secret-key: ${JWT_SECRET}
     token-expiration: 3600000
     
 logging:

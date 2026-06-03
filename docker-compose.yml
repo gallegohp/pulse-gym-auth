@@ -23,6 +23,7 @@ services:
       - consul
       - db-users
     environment:
+      JWT_SECRET: ${JWT_SECRET}
       SPRING_DATASOURCE_URL: jdbc:mysql://db-users:3306/users_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
       SPRING_DATASOURCE_USERNAME: pulsegym
       SPRING_DATASOURCE_PASSWORD: 123
@@ -52,6 +53,9 @@ services:
       - consul
       - db-auth
     environment:
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
       SPRING_DATASOURCE_URL: jdbc:mysql://db-auth:3306/auth_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
       SPRING_DATASOURCE_USERNAME: pulsegym
       SPRING_DATASOURCE_PASSWORD: 123
@@ -81,6 +85,7 @@ services:
       - consul
       - db-operations
     environment:
+      JWT_SECRET: ${JWT_SECRET}
       SPRING_DATASOURCE_URL: jdbc:mysql://db-operations:3306/operations_db?allowPublicKeyRetrieval=true&useSSL=false
       SPRING_DATASOURCE_USERNAME: pulsegym
       SPRING_DATASOURCE_PASSWORD: 123
@@ -109,7 +114,8 @@ services:
     depends_on:
       - consul
       - db-notifications
-    environment:
+    environment: 
+      JWT_SECRET: ${JWT_SECRET}
       SPRING_DATASOURCE_URL: jdbc:mysql://db-notifications:3306/notifications_db?allowPublicKeyRetrieval=true&useSSL=false
       SPRING_DATASOURCE_USERNAME: pulsegym
       SPRING_DATASOURCE_PASSWORD: 123
@@ -170,6 +176,8 @@ services:
       - consul
     networks:
       - pulsegym
+    environment:
+      JWT_SECRET: ${JWT_SECRET}
 
 
 networks:

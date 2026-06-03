@@ -29,10 +29,37 @@ public class JwtValidationFilter implements GlobalFilter, Ordered {
     /** Servicio de Jwt */
     private final JwtService jwtService;
 
+    /**
+     * Verifica si la ruta solicitada es interna (requiere autenticación pero no
+     * autorización)
+     */
+    private boolean isInternalPath(String path) {
+        return path.contains("/api/internal/");
+    }
+
+    /**
+     * Retorna una respuesta de error 403 (Prohibido)
+     * 
+     * @param exchange Intercambio HTTP que contiene la respuesta
+     * @param message  Mensaje de error que se envía al cliente
+     * @return Mono con la respuesta de error en formato JSON
+     */
+    private Mono<Void> forbidden(ServerWebExchange exchange, String message) {
+        exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
+        exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
+        DataBuffer buffer = exchange.getResponse().bufferFactory()
+                .wrap(("{\"error\": \"" + message + "\"}").getBytes(StandardCharsets.UTF_8));
+        return exchange.getResponse().writeWith(Mono.just(buffer));
+    }
+
     /** Valida el JWT y agrega los datos del usuario a los headers de la petición */
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         String path = exchange.getRequest().getURI().getPath();
+
+        if (isInternalPath(path)) {
+            return forbidden(exchange, "Acceso denegado a rutas internas");
+        }
 
         if (isPublicPath(path) || exchange.getRequest().getMethod() == HttpMethod.OPTIONS) {
             return chain.filter(exchange);
@@ -51,7 +78,6 @@ public class JwtValidationFilter implements GlobalFilter, Ordered {
         Long userId = jwtService.extractUserId(token);
         String rol = jwtService.extractRol(token);
         String username = jwtService.extractUsername(token);
-
 
         System.out.println("userId: " + userId);
         System.out.println("rol: " + rol);
