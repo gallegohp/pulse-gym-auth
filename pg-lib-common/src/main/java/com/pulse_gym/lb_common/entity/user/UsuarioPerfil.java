@@ -232,6 +232,9 @@ public class UsuarioPerfil {
         certificacion.setEntrenador(null);
     }
 
+    /**
+     * Perfil médico asociado al usuario
+     */
     @OneToOne(mappedBy = "socio", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private PerfilMedico perfilMedico;
 }
