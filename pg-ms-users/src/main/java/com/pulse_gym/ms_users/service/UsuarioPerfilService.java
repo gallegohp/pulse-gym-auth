@@ -186,6 +186,26 @@ public class UsuarioPerfilService {
      * @param userRol Rol del usuario autenticado
      * @return DTO con los datos del usuario
      */
+    /**
+     * Obtiene el perfil de usuario por email sin validacion de rol para integracion interna
+     *
+     * @param email Email del usuario
+     * @return DTO con los datos del perfil
+     */
+    @Transactional(readOnly = true)
+    public UsuarioPerfilResponseDTO obtenerUsuarioPorEmailInterno(String email) {
+        if (email == null || email.trim().isEmpty()) {
+            throw new RuntimeException("El email del usuario no puede ser nulo o vacio");
+        }
+
+        UsuarioPerfil usuario = usuarioRepository.findByEmail(email.trim())
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con email: " + email));
+
+        UsuarioPerfilResponseDTO dto = convertirADTO(usuario);
+        enrichWithRol(dto, usuario);
+        return dto;
+    }
+
     @Transactional(readOnly = true)
     public UsuarioPerfilResponseDTO obtenerUsuarioPorId(Long idUsuario, String userRol) {
         ValidacionDeRoles.validarAdminORecepcionista(userRol);
