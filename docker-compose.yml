@@ -121,6 +121,8 @@ services:
       MAIL_PASSWORD: ${MAIL_PASSWORD}
       MAIL_FROM: ${MAIL_FROM}
       MAIL_ENABLED: ${MAIL_ENABLED:-true}
+      USUARIOS_SERVICE_URL: http://pg-ms-users:8081
+      AUTH_SERVICE_URL: http://pg-ms-auth:8090
     env_file:
       - .env
     networks:

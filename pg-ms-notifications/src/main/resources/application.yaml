@@ -67,3 +67,10 @@ logging:
 notificaciones:
   email:
     enabled: ${MAIL_ENABLED:true}
+
+# Configuración de microservicios
+microservicio:
+  usuarios:
+    url: ${USUARIOS_SERVICE_URL:http://pg-ms-users:8081}
+  auth:
+    url: ${AUTH_SERVICE_URL:http://pg-ms-auth:8090}

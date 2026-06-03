@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -23,18 +24,9 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/notificaciones")
 public class NotificacionEnvioController {
     
-    /**
-     * Inyeccion de NotificacionService para manejar las operaciones de base de datos
-     * relacionadas con las notificaciones
-     */
     private final NotificacionService notificacionService;
     
-    /**
-     * Endpoint para enviar una notificación a un usuario específico o a un grupo de usuarios.
-     * @param request     Objeto con los datos necesarios para enviar la notificación
-     * @param userRol     Rol del usuario que hace la peticion (desde header X-User-Rol)
-     * @return ResponseEntity<Map<String, Object>> con el resultado de la operación
-     */
+    // Endpoint existente
     @PostMapping("/enviar")
     public ResponseEntity<Map<String, Object>> enviarNotificacion(
             @Valid @RequestBody EnvioNotificacionDTO request,
@@ -47,6 +39,37 @@ public class NotificacionEnvioController {
             Map<String, Object> respuesta = new HashMap<>();
             respuesta.put("success", true);
             respuesta.put("message", "Notificación enviada exitosamente");
+            
+            return ResponseEntity.ok(respuesta);
+            
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        }
+    }
+    
+    // ✅ NUEVO ENDPOINT: Enviar notificación usando plantilla con variables dinámicas
+    @PostMapping("/enviar-plantilla/{plantillaId}/usuario/{usuarioId}")
+    public ResponseEntity<Map<String, Object>> enviarConPlantilla(
+            @PathVariable Long plantillaId,
+            @PathVariable Long usuarioId,
+            @RequestBody(required = false) Map<String, Object> variablesAdicionales,
+            @RequestHeader(value = "X-User-Rol", required = false) String userRol) {
+        
+        try {
+            ValidacionDeRoles.validarAdmin(userRol);
+            
+            notificacionService.enviarNotificacionConPlantilla(
+                plantillaId, 
+                usuarioId, 
+                variablesAdicionales != null ? variablesAdicionales : new HashMap<>()
+            );
+            
+            Map<String, Object> respuesta = new HashMap<>();
+            respuesta.put("success", true);
+            respuesta.put("message", "Notificación con plantilla enviada exitosamente");
             
             return ResponseEntity.ok(respuesta);
             
