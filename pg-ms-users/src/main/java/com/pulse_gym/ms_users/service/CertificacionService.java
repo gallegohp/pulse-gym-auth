@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.pulse_gym.lb_common.client.AuthServiceClient;
 import com.pulse_gym.lb_common.dto.CertificacionRequestDTO;
 import com.pulse_gym.lb_common.dto.CertificacionResponseDTO;
+import com.pulse_gym.lb_common.dto.CertificacionUpdateDTO;
 import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
 import com.pulse_gym.lb_common.entity.user.Certificacion;
 import com.pulse_gym.lb_common.entity.user.UsuarioPerfil;
@@ -73,9 +74,11 @@ public class CertificacionService {
     /**
      * Consulta las certificaciones de un entrenador específico.
      * 
-     * @param idEntrenador       ID del entrenador del cual se quieren consultar las certificaciones
-     * @param userRol            Rol del usuario que realiza la acción (obtenido del token de autenticación)
-     * @param userIdAutenticado  ID del usuario autenticado
+     * @param idEntrenador      ID del entrenador del cual se quieren consultar las
+     *                          certificaciones
+     * @param userRol           Rol del usuario que realiza la acción (obtenido del
+     *                          token de autenticación)
+     * @param userIdAutenticado ID del usuario autenticado
      * @return Lista de certificaciones del entrenador
      */
     @Transactional(readOnly = true)
@@ -125,4 +128,32 @@ public class CertificacionService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Actualiza una certificación existente.
+     * 
+     * @param idCertificacion ID de la certificación a actualizar
+     * @param requestDTO      DTO con los nuevos datos de la certificación
+     * @param userRol         Rol del usuario que realiza la acción (obtenido del
+     *                        token de autenticación)
+     * @return Mensaje de éxito o error en la actualización de la certificación
+     */
+    @Transactional
+    public MessegeGlobalDTO actualizarCertificacion(Long idCertificacion, CertificacionUpdateDTO requestDTO,
+            String userRol) {
+        ValidacionDeRoles.validarAdminORecepcionista(userRol);
+
+        Certificacion certificacion = certificacionRepository.findById(idCertificacion)
+                .orElseThrow(() -> new RuntimeException("Certificación no encontrada con ID: " + idCertificacion));
+
+        if (requestDTO.getNombre() != null && !requestDTO.getNombre().isEmpty()) {
+            certificacion.setNombre(requestDTO.getNombre());
+        }
+
+        if (requestDTO.getUrlPdf() != null && !requestDTO.getUrlPdf().isEmpty()) {
+            certificacion.setUrlPdf(requestDTO.getUrlPdf());
+        }
+
+        certificacionRepository.save(certificacion);
+        return new MessegeGlobalDTO("Certificación actualizada correctamente");
+    }
 }
