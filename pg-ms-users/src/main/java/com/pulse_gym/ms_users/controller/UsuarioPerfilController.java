@@ -47,9 +47,9 @@ public class UsuarioPerfilController {
             MessegeGlobalDTO response = usuarioService.completarPerfil(email, requestDTO, userRol, userEmail);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (SecurityAuthorizationException e) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
+            throw e;
         } catch (RuntimeException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+            throw e;
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al completar el perfil", e);
         }
@@ -68,6 +68,8 @@ public class UsuarioPerfilController {
             List<UsuarioPerfilResponseDTO> usuarios = usuarioService.obtenerTodosLosUsuarios(userRol);
             return ResponseEntity.status(HttpStatus.OK).body(usuarios);
         } catch (SecurityAuthorizationException e) {
+            throw e;
+        } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {
             e.printStackTrace();
@@ -90,6 +92,8 @@ public class UsuarioPerfilController {
             return ResponseEntity.status(HttpStatus.OK).body(usuarios);
         } catch (SecurityAuthorizationException e) {
             throw e;
+        } catch (RuntimeException e) {
+            throw e;
         } catch (Exception e) {
             e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al obtener la lista de usuarios",
@@ -110,6 +114,8 @@ public class UsuarioPerfilController {
             List<UsuarioPerfilResponseDTO> usuarios = usuarioService.obtenerTodosLosUsuariosInactivo(userRol);
             return ResponseEntity.status(HttpStatus.OK).body(usuarios);
         } catch (SecurityAuthorizationException e) {
+            throw e;
+        } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {
             e.printStackTrace();
@@ -135,7 +141,7 @@ public class UsuarioPerfilController {
         } catch (SecurityAuthorizationException e) {
             throw e;
         } catch (RuntimeException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+            throw e;
         } catch (Exception e) {
             e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al obtener el usuario", e);
@@ -160,7 +166,7 @@ public class UsuarioPerfilController {
         } catch (SecurityAuthorizationException e) {
             throw e;
         } catch (RuntimeException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+            throw e;
         } catch (Exception e) {
             e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al obtener el usuario", e);
@@ -192,7 +198,7 @@ public class UsuarioPerfilController {
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al actualizar el usuario", e);
         }
     }
 
@@ -223,7 +229,7 @@ public class UsuarioPerfilController {
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al actualizar el usuario", e);
         }
     }
 
@@ -250,7 +256,8 @@ public class UsuarioPerfilController {
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Error al cambiar el estado del usuario", e);
         }
     }
 }
