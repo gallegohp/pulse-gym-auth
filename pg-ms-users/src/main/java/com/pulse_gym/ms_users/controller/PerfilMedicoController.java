@@ -68,7 +68,7 @@ public class PerfilMedicoController {
             @RequestHeader(value = "X-User-Rol", required = false) String userRol) {
         try {
             PerfilMedicoResponseDTO perfil = perfilMedicoService.consultarPerfilMedico(idSocio, userRol);
-            return ResponseEntity.ok(perfil);
+            return ResponseEntity.status(HttpStatus.OK).body(perfil);
         } catch (SecurityAuthorizationException e) {
             throw e;
         } catch (RuntimeException e) {
@@ -97,7 +97,7 @@ public class PerfilMedicoController {
             @RequestHeader(value = "X-User-Rol", required = false) String userRol) {
         try {
             MessegeGlobalDTO response = perfilMedicoService.actualizarPerfilMedico(idSocio, requestDTO, userRol);
-            return ResponseEntity.ok(response);
+            return ResponseEntity.status(HttpStatus.OK).body(response);
         } catch (SecurityAuthorizationException e) {
             throw e;
         } catch (RuntimeException e) {
