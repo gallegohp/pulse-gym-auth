@@ -2,6 +2,8 @@ package com.pulse_gym.ms_users.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -11,6 +13,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
 import com.pulse_gym.lb_common.dto.PerfilMedicoRequestDTO;
+import com.pulse_gym.lb_common.dto.PerfilMedicoResponseDTO;
 import com.pulse_gym.lb_common.exception.SecurityAuthorizationException;
 import com.pulse_gym.ms_users.service.PerfilMedicoService;
 
@@ -39,6 +42,32 @@ public class PerfilMedicoController {
         try {
             MessegeGlobalDTO response = perfilMedicoService.registrarPerfilMedico(requestDTO, userRol);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (SecurityAuthorizationException e) {
+            throw e;
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al registrar la certificación",
+                    e);
+        }
+    }
+
+    /**
+     * Endpoint para consultar el perfil médico de un socio específico.
+     * 
+     * @param idSocio El ID del socio para el cual consultar el perfil médico
+     * @param userRol El rol del usuario que realiza la acción (obtenido del token
+     *                de autenticación)
+     * @return El DTO con los datos del perfil médico consultado
+     */
+    @GetMapping("/{idSocio}")
+    public ResponseEntity<PerfilMedicoResponseDTO> consultarPerfilMedico(
+            @PathVariable Long idSocio,
+            @RequestHeader(value = "X-User-Rol", required = false) String userRol) {
+        try {
+            PerfilMedicoResponseDTO perfil = perfilMedicoService.consultarPerfilMedico(idSocio, userRol);
+            return ResponseEntity.ok(perfil);
         } catch (SecurityAuthorizationException e) {
             throw e;
         } catch (RuntimeException e) {
