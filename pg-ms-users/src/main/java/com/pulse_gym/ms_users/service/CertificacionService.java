@@ -156,4 +156,23 @@ public class CertificacionService {
         certificacionRepository.save(certificacion);
         return new MessegeGlobalDTO("Certificación actualizada correctamente");
     }
+
+    /**
+     * Elimina una certificación existente.
+     * 
+     * @param idCertificacion ID de la certificación a eliminar
+     * @param userRol         Rol del usuario que realiza la acción (obtenido del
+     *                        token de autenticación)
+     * @return Mensaje de éxito o error en la eliminación de la certificación
+     */
+    @Transactional
+    public MessegeGlobalDTO eliminarCertificacion(Long idCertificacion, String userRol) {
+        ValidacionDeRoles.validarAdminORecepcionista(userRol);
+
+        Certificacion certificacion = certificacionRepository.findById(idCertificacion)
+                .orElseThrow(() -> new RuntimeException("Certificación no encontrada con ID: " + idCertificacion));
+
+        certificacionRepository.delete(certificacion);
+        return new MessegeGlobalDTO("Certificación eliminada correctamente");
+    }
 }

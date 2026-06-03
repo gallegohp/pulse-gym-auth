@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -49,12 +50,12 @@ public class CertificacionController {
             MessegeGlobalDTO response = certificacionService.registrarCertificacion(requestDTO, userRol);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (SecurityAuthorizationException e) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
+            throw e;
         } catch (RuntimeException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+            throw e;
         } catch (Exception e) {
             e.printStackTrace();
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al registrar la certificación");
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al registrar la certificación", e);
         }
     }
 
@@ -76,15 +77,16 @@ public class CertificacionController {
         try {
             List<CertificacionResponseDTO> certificaciones = certificacionService
                     .consultarCertificaciones(idEntrenador, userRol, userIdAutenticado);
-            return ResponseEntity.ok(certificaciones);
+            return ResponseEntity.status(HttpStatus.OK).body(certificaciones);
         } catch (SecurityAuthorizationException e) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
+            throw e;
         } catch (RuntimeException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+            throw e;
         } catch (Exception e) {
             e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Error al consultar las certificaciones");
+                    "Error al obtener la lista de certificados",
+                    e);
         }
     }
 
@@ -105,15 +107,39 @@ public class CertificacionController {
         try {
             MessegeGlobalDTO response = certificacionService.actualizarCertificacion(idCertificacion, requestDTO,
                     userRol);
-            return ResponseEntity.ok(response);
+            return ResponseEntity.status(HttpStatus.OK).body(response);
         } catch (SecurityAuthorizationException e) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
+            throw e;
         } catch (RuntimeException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+            throw e;
         } catch (Exception e) {
             e.printStackTrace();
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Error al actualizar la certificación");
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al actualizar la certificación", e);
+        }
+    }
+
+    /**
+     * Endpoint para eliminar una certificación existente.
+     * 
+     * @param idCertificacion ID de la certificación a eliminar
+     * @param userRol         Rol del usuario que realiza la acción (obtenido del
+     *                        token de autenticación)
+     * @return Mensaje de éxito o error en la eliminación de la certificación
+     */
+    @DeleteMapping("/{idCertificacion}")
+    public ResponseEntity<MessegeGlobalDTO> eliminarCertificacion(
+            @PathVariable Long idCertificacion,
+            @RequestHeader(value = "X-User-Rol", required = false) String userRol) {
+        try {
+            MessegeGlobalDTO response = certificacionService.eliminarCertificacion(idCertificacion, userRol);
+            return ResponseEntity.status(HttpStatus.OK).body(response);
+        } catch (SecurityAuthorizationException e) {
+            throw e;
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al eliminar la certificación", e);
         }
     }
 }

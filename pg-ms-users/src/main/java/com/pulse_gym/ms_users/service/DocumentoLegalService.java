@@ -3,13 +3,10 @@ package com.pulse_gym.ms_users.service;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestTemplate;
 
 import com.pulse_gym.lb_common.client.AuthServiceClient;
-import com.pulse_gym.lb_common.dto.AuthUserDTO;
 import com.pulse_gym.lb_common.dto.DocumentoLegalRequestDTO;
 import com.pulse_gym.lb_common.dto.DocumentoLegalResponseDTO;
 import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
