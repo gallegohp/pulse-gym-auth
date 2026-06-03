@@ -37,8 +37,11 @@ public class PerfilMedicoService {
     private final AuthServiceClient authServiceClient;
 
     /**
-     * Valida que el socio tenga un consentimiento informado vigente antes de permitir la gestión del perfil médico.
-     * @param idSocio El ID del socio para el cual se va a gestionar el perfil médico
+     * Valida que el socio tenga un consentimiento informado vigente antes de
+     * permitir la gestión del perfil médico.
+     * 
+     * @param idSocio El ID del socio para el cual se va a gestionar el perfil
+     *                médico
      */
     private void validarConsentimientoInformado(Long idSocio) {
         UsuarioPerfil socio = usuarioRepository.findById(idSocio)
@@ -99,8 +102,8 @@ public class PerfilMedicoService {
     /**
      * Consulta el perfil médico de un socio.
      *
-     * @param idSocio  El ID del socio para el cual consultar el perfil médico.
-     * @param userRol  El rol del usuario que realiza la operación.
+     * @param idSocio El ID del socio para el cual consultar el perfil médico.
+     * @param userRol El rol del usuario que realiza la operación.
      * @return El DTO con los datos del perfil médico consultado.
      */
     @Transactional(readOnly = true)
@@ -133,4 +136,45 @@ public class PerfilMedicoService {
 
         return dto;
     }
+
+    /**
+     * Actualiza el perfil médico de un socio.
+     * @param idSocio El ID del socio para el cual actualizar el perfil médico.
+     * @param requestDTO El DTO con los datos del perfil médico a actualizar.
+     * @param userRol El rol del usuario que realiza la operación.
+     * @return Un mensaje de éxito o error en la actualización del perfil médico.
+     */
+    @Transactional
+    public MessegeGlobalDTO actualizarPerfilMedico(Long idSocio, PerfilMedicoRequestDTO requestDTO, String userRol) {
+        ValidacionDeRoles.validarAdminORecepcionista(userRol);
+
+        validarConsentimientoInformado(idSocio);
+
+        PerfilMedico perfilMedico = perfilMedicoRepository.findBySocio_IdUsuario(idSocio)
+                .orElseThrow(() -> new RuntimeException("Perfil médico no encontrado para el socio: " + idSocio));
+
+        if (requestDTO.getPesoKg() != null) {
+            perfilMedico.setPesoKg(requestDTO.getPesoKg());
+        }
+        if (requestDTO.getEstaturaCm() != null) {
+            perfilMedico.setEstaturaCm(requestDTO.getEstaturaCm());
+        }
+        if (requestDTO.getAlergias() != null) {
+            perfilMedico.setAlergias(requestDTO.getAlergias());
+        }
+        if (requestDTO.getCondicionesCronicas() != null) {
+            perfilMedico.setCondicionesCronicas(requestDTO.getCondicionesCronicas());
+        }
+        if (requestDTO.getLesionesPrevias() != null) {
+            perfilMedico.setLesionesPrevias(requestDTO.getLesionesPrevias());
+        }
+        if (requestDTO.getPorcentajeGrasa() != null) {
+            perfilMedico.setPorcentajeGrasa(requestDTO.getPorcentajeGrasa());
+        }
+
+        perfilMedicoRepository.save(perfilMedico);
+
+        return new MessegeGlobalDTO("Perfil médico actualizado correctamente");
+    }
+
 }

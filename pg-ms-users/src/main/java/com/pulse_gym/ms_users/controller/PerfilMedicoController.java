@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -68,6 +69,35 @@ public class PerfilMedicoController {
         try {
             PerfilMedicoResponseDTO perfil = perfilMedicoService.consultarPerfilMedico(idSocio, userRol);
             return ResponseEntity.ok(perfil);
+        } catch (SecurityAuthorizationException e) {
+            throw e;
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al registrar la certificación",
+                    e);
+        }
+    }
+
+    /**
+     * Endpoint para actualizar el perfil médico de un socio específico.
+     * 
+     * @param idSocio    El ID del socio para el cual actualizar el perfil médico
+     * @param requestDTO El DTO con los datos del perfil médico a actualizar
+     * @param userRol    El rol del usuario que realiza la acción (obtenido del
+     *                   token
+     *                   de autenticación)
+     * @return Un mensaje de éxito o error en la actualización del perfil médico
+     */
+    @PutMapping("/{idSocio}")
+    public ResponseEntity<MessegeGlobalDTO> actualizarPerfilMedico(
+            @PathVariable Long idSocio,
+            @Valid @RequestBody PerfilMedicoRequestDTO requestDTO,
+            @RequestHeader(value = "X-User-Rol", required = false) String userRol) {
+        try {
+            MessegeGlobalDTO response = perfilMedicoService.actualizarPerfilMedico(idSocio, requestDTO, userRol);
+            return ResponseEntity.ok(response);
         } catch (SecurityAuthorizationException e) {
             throw e;
         } catch (RuntimeException e) {
