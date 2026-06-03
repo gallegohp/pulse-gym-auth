@@ -1,0 +1,93 @@
+package com.pulse_gym.ms_users.service;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.pulse_gym.lb_common.client.AuthServiceClient;
+import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
+import com.pulse_gym.lb_common.dto.PerfilMedicoRequestDTO;
+import com.pulse_gym.lb_common.entity.user.PerfilMedico;
+import com.pulse_gym.lb_common.entity.user.UsuarioPerfil;
+import com.pulse_gym.lb_common.enums.EnumEstadoDocumentoLegal;
+import com.pulse_gym.lb_common.enums.EnumRol;
+import com.pulse_gym.lb_common.enums.EnumTipoDocumentoLegal;
+import com.pulse_gym.lb_common.exception.SecurityAuthorizationException;
+import com.pulse_gym.lb_common.services.ValidacionDeRoles;
+import com.pulse_gym.ms_users.repository.DocumentoLegalRepository;
+import com.pulse_gym.ms_users.repository.PerfilMedicoRepository;
+import com.pulse_gym.ms_users.repository.UsuarioPerfilRepository;
+
+import lombok.RequiredArgsConstructor;
+
+@Service
+@RequiredArgsConstructor
+public class PerfilMedicoService {
+
+    /** Repositorio para acceder a los perfiles médicos */
+    private final PerfilMedicoRepository perfilMedicoRepository;
+
+    /** Repositorio para acceder a los perfiles de usuario */
+    private final UsuarioPerfilRepository usuarioRepository;
+
+    /** Repositorio para acceder a los documentos legales */
+    private final DocumentoLegalRepository documentoLegalRepository;
+
+    /** Cliente para acceder al servicio de autenticación */
+    private final AuthServiceClient authServiceClient;
+
+    private void validarConsentimientoInformado(Long idSocio) {
+        UsuarioPerfil socio = usuarioRepository.findById(idSocio)
+                .orElseThrow(() -> new RuntimeException("Socio no encontrado con ID: " + idSocio));
+
+        EnumRol rolSocio = authServiceClient.obtenerRolPorEmail(socio.getEmail());
+
+        if (rolSocio == null || rolSocio != EnumRol.socio) {
+            throw new RuntimeException("El usuario no es un socio. Rol actual: " + rolSocio);
+        }
+
+        boolean tieneConsentimiento = documentoLegalRepository
+                .findDocumentoPorTipo(idSocio, EnumTipoDocumentoLegal.CONSENTIEMIENTO_INFORMADO,
+                        EnumEstadoDocumentoLegal.VIGENTE)
+                .isPresent();
+
+        if (!tieneConsentimiento) {
+            throw new SecurityAuthorizationException(
+                    "No se puede gestionar el perfil médico. El socio no tiene un consentimiento informado vigente.");
+        }
+    }
+
+    /**
+     * Registra un nuevo perfil médico para un socio.
+     *
+     * @param requestDTO  El DTO que contiene los datos del perfil médico a registrar.
+     * @param userRol     El rol del usuario que realiza la operación (debe ser admin o recepcionista).
+     * @return Un mensaje indicando el resultado de la operación.
+     * @throws RuntimeException Si el socio ya tiene un perfil médico registrado o si el socio no existe.
+     */
+    @Transactional
+    public MessegeGlobalDTO registrarPerfilMedico(PerfilMedicoRequestDTO requestDTO, String userRol) {
+        ValidacionDeRoles.validarAdminORecepcionista(userRol);
+
+        validarConsentimientoInformado(requestDTO.getIdSocio());
+
+        if (perfilMedicoRepository.existsBySocio_IdUsuario(requestDTO.getIdSocio())) {
+            throw new RuntimeException("El socio ya tiene un perfil médico registrado");
+        }
+
+        UsuarioPerfil socio = usuarioRepository.findById(requestDTO.getIdSocio())
+                .orElseThrow(() -> new RuntimeException("Socio no encontrado con ID: " + requestDTO.getIdSocio()));
+
+        PerfilMedico perfilMedico = new PerfilMedico();
+        perfilMedico.setSocio(socio);
+        perfilMedico.setPesoKg(requestDTO.getPesoKg());
+        perfilMedico.setEstaturaCm(requestDTO.getEstaturaCm());
+        perfilMedico.setAlergias(requestDTO.getAlergias());
+        perfilMedico.setCondicionesCronicas(requestDTO.getCondicionesCronicas());
+        perfilMedico.setLesionesPrevias(requestDTO.getLesionesPrevias());
+        perfilMedico.setPorcentajeGrasa(requestDTO.getPorcentajeGrasa());
+
+        perfilMedicoRepository.save(perfilMedico);
+        return new MessegeGlobalDTO("Perfil médico registrado correctamente");
+    }
+
+}
