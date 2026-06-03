@@ -170,4 +170,29 @@ public class PlantillaController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
         }
     }
+
+    /**
+     * Elimina una plantilla mediante soft delete
+     *
+     * @param id      Identificador de la plantilla
+     * @param userRol Rol del usuario autenticado
+     * @return Resultado de la operacion
+     */
+    @PostMapping("/eliminar/{id}")
+    public ResponseEntity<Map<String, Object>> eliminarPlantilla(@PathVariable Long id,
+            @RequestHeader(value = "X-User-Rol", required = false) String userRol) {
+        try {
+            MessegeGlobalDTO response = plantillaService.eliminarPlantilla(id, userRol);
+
+            Map<String, Object> respuesta = new HashMap<>();
+            respuesta.put("success", true);
+            respuesta.put("message", response.getMessage());
+            return ResponseEntity.ok(respuesta);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        }
+    }
 }
