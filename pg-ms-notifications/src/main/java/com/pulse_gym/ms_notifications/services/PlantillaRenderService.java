@@ -43,8 +43,7 @@ public class PlantillaRenderService {
     
     public Map<String, Object> generarValoresEjemplo(Set<String> variables) {
         Map<String, Object> ejemplos = getValoresEjemploPorDefecto();
-        
-        // Filtrar solo las variables que necesita la plantilla
+
         Map<String, Object> resultado = new HashMap<>();
         for (String variable : variables) {
             resultado.put(variable, ejemplos.getOrDefault(variable, "[EJEMPLO_" + variable.toUpperCase() + "]"));
