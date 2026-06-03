@@ -16,6 +16,9 @@ public class PlantillaNotificacionRequestDTO {
     @NotBlank(message = "El nombre de la plantilla es obligatorio")
     private String nombre;
 
+    /** Titulo de la notificacion */
+    @NotBlank(message = "El titulo de la plantilla es obligatorio")
+    private String titulo;
     /**
      * Descripcion de la plantilla de notificacion
      */  

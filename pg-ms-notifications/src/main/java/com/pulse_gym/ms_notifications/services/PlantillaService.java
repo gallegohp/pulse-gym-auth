@@ -41,6 +41,7 @@ public class PlantillaService {
         PlantillaNotificacion notificacion = new PlantillaNotificacion();
 
         notificacion.setNombre(request.getNombre());
+        notificacion.setTitulo(request.getTitulo());
         notificacion.setDescripcion(request.getDescripcion());
         notificacion.setContenido(request.getContenido());
         notificacion.setTipoPlantilla(request.getTipoPlantilla());
@@ -142,6 +143,7 @@ public class PlantillaService {
                 .orElseThrow(() -> new RuntimeException("Plantilla no encontrada con id: " + plantillaId));
 
         notificacion.setNombre(request.getNombre());
+        notificacion.setTitulo(request.getTitulo());
         notificacion.setDescripcion(request.getDescripcion());
         notificacion.setContenido(request.getContenido());
         notificacion.setTipoPlantilla(request.getTipoPlantilla());

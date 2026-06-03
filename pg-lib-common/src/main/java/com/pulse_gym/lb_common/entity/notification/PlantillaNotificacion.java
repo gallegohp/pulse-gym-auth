@@ -24,7 +24,7 @@ public class PlantillaNotificacion {
      * Identificador de la plantilla de notificacion
      */
     @Id
-    @GeneratedValue (strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_plantilla")
     private Long idPlantilla;
 
@@ -34,12 +34,16 @@ public class PlantillaNotificacion {
     @Column(name = "nombre", nullable = false)
     private String nombre;
 
+
+    /** Titulo de la notificacion */
+    @Column(name = "titulo")
+    private String titulo;
+
     /**
      * Descripcion de la plantilla de notificacion
      */
-    @Column(name = "descripcion", nullable = true)
+    @Column(name = "descripcion")
     private String descripcion;
-
     /**
      * Contenido de la notificacion
      */
@@ -72,7 +76,4 @@ public class PlantillaNotificacion {
     @Column(name = "fecha_creacion", nullable = false)
     private LocalDateTime fechaCreacion;
 
-
 }
-
-
