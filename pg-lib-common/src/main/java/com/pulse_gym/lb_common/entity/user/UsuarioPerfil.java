@@ -15,10 +15,12 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.Data;
@@ -219,7 +221,8 @@ public class UsuarioPerfil {
     }
 
     /**
-     * Elimina una certificación de la lista de certificaciones asociadas al usuario y
+     * Elimina una certificación de la lista de certificaciones asociadas al usuario
+     * y
      * rompe la relación bidireccional entre el usuario y la certificación.
      * 
      * @param certificacion La certificación a eliminar del usuario
@@ -228,4 +231,7 @@ public class UsuarioPerfil {
         certificaciones.remove(certificacion);
         certificacion.setEntrenador(null);
     }
+
+    @OneToOne(mappedBy = "socio", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private PerfilMedico perfilMedico;
 }
