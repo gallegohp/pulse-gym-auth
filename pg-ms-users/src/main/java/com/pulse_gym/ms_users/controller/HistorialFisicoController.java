@@ -1,7 +1,9 @@
 package com.pulse_gym.ms_users.controller;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,9 +13,11 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.pulse_gym.lb_common.dto.EvolucionFisicaDTO;
 import com.pulse_gym.lb_common.dto.HistorialFisicoRequestDTO;
 import com.pulse_gym.lb_common.dto.HistorialFisicoResponseDTO;
 import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
@@ -84,9 +88,10 @@ public class HistorialFisicoController {
 
     /**
      * Actualiza una medición física existente
+     * 
      * @param idHistorial ID del historial físico a actualizar
-     * @param requestDTO Datos de la medición física a actualizar
-     * @param userRol Rol del usuario autenticado
+     * @param requestDTO  Datos de la medición física a actualizar
+     * @param userRol     Rol del usuario autenticado
      * @return Mensaje de éxito si la medición se actualizó correctamente
      */
     @PutMapping("/{idHistorial}")
@@ -104,6 +109,37 @@ public class HistorialFisicoController {
         } catch (Exception e) {
             e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al actualizar medición", e);
+        }
+    }
+
+    /**
+     * Obtiene la evolución física de un socio
+     * 
+     * @param idSocio           ID del socio
+     * @param fechaInicio       Fecha de inicio del periodo
+     * @param fechaFin          Fecha de fin del periodo
+     * @param userRol           Rol del usuario autenticado
+     * @param userIdAutenticado ID del usuario autenticado
+     * @return DTO con la evolución física del socio
+     */
+    @GetMapping("/evolucion/{idSocio}")
+    public ResponseEntity<EvolucionFisicaDTO> obtenerEvolucion(
+            @PathVariable Long idSocio,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fechaInicio,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fechaFin,
+            @RequestHeader(value = "X-User-Rol", required = false) String userRol,
+            @RequestHeader(value = "X-User-Id", required = false) Long userIdAutenticado) {
+        try {
+            EvolucionFisicaDTO evolucion = historialService.obtenerEvolucion(idSocio, userRol, userIdAutenticado,
+                    fechaInicio, fechaFin);
+            return ResponseEntity.ok(evolucion);
+        } catch (SecurityAuthorizationException e) {
+            throw e;
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al obtener evolución", e);
         }
     }
 }

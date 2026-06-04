@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.pulse_gym.lb_common.client.AuthServiceClient;
+import com.pulse_gym.lb_common.dto.EvolucionFisicaDTO;
 import com.pulse_gym.lb_common.dto.HistorialFisicoRequestDTO;
 import com.pulse_gym.lb_common.dto.HistorialFisicoResponseDTO;
 import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
@@ -188,4 +189,68 @@ public class HistorialFisicoService {
 
         return new MessegeGlobalDTO("Medición física actualizada correctamente");
     }
+
+    /**
+     * Obtiene la evolución física de un socio
+     * 
+     * @param idSocio           ID del socio
+     * @param userRol           Rol del usuario autenticado
+     * @param userIdAutenticado ID del usuario autenticado
+     * @param fechaInicio       Fecha de inicio del periodo
+     * @param fechaFin          Fecha de fin del periodo
+     * @return DTO con la evolución física del socio
+     */
+    @Transactional(readOnly = true)
+    public EvolucionFisicaDTO obtenerEvolucion(Long idSocio, String userRol, Long userIdAutenticado,
+            LocalDateTime fechaInicio, LocalDateTime fechaFin) {
+
+        if (userRol.equals(EnumRol.socio.name())) {
+            if (!userIdAutenticado.equals(idSocio)) {
+                throw new SecurityAuthorizationException("Acceso denegado. Solo puede ver su propia evolución");
+            }
+        } else if (!userRol.equals(EnumRol.administrador.name()) &&
+                !userRol.equals(EnumRol.entrenador.name())) {
+            throw new SecurityAuthorizationException(
+                    "Acceso denegado. Rol no autorizado para ver evolución: " + userRol);
+        }
+
+        UsuarioPerfil socio = usuarioRepository.findById(idSocio)
+                .orElseThrow(() -> new RuntimeException("Socio no encontrado con ID: " + idSocio));
+
+        if (fechaInicio == null) {
+            fechaInicio = LocalDateTime.now().minusMonths(6);
+        }
+        if (fechaFin == null) {
+            fechaFin = LocalDateTime.now();
+        }
+
+        List<HistorialFisico> historial = historialRepository
+                .findBySocio_IdUsuarioAndFechaMedicionBetweenOrderByFechaMedicionAsc(idSocio, fechaInicio, fechaFin);
+
+        EvolucionFisicaDTO evolucion = new EvolucionFisicaDTO();
+        evolucion.setIdSocio(idSocio);
+        evolucion.setNombreSocio(socio.getNombre() + " " + socio.getApellido());
+
+        List<EvolucionFisicaDTO.PuntoEvolucion> evolucionPeso = historial.stream()
+                .filter(h -> h.getPesoKg() != null)
+                .map(h -> new EvolucionFisicaDTO.PuntoEvolucion(h.getFechaMedicion(), h.getPesoKg()))
+                .collect(Collectors.toList());
+
+        List<EvolucionFisicaDTO.PuntoEvolucion> evolucionGrasa = historial.stream()
+                .filter(h -> h.getPorcentajeGrasa() != null)
+                .map(h -> new EvolucionFisicaDTO.PuntoEvolucion(h.getFechaMedicion(), h.getPorcentajeGrasa()))
+                .collect(Collectors.toList());
+
+        List<EvolucionFisicaDTO.PuntoEvolucion> evolucionMusculo = historial.stream()
+                .filter(h -> h.getPorcentajeMusculo() != null)
+                .map(h -> new EvolucionFisicaDTO.PuntoEvolucion(h.getFechaMedicion(), h.getPorcentajeMusculo()))
+                .collect(Collectors.toList());
+
+        evolucion.setEvolucionPeso(evolucionPeso);
+        evolucion.setEvolucionGrasa(evolucionGrasa);
+        evolucion.setEvolucionMusculo(evolucionMusculo);
+
+        return evolucion;
+    }
+
 }
