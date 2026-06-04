@@ -6,8 +6,8 @@ import java.time.LocalDateTime;
 
 import com.pulse_gym.lb_common.enums.EnumEstadoUsuario;
 import com.pulse_gym.lb_common.enums.EnumRol;
-import com.pulse_gym.lb_common.enums.NivelExperiencia;
-import com.pulse_gym.lb_common.enums.Turno;
+import com.pulse_gym.lb_common.enums.EnumNivelExperiencia;
+import com.pulse_gym.lb_common.enums.EnumTurno;
 
 import lombok.Data;
 
@@ -88,7 +88,7 @@ public class UsuarioPerfilResponseDTO {
     /**
      * Turno de trabajo o asistencia asignado en el sistema
      */
-    private Turno turno;
+    private EnumTurno turno;
 
     /**
      * Fecha de nacimiento del usuario
@@ -113,7 +113,7 @@ public class UsuarioPerfilResponseDTO {
     /**
      * Nivel de experiencia física o deportiva actual del usuario
      */
-    private NivelExperiencia nivelExperiencia;
+    private EnumNivelExperiencia nivelExperiencia;
 
     /**
      * Fecha y hora exacta en la que el usuario fue registrado en la plataforma
