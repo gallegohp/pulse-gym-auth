@@ -6,7 +6,7 @@ spring:
     name: pg-ms-operation
     
   datasource:
-    url: jdbc:mysql://db-operation:3306/users_db?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false
+    url: jdbc:mysql://db-mysql:3310/operations_db?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
     username: pulsegym
     password: 123
   jpa: 
@@ -39,7 +39,7 @@ management:
 
 security:
   jwt:
-    secret-key: oMYOYPCjKGRjXEHQqcG0F/KwhgMZ7yej4cBdqeMVZsk=
+    secret-key: ${JWT_SECRET}
     token-expiration: 3600000
 
 logging:
