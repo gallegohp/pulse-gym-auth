@@ -8,18 +8,20 @@ import org.springframework.stereotype.Repository;
 
 import com.pulse_gym.lb_common.entity.notification.Notificacion;
 
-import feign.Param;
+import org.springframework.data.repository.query.Param;
 
 @Repository
 public interface NotificacionRepository extends JpaRepository<Notificacion, Long> {
 
-    @Query("SELECT COUNT(n) FROM Notificacion n WHERE n.id_usuario = :idUsuario AND n.fechaEnvio > :fecha")
-    long countById_usuarioAndFechaEnvioAfter(@Param("idUsuario") Long idUsuario, @Param("fecha") LocalDateTime fecha);
-
-    @Query("SELECT COUNT(n) FROM Notificacion n WHERE n.id_usuario = :idUsuario AND n.fechaEnvio BETWEEN :inicio AND :fin")
-    long countById_usuarioAndFechaEnvioBetween(@Param("idUsuario") Long idUsuario,
-            @Param("inicio") LocalDateTime inicio, @Param("fin") LocalDateTime fin);
-
+    /**
+     * Cuenta notificaciones efectivas (no rechazadas) enviadas en el ultimo minuto
+     */
     @Query("SELECT COUNT(n) FROM Notificacion n WHERE n.id_usuario = :idUsuario AND n.fechaEnvio > :fecha AND n.estado <> 'RECHAZADO'")
     long countEfectivosUltimoMinuto(@Param("idUsuario") Long idUsuario, @Param("fecha") LocalDateTime fecha);
+
+    /**
+     * Cuenta notificaciones efectivas (no rechazadas) enviadas en el ultimo dia
+     */
+    @Query("SELECT COUNT(n) FROM Notificacion n WHERE n.id_usuario = :idUsuario AND n.fechaEnvio > :fecha AND n.estado <> 'RECHAZADO'")
+    long countEfectivosUltimoDia(@Param("idUsuario") Long idUsuario, @Param("fecha") LocalDateTime fecha);
 }
