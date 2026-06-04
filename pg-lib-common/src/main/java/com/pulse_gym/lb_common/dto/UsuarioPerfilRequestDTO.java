@@ -3,8 +3,8 @@ package com.pulse_gym.lb_common.dto;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-import com.pulse_gym.lb_common.enums.NivelExperiencia;
-import com.pulse_gym.lb_common.enums.Turno;
+import com.pulse_gym.lb_common.enums.EnumNivelExperiencia;
+import com.pulse_gym.lb_common.enums.EnumTurno;
 
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
@@ -103,7 +103,7 @@ public class UsuarioPerfilRequestDTO {
      * Turno o jornada de trabajo/asistencia asignada en el sistema. Es obligatorio.
      */
     @NotNull(message = "El turno es obligatorio.")
-    private Turno turno;
+    private EnumTurno turno;
 
     /**
      * Fecha de nacimiento del usuario. Es obligatoria y debe corresponder
@@ -141,7 +141,7 @@ public class UsuarioPerfilRequestDTO {
      * Nivel de experiencia física o deportiva actual del usuario. Es obligatorio.
      */
     @NotNull(message = "El nivel de experiencia es obligatorio.")
-    private NivelExperiencia nivelExperiencia;
+    private EnumNivelExperiencia nivelExperiencia;
 
     /**
      * Identificador único de la sede física a la que se vincula el usuario. Es

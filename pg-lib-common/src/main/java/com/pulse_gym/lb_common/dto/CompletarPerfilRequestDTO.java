@@ -3,8 +3,8 @@ package com.pulse_gym.lb_common.dto;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-import com.pulse_gym.lb_common.enums.NivelExperiencia;
-import com.pulse_gym.lb_common.enums.Turno;
+import com.pulse_gym.lb_common.enums.EnumNivelExperiencia;
+import com.pulse_gym.lb_common.enums.EnumTurno;
 
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
@@ -58,7 +58,7 @@ public class CompletarPerfilRequestDTO {
     private BigDecimal tarifaHora;
 
     @NotNull(message = "El turno es obligatorio.")
-    private Turno turno;
+    private EnumTurno turno;
 
     @NotNull(message = "La fecha de nacimiento es obligatoria.")
     @Past(message = "La fecha de nacimiento debe ser una fecha pasada.")
@@ -77,7 +77,7 @@ public class CompletarPerfilRequestDTO {
     private String objetivoPrincipal;
 
     @NotNull(message = "El nivel de experiencia es obligatorio.")
-    private NivelExperiencia nivelExperiencia;
+    private EnumNivelExperiencia nivelExperiencia;
 
     @NotNull(message = "El ID de la sede es obligatorio.")
     private Integer idSede;
