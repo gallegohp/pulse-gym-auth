@@ -21,9 +21,15 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class WhatsAppService {
 
+    /**
+     * Logger para la clase
+     */
     private static final Logger logger = LoggerFactory.getLogger(WhatsAppService.class);
 
-    private final RestTemplate restTemplate;
+    /**
+     * Inyeccion de RestTemplate para enviar solicitudes a Twilio
+     */
+    private final RestTemplate restTemplate = new RestTemplate(); 
 
     @Value("${notificaciones.whatsapp.enabled:false}")
     private boolean whatsappEnabled;

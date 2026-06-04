@@ -16,9 +16,19 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ConfiguracionGlobalService {
 
+    /**
+     * Maximo de notidficaciones por dia
+     */
     private static final long DEFAULT_MAX_POR_DIA = 100L;
+
+    /**
+     * Maximo de notidficaciones por minuto
+     */
     private static final long DEFAULT_MAX_POR_MINUTO = 10L;
 
+    /**
+     * Repositorio para la configuracion global de notificaciones
+     */
     private final ConfiguracionGlobalRespository configuracionGlobalRespository;
 
     /**
