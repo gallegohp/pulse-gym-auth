@@ -8,11 +8,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.pulse_gym.lb_common.dto.ContrasenaOlvidad;
+import com.pulse_gym.lb_common.dto.ContrasenaOlvidada;
 import com.pulse_gym.lb_common.dto.HttpGlobalResponse;
 import com.pulse_gym.lb_common.dto.JwtDTO;
 import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
-import com.pulse_gym.lb_common.dto.RestablecerContraseña;
+import com.pulse_gym.lb_common.dto.RestablecerContrasena;
 import com.pulse_gym.lb_common.entity.auth.PasswordResetToken;
 import com.pulse_gym.lb_common.entity.auth.User;
 import com.pulse_gym.lb_common.services.JwtService;
@@ -131,7 +131,7 @@ public class AuthService {
      * @return Mensaje de éxito o error
      */
     @Transactional
-    public MessegeGlobalDTO forgotPassword(ContrasenaOlvidad requestDTO) {
+    public MessegeGlobalDTO forgotPassword(ContrasenaOlvidada requestDTO) {
         Optional<User> userOpt = userAuthRepository.findByUsername(requestDTO.getUsername());
 
         if (userOpt.isEmpty()) {
@@ -164,7 +164,7 @@ public class AuthService {
      * @return Mensaje de éxito o error
      */
     @Transactional
-    public MessegeGlobalDTO resetPassword(RestablecerContraseña requestDTO) {
+    public MessegeGlobalDTO resetPassword(RestablecerContrasena requestDTO) {
         // Validar que las contraseñas coincidan
         if (!requestDTO.getNewPassword().equals(requestDTO.getConfirmPassword())) {
             return new MessegeGlobalDTO("Las contraseñas no coinciden");
