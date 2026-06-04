@@ -237,4 +237,36 @@ public class UsuarioPerfil {
      */
     @OneToOne(mappedBy = "socio", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private PerfilMedico perfilMedico;
+
+    /**
+     * Lista de historial físico asociado al usuario (socio)
+     */
+    @OneToMany(mappedBy = "socio", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<HistorialFisico> historialFisico = new ArrayList<>();
+
+    /**
+     * Lista de mediciones tomadas por el recepcionista
+     */
+    @OneToMany(mappedBy = "recepcionista", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<HistorialFisico> medicionesRegistradas = new ArrayList<>();
+
+    /**
+     * Agrega una medición al historial del socio
+     * 
+     * @param historial La medición a agregar
+     */
+    public void addHistorialFisico(HistorialFisico historial) {
+        historialFisico.add(historial);
+        historial.setSocio(this);
+    }
+
+    /**
+     * Elimina una medición del historial del socio
+     * 
+     * @param historial La medición a eliminar
+     */
+    public void removeHistorialFisico(HistorialFisico historial) {
+        historialFisico.remove(historial);
+        historial.setSocio(null);
+    }
 }
