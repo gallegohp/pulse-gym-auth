@@ -29,7 +29,7 @@ public class WhatsAppService {
     /**
      * Inyeccion de RestTemplate para enviar solicitudes a Twilio
      */
-    private final RestTemplate restTemplate = new RestTemplate(); 
+    private final RestTemplate restTemplate = new RestTemplate();
 
     @Value("${notificaciones.whatsapp.enabled:false}")
     private boolean whatsappEnabled;
@@ -87,7 +87,11 @@ public class WhatsAppService {
 
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
         body.add("From", twilioFromNumber);
-        body.add("To", telefono);
+        String telefonoDestino = telefono.startsWith("whatsapp:")
+                ? telefono
+                : "whatsapp:" + telefono;
+
+        body.add("To", telefonoDestino);
         body.add("Body", contenido);
 
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
