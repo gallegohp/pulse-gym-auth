@@ -26,15 +26,15 @@ public class RateLimitService {
         ConfiguracionGlobal limites = configuracionGlobalService.obtenerLimitesEfectivos();
         LocalDateTime ahora = LocalDateTime.now();
 
-        long enviadosUltimoMinuto = notificacionRepository.countById_usuarioAndFechaEnvioAfter(
+        long enviadosUltimoMinuto = notificacionRepository.countEfectivosUltimoMinuto(
                 usuarioId, ahora.minusMinutes(1));
 
         if (enviadosUltimoMinuto >= limites.getMax_notificaciones_por_minuto()) {
             throw new RuntimeException("Limite de notificaciones por minuto alcanzado para el usuario");
         }
 
-        long enviadosUltimoDia = notificacionRepository.countById_usuarioAndFechaEnvioBetween(
-                usuarioId, ahora.minusDays(1), ahora);
+        long enviadosUltimoDia = notificacionRepository.countEfectivosUltimoDia(
+                usuarioId, ahora.minusDays(1));
 
         if (enviadosUltimoDia >= limites.getMax_notificaciones_por_dia()) {
             throw new RuntimeException("Limite de notificaciones por dia alcanzado para el usuario");
