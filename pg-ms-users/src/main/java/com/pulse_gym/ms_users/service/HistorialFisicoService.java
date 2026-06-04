@@ -149,4 +149,43 @@ public class HistorialFisicoService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Actualiza una medición física existente
+     * 
+     * @param idHistorial ID del historial físico a actualizar
+     * @param requestDTO  Datos de la medición física a actualizar
+     * @param userRol     Rol del usuario autenticado
+     * @return Mensaje de éxito si la medición se actualizó correctamente
+     */
+    @Transactional
+    public MessegeGlobalDTO actualizarMedicion(Long idHistorial, HistorialFisicoRequestDTO requestDTO, String userRol) {
+
+        ValidacionDeRoles.validarAdminOEntrenadorORecepcionista(userRol);
+
+        HistorialFisico historial = historialRepository.findById(idHistorial)
+                .orElseThrow(() -> new RuntimeException("Registro de historial no encontrado con ID: " + idHistorial));
+
+        if (requestDTO.getPesoKg() != null)
+            historial.setPesoKg(requestDTO.getPesoKg());
+        if (requestDTO.getPorcentajeGrasa() != null)
+            historial.setPorcentajeGrasa(requestDTO.getPorcentajeGrasa());
+        if (requestDTO.getPorcentajeMusculo() != null)
+            historial.setPorcentajeMusculo(requestDTO.getPorcentajeMusculo());
+        if (requestDTO.getCinturaCm() != null)
+            historial.setCinturaCm(requestDTO.getCinturaCm());
+        if (requestDTO.getPechoCm() != null)
+            historial.setPechoCm(requestDTO.getPechoCm());
+        if (requestDTO.getBrazoIzqCm() != null)
+            historial.setBrazoIzqCm(requestDTO.getBrazoIzqCm());
+        if (requestDTO.getBrazoDerCm() != null)
+            historial.setBrazoDerCm(requestDTO.getBrazoDerCm());
+        if (requestDTO.getPiernaIzqCm() != null)
+            historial.setPiernaIzqCm(requestDTO.getPiernaIzqCm());
+        if (requestDTO.getPiernaDerCm() != null)
+            historial.setPiernaDerCm(requestDTO.getPiernaDerCm());
+
+        historialRepository.save(historial);
+
+        return new MessegeGlobalDTO("Medición física actualizada correctamente");
+    }
 }
