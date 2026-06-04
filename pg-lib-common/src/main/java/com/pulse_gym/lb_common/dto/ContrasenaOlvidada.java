@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Data
-public class ContrasenaOlvidad {
+public class ContrasenaOlvidada {
 
     /**El nombre del usuario */
     @NotBlank(message = "El username es obligatorio")
