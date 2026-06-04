@@ -1,0 +1,339 @@
+{
+  "info": {
+    "name": "pg-ms-notifications",
+    "description": "Microservicio de Notificaciones - PULSE GYM",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/0.0.0"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8083",
+      "type": "string"
+    },
+    {
+      "key": "userRol",
+      "value": "ADMIN",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "1",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Plantillas",
+      "item": [
+        {
+          "name": "Crear Plantilla",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/plantilla/crear",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-Rol",
+                "value": "{{userRol}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Bienvenida Premium\",\n  \"titulo\": \"¡Bienvenido a PULSE GYM!\",\n  \"descripcion\": \"Plantilla de bienvenida para nuevos miembros\",\n  \"contenido\": \"Hola {{nombre_usuario}}, bienvenido a PULSE GYM. Tu plan {{plan}} vence el {{fecha_vencimiento}}\",\n  \"tipoPlantilla\": \"EMAIL\",\n  \"eventoAsociado\": \"WELCOME\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Listar Plantillas",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/plantilla/leer",
+            "header": [
+              {
+                "key": "X-User-Rol",
+                "value": "{{userRol}}"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Actualizar Plantilla",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/plantilla/actualizar/{id}",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-Rol",
+                "value": "{{userRol}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Bienvenida Premium\",\n  \"titulo\": \"¡Bienvenido a PULSE GYM!\",\n  \"descripcion\": \"Plantilla actualizada\",\n  \"contenido\": \"Hola {{nombre_usuario}}, gracias por unirte a PULSE GYM\",\n  \"tipoPlantilla\": \"EMAIL\",\n  \"eventoAsociado\": \"WELCOME\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Activar Plantilla",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/plantilla/activar/{id}",
+            "header": [
+              {
+                "key": "X-User-Rol",
+                "value": "{{userRol}}"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Inactivar Plantilla",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/plantilla/inactivar/{id}",
+            "header": [
+              {
+                "key": "X-User-Rol",
+                "value": "{{userRol}}"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Eliminar Plantilla",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/plantilla/eliminar/{id}",
+            "header": [
+              {
+                "key": "X-User-Rol",
+                "value": "{{userRol}}"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Vista Previa",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/plantilla/vista-previa",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-Rol",
+                "value": "{{userRol}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contenido\": \"Hola {{nombre_usuario}}, tu membresía vence el {{fecha_vencimiento}}\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Enviar Notificaciones",
+      "item": [
+        {
+          "name": "Enviar con Plantilla",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/notificaciones/enviar-plantilla/{plantillaId}/usuario/{usuarioId}",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-Rol",
+                "value": "{{userRol}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"plan\": \"Premium\",\n  \"fecha_vencimiento\": \"15/06/2025\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Enviar por Evento",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/notificaciones/enviar-evento",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-Rol",
+                "value": "{{userRol}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuarioId\": 1,\n  \"evento\": \"WELCOME\",\n  \"variablesAdicionales\": {}\n}"
+            }
+          }
+        },
+        {
+          "name": "Enviar Manual",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/notificaciones/enviar",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-Rol",
+                "value": "{{userRol}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuarioId\": 1,\n  \"destinatario\": \"test@email.com\",\n  \"asunto\": \"Test\",\n  \"contenido\": \"Contenido de prueba\",\n  \"canal\": \"EMAIL\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Preferencias",
+      "item": [
+        {
+          "name": "Obtener Mis Preferencias",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/preferencias/mis-preferencias",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{userId}}"
+              },
+              {
+                "key": "X-User-Rol",
+                "value": "{{userRol}}"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Actualizar Mis Preferencias",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/preferencias/mis-preferencias",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{userId}}"
+              },
+              {
+                "key": "X-User-Rol",
+                "value": "{{userRol}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"preferencia\": \"AMBOS\",\n  \"logrosHabilitado\": true,\n  \"mantenimientosHabilitado\": true,\n  \"promocionesHabilitado\": true\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Configuración Global",
+      "item": [
+        {
+          "name": "Obtener Configuración",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/configuracion-global",
+            "header": [
+              {
+                "key": "X-User-Rol",
+                "value": "{{userRol}}"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Actualizar Configuración",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/configuracion-global",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-Rol",
+                "value": "{{userRol}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"maxNotificacionesPorDia\": 100,\n  \"maxNotificacionesPorMinuto\": 10\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Endpoints Internos",
+      "item": [
+        {
+          "name": "Verificar Preferencia",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/internal/notificaciones/verificar",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuarioId\": 1,\n  \"canal\": \"EMAIL\",\n  \"tipoEvento\": \"WELCOME\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Enviar por Evento (Interno)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/internal/notificaciones/enviar-evento",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuarioId\": 1,\n  \"evento\": \"WELCOME\",\n  \"variablesAdicionales\": {}\n}"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

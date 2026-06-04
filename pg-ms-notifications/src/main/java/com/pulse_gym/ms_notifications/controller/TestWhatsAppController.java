@@ -17,7 +17,7 @@ public class TestWhatsAppController {
     public String enviarPrueba() {
 
         whatsAppService.enviarWhatsApp(
-                "whatsapp:+573001112233",
+                "whatsapp:+573248589488",
                 "Prueba Twilio desde Pulse Gym");
 
         return "Mensaje enviado";
