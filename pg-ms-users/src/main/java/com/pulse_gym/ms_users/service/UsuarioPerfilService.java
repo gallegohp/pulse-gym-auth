@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
+import com.pulse_gym.lb_common.client.AuthServiceClient;
 import com.pulse_gym.lb_common.dto.AuthUserDTO;
 import com.pulse_gym.lb_common.dto.CompletarPerfilRequestDTO;
 import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
@@ -15,6 +16,7 @@ import com.pulse_gym.lb_common.dto.UsuarioPerfilRequestDTO;
 import com.pulse_gym.lb_common.dto.UsuarioPerfilResponseDTO;
 import com.pulse_gym.lb_common.entity.user.UsuarioPerfil;
 import com.pulse_gym.lb_common.enums.EnumEstadoUsuario;
+import com.pulse_gym.lb_common.enums.EnumRol;
 import com.pulse_gym.lb_common.exception.SecurityAuthorizationException;
 import com.pulse_gym.lb_common.services.ValidacionDeRoles;
 import com.pulse_gym.ms_users.repository.UsuarioPerfilRepository;
@@ -25,11 +27,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class UsuarioPerfilService {
 
-    /** */
-    private final RestTemplate restTemplate;
-
-    /** */
-    private final String authServiceUrl = "http://pg-ms-auth/auth";
+    /** Cliente para interactuar con el servicio de autenticación */
+    private final AuthServiceClient authServiceClient;
 
     /**
      * Repositorio para operaciones de base de datos de usuarios
@@ -69,16 +68,9 @@ public class UsuarioPerfilService {
     }
 
     private void enrichWithRol(UsuarioPerfilResponseDTO dto, UsuarioPerfil usuario) {
-        try {
-            ResponseEntity<AuthUserDTO> authResponse = restTemplate.getForEntity(
-                    authServiceUrl + "/api/internal/users/email/" + usuario.getEmail(),
-                    AuthUserDTO.class);
-
-            if (authResponse.getBody() != null && authResponse.getBody().getRol() != null) {
-                dto.setRol(authResponse.getBody().getRol());
-            }
-        } catch (Exception e) {
-            System.err.println("Error al obtener rol para " + usuario.getEmail() + ": " + e.getMessage());
+        EnumRol rol = authServiceClient.obtenerRolPorEmail(usuario.getEmail());
+        if (rol != null) {
+            dto.setRol(rol);
         }
     }
 
@@ -179,11 +171,11 @@ public class UsuarioPerfilService {
                 .collect(Collectors.toList());
     }
 
-
     /**
      * Obtiene un usuario activo por su ID
+     * 
      * @param idUsuario ID del usuario a buscar
-     * @param userRol Rol del usuario autenticado
+     * @param userRol   Rol del usuario autenticado
      * @return DTO con los datos del usuario
      */
     /**
@@ -256,31 +248,31 @@ public class UsuarioPerfilService {
      * @param userRol Rol del usuario autenticado
      * @return DTO con los datos del usuario
      */
-@Transactional(readOnly = true)
-public List<UsuarioPerfilResponseDTO> obtenerUsuariosPorNombre(String nombre, String userRol) {
-    ValidacionDeRoles.validarCualquierRol(userRol);
+    @Transactional(readOnly = true)
+    public List<UsuarioPerfilResponseDTO> obtenerUsuariosPorNombre(String nombre, String userRol) {
+        ValidacionDeRoles.validarCualquierRol(userRol);
 
-    if (nombre == null || nombre.trim().isEmpty()) {
-        throw new RuntimeException("El nombre del usuario no puede ser nulo o vacío");
+        if (nombre == null || nombre.trim().isEmpty()) {
+            throw new RuntimeException("El nombre del usuario no puede ser nulo o vacío");
+        }
+
+        String nombreLimpio = nombre.trim();
+
+        List<UsuarioPerfil> usuarios = usuarioRepository
+                .findByNombreIgnoreCaseAndEstado(nombreLimpio, EnumEstadoUsuario.ACTIVO);
+
+        if (usuarios.isEmpty()) {
+            throw new RuntimeException("No se encontraron usuarios con nombre: " + nombre);
+        }
+
+        return usuarios.stream()
+                .map(usuario -> {
+                    UsuarioPerfilResponseDTO dto = convertirADTO(usuario);
+                    enrichWithRol(dto, usuario);
+                    return dto;
+                })
+                .collect(Collectors.toList());
     }
-
-    String nombreLimpio = nombre.trim();
-
-    List<UsuarioPerfil> usuarios = usuarioRepository
-            .findByNombreIgnoreCaseAndEstado(nombreLimpio, EnumEstadoUsuario.ACTIVO);
-
-    if (usuarios.isEmpty()) {
-        throw new RuntimeException("No se encontraron usuarios con nombre: " + nombre);
-    }
-
-    return usuarios.stream()
-            .map(usuario -> {
-                UsuarioPerfilResponseDTO dto = convertirADTO(usuario);
-                enrichWithRol(dto, usuario);
-                return dto;
-            })
-            .collect(Collectors.toList());
-}
 
     /**
      * Actualiza los datos de un usuario según el rol

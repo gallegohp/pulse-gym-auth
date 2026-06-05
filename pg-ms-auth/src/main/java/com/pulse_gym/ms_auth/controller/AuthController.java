@@ -10,10 +10,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
-import com.pulse_gym.lb_common.dto.RestablecerContraseña;
+import com.pulse_gym.lb_common.dto.RestablecerContrasena;
 import com.pulse_gym.lb_common.entity.auth.User;
 import com.pulse_gym.lb_common.dto.AuthUserDTO;
-import com.pulse_gym.lb_common.dto.ContrasenaOlvidad;
+import com.pulse_gym.lb_common.dto.ContrasenaOlvidada;
 import com.pulse_gym.lb_common.dto.HttpGlobalResponse;
 import com.pulse_gym.lb_common.dto.JwtDTO;
 import com.pulse_gym.ms_auth.dto.LoginRequestDTO;
@@ -103,7 +103,7 @@ public class AuthController {
      * @return Mensaje de confirmación
      */
     @PostMapping("/forgot-password")
-    public ResponseEntity<MessegeGlobalDTO> forgotPassword(@Valid @RequestBody ContrasenaOlvidad requestDTO) {
+    public ResponseEntity<MessegeGlobalDTO> forgotPassword(@Valid @RequestBody ContrasenaOlvidada requestDTO) {
         try {
             MessegeGlobalDTO response = authService.forgotPassword(requestDTO);
             return ResponseEntity.status(HttpStatus.OK).body(response);
@@ -121,7 +121,7 @@ public class AuthController {
      * @return Mensaje de éxito o error
      */
     @PostMapping("/reset-password")
-    public ResponseEntity<MessegeGlobalDTO> resetPassword(@Valid @RequestBody RestablecerContraseña requestDTO) {
+    public ResponseEntity<MessegeGlobalDTO> resetPassword(@Valid @RequestBody RestablecerContrasena requestDTO) {
         try {
             MessegeGlobalDTO response = authService.resetPassword(requestDTO);
             HttpStatus status = response.getMessage().contains("exitosamente") ? HttpStatus.OK : HttpStatus.BAD_REQUEST;
