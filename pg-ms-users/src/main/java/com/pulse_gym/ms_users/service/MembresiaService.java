@@ -133,4 +133,85 @@ public class MembresiaService {
                 .map(this::convertirAResponseDTO)
                 .collect(Collectors.toList());
     }
+
+    /**
+     * Actualiza una membresía existente
+     * @param idMembresia El ID de la membresía a actualizar
+     * @param requestDTO Los datos para actualizar la membresía
+     * @param userRol El rol del usuario que realiza la acción
+     * @return
+     */
+    @Transactional
+    public MessegeGlobalDTO actualizarMembresia(Long idMembresia, MembresiaRequestDTO requestDTO, String userRol) {
+        ValidacionDeRoles.validarAdminORecepcionista(userRol);
+
+        Membresia membresia = membresiaRepository.findById(idMembresia)
+                .orElseThrow(() -> new RuntimeException("Membresía no encontrada con ID: " + idMembresia));
+
+        boolean necesitaRecalcular = false;
+
+        // Actualizar campos
+        if (requestDTO.getNombre() != null) {
+            if (!membresia.getNombre().equals(requestDTO.getNombre()) &&
+                    membresiaRepository.existsByNombreAndActivoTrue(requestDTO.getNombre())) {
+                throw new RuntimeException("Ya existe otra membresía activa con el nombre: " + requestDTO.getNombre());
+            }
+            membresia.setNombre(requestDTO.getNombre());
+        }
+
+        if (requestDTO.getCantidad() != null) {
+            if (requestDTO.getCantidad() < 1) {
+                throw new RuntimeException("La cantidad debe ser al menos 1");
+            }
+            membresia.setCantidad(requestDTO.getCantidad());
+            necesitaRecalcular = true;
+        }
+
+        if (requestDTO.getTipoDuracion() != null) {
+            try {
+                EnumTipoDuracion tipoDuracion = EnumTipoDuracion.valueOf(requestDTO.getTipoDuracion().toUpperCase());
+                membresia.setTipoDuracion(tipoDuracion);
+                necesitaRecalcular = true;
+            } catch (IllegalArgumentException e) {
+                throw new RuntimeException("Tipo de duración no válido");
+            }
+        }
+
+        if (requestDTO.getIncluyeIA() != null) {
+            membresia.setIncluyeIA(requestDTO.getIncluyeIA());
+            necesitaRecalcular = true;
+        }
+
+        if (requestDTO.getEsFlexible() != null) {
+            membresia.setEsFlexible(requestDTO.getEsFlexible());
+        }
+
+        if (requestDTO.getPrecioPorDia() != null) {
+            if (requestDTO.getPrecioPorDia().compareTo(BigDecimal.ZERO) <= 0) {
+                throw new RuntimeException("El precio por día debe ser mayor a 0");
+            }
+            membresia.setPrecioPorDia(requestDTO.getPrecioPorDia());
+            necesitaRecalcular = true;
+        }
+
+        if (requestDTO.getBeneficios() != null) {
+            membresia.setBeneficios(requestDTO.getBeneficios());
+        }
+
+        if (requestDTO.getRestricciones() != null) {
+            membresia.setRestricciones(requestDTO.getRestricciones());
+        }
+
+        // Recalcular precio total si es necesario
+        if (necesitaRecalcular) {
+            BigDecimal precioTotalCalculado = membresia.calcularPrecioTotal();
+            membresia.setPrecioTotal(precioTotalCalculado);
+        }
+
+        membresiaRepository.save(membresia);
+
+        return new MessegeGlobalDTO(String.format("Membresía actualizada correctamente. Nuevo precio total: $%,.0f",
+                membresia.getPrecioTotal()));
+    }
+
 }
