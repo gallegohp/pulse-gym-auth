@@ -136,9 +136,10 @@ public class MembresiaService {
 
     /**
      * Actualiza una membresía existente
+     * 
      * @param idMembresia El ID de la membresía a actualizar
-     * @param requestDTO Los datos para actualizar la membresía
-     * @param userRol El rol del usuario que realiza la acción
+     * @param requestDTO  Los datos para actualizar la membresía
+     * @param userRol     El rol del usuario que realiza la acción
      * @return
      */
     @Transactional
@@ -212,4 +213,16 @@ public class MembresiaService {
                 membresia.getPrecioTotal()));
     }
 
+    @Transactional
+    public MessegeGlobalDTO eliminarMembresia(Long idMembresia, String userRol) {
+        ValidacionDeRoles.validarAdminORecepcionista(userRol);
+
+        Membresia membresia = membresiaRepository.findById(idMembresia)
+                .orElseThrow(() -> new RuntimeException("Membresía no encontrada con ID: " + idMembresia));
+
+        membresia.setActivo(false);
+        membresiaRepository.save(membresia);
+
+        return new MessegeGlobalDTO("Membresía '" + membresia.getNombre() + "' eliminada (desactivada) correctamente");
+    }
 }
