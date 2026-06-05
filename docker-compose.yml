@@ -32,7 +32,9 @@ services:
       - pulsegym
 
   pg-ms-users:
-    build: ./pg-ms-users
+    build: 
+      context: .
+      dockerfile: pg-ms-users/Dockerfile
     container_name: pg-ms-users
     ports:
       - "8081:8081"

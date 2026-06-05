@@ -1,6 +1,6 @@
 package com.pulse_gym.lb_common.enums;
 
-public enum Turno {
+public enum EnumTurno {
         /**
          * Jornada matutina, usualmente comprende las primeras horas del día
          */
