@@ -1,22 +1,36 @@
 package com.pulse_gym.lb_common.enums;
 
 public enum EnumTipoDuracion {
+    DIA("días", 1),
+    SEMANA("semanas", 7),
+    MES("meses", 30),
+    TRIMESTRE("trimestres", 90),
+    SEMESTRE("semestres", 180),
+    ANUAL("años", 365);
 
-    /** Duración en días */
-    DIA,
+    private final String nombre;
+    private final int diasPorUnidad;
 
-    /** Duración en semanas */
-    SEMANA,
+    EnumTipoDuracion(String nombre, int diasPorUnidad) {
+        this.nombre = nombre;
+        this.diasPorUnidad = diasPorUnidad;
+    }
 
-    /** Duración en meses */
-    MES,
+    public String getNombre() {
+        return nombre;
+    }
 
-    /** Duración en trimestres */
-    TRIMESTRE,
+    public int getDiasPorUnidad() {
+        return diasPorUnidad;
+    }
 
-    /** Duración en semestres */
-    SEMESTRE,
-
-    /** Duración en años */
-    ANUAL
+    /**
+     * Calcula los días totales basado en la cantidad
+     * 
+     * @param cantidad Número de unidades (ej: 3 semanas, 2 meses)
+     * @return Total de días
+     */
+    public int calcularDiasTotales(int cantidad) {
+        return diasPorUnidad * cantidad;
+    }
 }
