@@ -187,7 +187,7 @@ public class NotificacionService {
 
         try {
             if (canal == EnumCanalNotificacion.EMAIL) {
-                emailService.enviarEmail(
+                emailService.enviarEmailHtml(
                         dto.getDestinatario(),
                         notificacion.getTitulo(),
                         dto.getContenido());
