@@ -213,6 +213,13 @@ public class MembresiaService {
                 membresia.getPrecioTotal()));
     }
 
+    /**
+     * Elimina (desactiva) una membresía existente
+     * 
+     * @param idMembresia El ID de la membresía a eliminar
+     * @param userRol     El rol del usuario que realiza la acción
+     * @return Un mensaje global con la información de la membresía eliminada
+     */
     @Transactional
     public MessegeGlobalDTO eliminarMembresia(Long idMembresia, String userRol) {
         ValidacionDeRoles.validarAdminORecepcionista(userRol);
