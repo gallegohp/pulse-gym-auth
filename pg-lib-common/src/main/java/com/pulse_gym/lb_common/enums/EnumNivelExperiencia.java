@@ -1,6 +1,6 @@
 package com.pulse_gym.lb_common.enums;
 
-public enum NivelExperiencia {
+public enum EnumNivelExperiencia {
         /**
          * Usuario que está iniciando en el gimnasio o lleva muy poco tiempo entrenando
          */

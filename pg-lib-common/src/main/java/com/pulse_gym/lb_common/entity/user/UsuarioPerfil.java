@@ -7,8 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.pulse_gym.lb_common.enums.EnumEstadoUsuario;
-import com.pulse_gym.lb_common.enums.NivelExperiencia;
-import com.pulse_gym.lb_common.enums.Turno;
+import com.pulse_gym.lb_common.enums.EnumNivelExperiencia;
+import com.pulse_gym.lb_common.enums.EnumTurno;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -119,7 +119,7 @@ public class UsuarioPerfil {
      */
     @Enumerated(EnumType.STRING)
     @Column(name = "turno", nullable = false, columnDefinition = "ENUM('mañana', 'tarde', 'noche')")
-    private Turno turno;
+    private EnumTurno turno;
 
     /**
      * Fecha de nacimiento del usuario
@@ -150,7 +150,7 @@ public class UsuarioPerfil {
      */
     @Enumerated(EnumType.STRING)
     @Column(name = "nivel_experiencia", nullable = false, columnDefinition = "ENUM('novato', 'intermedio', 'avanzado')")
-    private NivelExperiencia nivelExperiencia;
+    private EnumNivelExperiencia nivelExperiencia;
 
     /**
      * Fecha y hora exacta en la que se registró el perfil. No se puede modificar
