@@ -82,7 +82,9 @@ services:
       - pulsegym
 
   pg-ms-notifications:
-    build: ./pg-ms-notifications
+    build:
+      context: .
+      dockerfile: pg-ms-notifications/Dockerfile
     container_name: pg-ms-notifications
     ports:
       - "8083:8083"
@@ -94,6 +96,24 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mysql://db-mysql:3306/notifications_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
       SPRING_DATASOURCE_USERNAME: pulsegym
       SPRING_DATASOURCE_PASSWORD: 123
+      MAIL_HOST: smtp.gmail.com
+      MAIL_PORT: 587
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      MAIL_FROM: ${MAIL_FROM}
+      MAIL_ENABLED: ${MAIL_ENABLED:-true}
+
+      TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID}
+      TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN}
+      TWILIO_FROM_NUMBER: ${TWILIO_FROM_NUMBER}
+
+      WHATSAPP_ENABLED: ${WHATSAPP_ENABLED:-false}
+      WHATSAPP_PROVIDER: ${WHATSAPP_PROVIDER:-mock}
+      
+      USUARIOS_SERVICE_URL: http://pg-ms-users:8081
+      AUTH_SERVICE_URL: http://pg-ms-auth:8090
+    env_file:
+      - .env
     networks:
       - pulsegym
 
