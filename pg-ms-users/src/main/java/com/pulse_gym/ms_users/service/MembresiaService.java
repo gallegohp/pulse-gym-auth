@@ -232,4 +232,30 @@ public class MembresiaService {
 
         return new MessegeGlobalDTO("Membresía '" + membresia.getNombre() + "' eliminada (desactivada) correctamente");
     }
+
+    /**
+     * Consulta las membresías activas filtradas por categoría (con o sin IA)
+     * 
+     * @param incluyeIA Indica si se deben incluir solo membresías con IA (true) o
+     *                  sin IA (false)
+     * @param userRol   El rol del usuario que realiza la acción (obtenido del
+     *                  header "X-User-Rol")
+     * @return Una lista con las membresías que cumplen con los criterios de
+     *         búsqueda
+     */
+    @Transactional(readOnly = true)
+    public List<MembresiaResponseDTO> obtenerMembresiasPorCategoria(Boolean incluyeIA, String userRol) {
+        ValidacionDeRoles.validarCualquierRol(userRol);
+
+        List<Membresia> membresias = membresiaRepository.findByActivoTrueAndIncluyeIA(incluyeIA);
+
+        if (membresias.isEmpty()) {
+            String categoria = incluyeIA ? "con IA" : "sin IA";
+            throw new RuntimeException("No hay membresías activas " + categoria + " disponibles");
+        }
+
+        return membresias.stream()
+                .map(this::convertirAResponseDTO)
+                .collect(Collectors.toList());
+    }
 }
