@@ -150,7 +150,6 @@ public class MembresiaService {
 
         boolean necesitaRecalcular = false;
 
-        // Actualizar campos
         if (requestDTO.getNombre() != null) {
             if (!membresia.getNombre().equals(requestDTO.getNombre()) &&
                     membresiaRepository.existsByNombreAndActivoTrue(requestDTO.getNombre())) {
@@ -202,7 +201,6 @@ public class MembresiaService {
             membresia.setRestricciones(requestDTO.getRestricciones());
         }
 
-        // Recalcular precio total si es necesario
         if (necesitaRecalcular) {
             BigDecimal precioTotalCalculado = membresia.calcularPrecioTotal();
             membresia.setPrecioTotal(precioTotalCalculado);
