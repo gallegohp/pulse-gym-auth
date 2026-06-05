@@ -103,7 +103,7 @@ public class MembresiaController {
             @RequestHeader(value = "X-User-Rol", required = false) String userRol) {
         try {
             MessegeGlobalDTO response = membresiaService.actualizarMembresia(id, requestDTO, userRol);
-            return ResponseEntity.ok(response);
+            return ResponseEntity.status(HttpStatus.OK).body(response);
         } catch (SecurityAuthorizationException e) {
             throw e;
         } catch (RuntimeException e) {
