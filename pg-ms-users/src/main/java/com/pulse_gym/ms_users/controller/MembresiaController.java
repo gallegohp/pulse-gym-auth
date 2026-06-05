@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.pulse_gym.lb_common.dto.CalculoMembresiaFlexibleDTO;
+import com.pulse_gym.lb_common.dto.MembresiaFlexibleCalculadaDTO;
 import com.pulse_gym.lb_common.dto.MembresiaRequestDTO;
 import com.pulse_gym.lb_common.dto.MembresiaResponseDTO;
 import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
@@ -155,6 +157,30 @@ public class MembresiaController {
             e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
                     "Error al consultar membresías por categoría", e);
+        }
+    }
+
+    /**
+     * Endpoint para calcular el precio total de una membresía flexible basada en la cantidad de días y la categoría de IA
+     * @param calculoDTO Los datos necesarios para realizar el cálculo de la membresía flexible, incluyendo el ID de la membresía, la cantidad de días y si incluye o no IA
+     * @param userRol El rol del usuario que realiza la acción (obtenido del header "X-User-Rol")
+     * @return Un DTO con la información de la membresía flexible calculada, incluyendo el precio total basado en los días y la categoría de IA
+     */
+    @PostMapping("/calcular-flexible")
+    public ResponseEntity<MembresiaFlexibleCalculadaDTO> calcularMembresiaFlexible(
+            @Valid @RequestBody CalculoMembresiaFlexibleDTO calculoDTO,
+            @RequestHeader(value = "X-User-Rol", required = false) String userRol) {
+        try {
+            MembresiaFlexibleCalculadaDTO resultado = membresiaService.calcularMembresiaFlexible(calculoDTO, userRol);
+            return ResponseEntity.ok(resultado);
+        } catch (SecurityAuthorizationException e) {
+            throw e;
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al calcular membresía flexible",
+                    e);
         }
     }
 }

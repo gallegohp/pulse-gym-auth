@@ -7,6 +7,8 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.pulse_gym.lb_common.dto.CalculoMembresiaFlexibleDTO;
+import com.pulse_gym.lb_common.dto.MembresiaFlexibleCalculadaDTO;
 import com.pulse_gym.lb_common.dto.MembresiaRequestDTO;
 import com.pulse_gym.lb_common.dto.MembresiaResponseDTO;
 import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
@@ -258,4 +260,44 @@ public class MembresiaService {
                 .map(this::convertirAResponseDTO)
                 .collect(Collectors.toList());
     }
+
+    /**
+     * Calcula el precio total de una membresía flexible basada en la cantidad de días y la categoría de IA
+     * @param calculoDTO Los datos necesarios para realizar el cálculo de la membresía flexible, incluyendo el ID de la membresía, la cantidad de días y si incluye o no IA
+     * @param userRol El rol del usuario que realiza la acción (obtenido del header "X-User-Rol")
+     * @return Un DTO con la información de la membresía flexible calculada, incluyendo el precio total basado en los días y la categoría de
+     */
+    @Transactional(readOnly = true)
+    public MembresiaFlexibleCalculadaDTO calcularMembresiaFlexible(CalculoMembresiaFlexibleDTO calculoDTO, String userRol) {
+        ValidacionDeRoles.validarCualquierRol(userRol);
+        
+        Membresia membresia = membresiaRepository.findById(calculoDTO.getIdMembresia())
+            .orElseThrow(() -> new RuntimeException("Membresía no encontrada con ID: " + calculoDTO.getIdMembresia()));
+        
+        if (!membresia.getEsFlexible()) {
+            throw new RuntimeException("Esta membresía no es flexible. No se puede calcular por días");
+        }
+        
+        if (membresia.getPrecioPorDia() == null) {
+            throw new RuntimeException("La membresía flexible no tiene precio por día configurado");
+        }
+        
+        if (!membresia.getIncluyeIA().equals(calculoDTO.getIncluyeIA())) {
+            throw new RuntimeException("La categoría de IA no coincide con la membresía seleccionada");
+        }
+        
+        BigDecimal precioTotalCalculado = membresia.getPrecioPorDia()
+            .multiply(BigDecimal.valueOf(calculoDTO.getCantidadDias()));
+        
+        MembresiaFlexibleCalculadaDTO resultado = new MembresiaFlexibleCalculadaDTO();
+        resultado.setIdMembresia(membresia.getIdMembresia());
+        resultado.setNombre(membresia.getNombre());
+        resultado.setCantidadDias(calculoDTO.getCantidadDias());
+        resultado.setPrecioPorDia(membresia.getPrecioPorDia());
+        resultado.setPrecioTotalCalculado(precioTotalCalculado);
+        resultado.setIncluyeIA(membresia.getIncluyeIA());
+        
+        return resultado;
+    }
+
 }
