@@ -129,7 +129,7 @@ public class MembresiaController {
             @RequestHeader(value = "X-User-Rol", required = false) String userRol) {
         try {
             MessegeGlobalDTO response = membresiaService.eliminarMembresia(id, userRol);
-            return ResponseEntity.ok(response);
+            return ResponseEntity.status(HttpStatus.OK).body(response);
         } catch (SecurityAuthorizationException e) {
             throw e;
         } catch (RuntimeException e) {
@@ -137,6 +137,24 @@ public class MembresiaController {
         } catch (Exception e) {
             e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al eliminar membresía", e);
+        }
+    }
+
+    @GetMapping("/categoria")
+    public ResponseEntity<List<MembresiaResponseDTO>> obtenerMembresiasPorCategoria(
+            @RequestParam Boolean incluyeIA,
+            @RequestHeader(value = "X-User-Rol", required = false) String userRol) {
+        try {
+            List<MembresiaResponseDTO> membresias = membresiaService.obtenerMembresiasPorCategoria(incluyeIA, userRol);
+            return ResponseEntity.status(HttpStatus.OK).body(membresias);
+        } catch (SecurityAuthorizationException e) {
+            throw e;
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Error al consultar membresías por categoría", e);
         }
     }
 }
