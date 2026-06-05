@@ -118,11 +118,22 @@ public class PreferenciaUsuarioService {
         }
     }
 
+    /**
+     * Obtiene las preferencias del usuario o crea una nueva con valores por defecto si no existen
+     * @param usuarioId Identificador del usuario en auth
+     * @return Preferencias del usuario
+     */
     private PreferenciaUsuario obtenerOPreferenciasPorDefecto(Long usuarioId) {
         return preferenciaUsuarioRepository.findByIdUsuario(usuarioId)
                 .orElseGet(() -> crearPreferenciaPorDefecto(usuarioId));
     }
 
+    
+    /**
+     * Crea las preferencias del usuario con valores por defecto
+     * @param usuarioId Identificador del usuario en auth
+     * @return Preferencias del usuario
+     */
     private PreferenciaUsuario crearPreferenciaPorDefecto(Long usuarioId) {
         PreferenciaUsuario preferencia = new PreferenciaUsuario();
         preferencia.setIdUsuario(usuarioId);
@@ -133,6 +144,11 @@ public class PreferenciaUsuarioService {
         return preferenciaUsuarioRepository.save(preferencia);
     }
 
+    /**
+     * Mapea una entidad de PreferenciaUsuario a un DTO de PreferenciaUsuarioResponseDTO para su uso en respuestas de API. Este método se encarga de extraer los valores relevantes de la entidad y
+     * @param preferencia       PreferenciaUsuario a mapear
+     * @return                 PreferenciaUsuarioResponseDTO con los datos mapeados de la entidad PreferenciaUsuario, listo para ser utilizado en respuestas de API o en la capa de presentación.
+     */
     private PreferenciaUsuarioResponseDTO mapearAResponse(PreferenciaUsuario preferencia) {
         PreferenciaUsuarioResponseDTO dto = new PreferenciaUsuarioResponseDTO();
         dto.setIdUsuario(preferencia.getIdUsuario());

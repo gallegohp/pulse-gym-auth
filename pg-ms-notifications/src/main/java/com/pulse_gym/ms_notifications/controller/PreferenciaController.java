@@ -23,6 +23,9 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/preferencias")
 public class PreferenciaController {
 
+    /**
+     * Inyeccion de servicio de preferencias de usuario
+     */
     private final PreferenciaUsuarioService preferenciaUsuarioService;
 
     /**

@@ -23,7 +23,14 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api/internal/notificaciones")
 public class NotificacionInternoController {
 
+    /*+
+     * Inyeccion de servicio de preferencias de usuario
+     */
     private final PreferenciaUsuarioService preferenciaUsuarioService;
+
+    /**
+     * Inyeccion de servicio de notificaciones
+     */
     private final NotificacionService notificacionService;
 
     /**
