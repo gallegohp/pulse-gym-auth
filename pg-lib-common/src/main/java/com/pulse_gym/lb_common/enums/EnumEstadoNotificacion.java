@@ -11,6 +11,11 @@ public enum EnumEstadoNotificacion {
     /**
      * Estado de la notificación: Rechazado
      */
-    RECHAZADO
+    RECHAZADO, 
+    
+    /**
+     * Estado de la notificación: Pendiente
+     */
+    PENDIENTE
 
 }

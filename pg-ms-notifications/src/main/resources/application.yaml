@@ -6,14 +6,16 @@ spring:
     name: pg-ms-notifications
 
   datasource:
-    url: jdbc:mysql://db-mysql:3310/notifications_db?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
+    url: jdbc:mysql://db-mysql:3306/notifications_db?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
     username: pulsegym
     password: 123
+    
   jpa: 
     database-platform: org.hibernate.dialect.MySQLDialect
     hibernate:
       ddl-auto: update
     show-sql: true
+    
   cloud:
     consul:
       host: consul
@@ -23,6 +25,24 @@ spring:
         health-check-path: /actuator/health
         prefer-ip-address: false
         instance-id: ${spring.application.name}
+  
+  # Configuración de envío de emails
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    protocol: smtp
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+    default-encoding: UTF-8
 
 management:
   endpoints:
@@ -41,3 +61,23 @@ security:
 logging:
   level:
     com.pulse_gym: DEBUG
+    org.springframework.mail: INFO
+
+# Configuración personalizada de notificaciones
+notificaciones:
+  email:
+    enabled: ${MAIL_ENABLED:true}
+  whatsapp:
+    enabled: ${WHATSAPP_ENABLED:false}
+    provider: ${WHATSAPP_PROVIDER:mock}
+    twilio:
+      account-sid: ${TWILIO_ACCOUNT_SID:}
+      auth-token: ${TWILIO_AUTH_TOKEN:}
+      from-number: ${TWILIO_FROM_NUMBER:}
+
+# Configuración de microservicios
+microservicio:
+  usuarios:
+    url: ${USUARIOS_SERVICE_URL:http://pg-ms-users:8081}
+  auth:
+    url: ${AUTH_SERVICE_URL:http://pg-ms-auth:8090}

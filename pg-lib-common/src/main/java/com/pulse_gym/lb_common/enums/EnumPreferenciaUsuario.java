@@ -15,5 +15,10 @@ public enum EnumPreferenciaUsuario {
     /**
      * Preferencia de notificaciones por ambos
      */
-    AMBOS
+    AMBOS,
+
+    /**
+     * El usuario no desea recibir notificaciones por ningun canal
+     */
+    NINGUNO
 }

@@ -146,4 +146,22 @@ public class AuthController {
         dto.setEstado(user.getEstado());
         return ResponseEntity.ok(dto);
     }
+
+     /**
+     * Endpoint para obtener usuario por ID
+     * Este endpoint es usado por otros microservicios (ej: notificaciones)
+     */
+    @GetMapping("/api/internal/users/{id}")
+    public ResponseEntity<AuthUserDTO> getUserById(@PathVariable Long id) {
+        User user = userAuthRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con id: " + id));
+
+        AuthUserDTO dto = new AuthUserDTO();
+        dto.setId(user.getId());
+        dto.setEmail(user.getEmail());
+        dto.setUsername(user.getUsername());
+        dto.setRol(user.getRol());
+        dto.setEstado(user.getEstado());
+        return ResponseEntity.ok(dto);
+    }
 }
