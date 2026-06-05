@@ -190,7 +190,7 @@ public class NotificacionService {
                 emailService.enviarEmailHtml(
                         dto.getDestinatario(),
                         notificacion.getTitulo(),
-                        dto.getContenido());
+                        dto.getContenido(), evento);
                 notificacion.setEstado(EnumEstadoNotificacion.ENVIADO);
             } else {
                 whatsAppService.enviarWhatsApp(dto.getDestinatario(), dto.getContenido());
