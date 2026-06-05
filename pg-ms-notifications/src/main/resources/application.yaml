@@ -6,7 +6,7 @@ spring:
     name: pg-ms-notifications
 
   datasource:
-    url: jdbc:mysql://db-mysql:3310/notifications_db?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
+    url: jdbc:mysql://db-mysql:3306/notifications_db?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
     username: pulsegym
     password: 123
     
