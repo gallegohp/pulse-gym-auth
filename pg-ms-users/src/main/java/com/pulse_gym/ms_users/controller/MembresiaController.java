@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -111,6 +112,31 @@ public class MembresiaController {
         } catch (Exception e) {
             e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al actualizar membresía", e);
+        }
+    }
+
+    /**
+     * Endpoint para eliminar una membresía existente
+     * 
+     * @param id      El ID de la membresía a eliminar
+     * @param userRol El rol del usuario que realiza la acción (obtenido del header
+     *                "X-User-Rol")
+     * @return Un mensaje global con la información de la membresía eliminada
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<MessegeGlobalDTO> eliminarMembresia(
+            @PathVariable Long id,
+            @RequestHeader(value = "X-User-Rol", required = false) String userRol) {
+        try {
+            MessegeGlobalDTO response = membresiaService.eliminarMembresia(id, userRol);
+            return ResponseEntity.ok(response);
+        } catch (SecurityAuthorizationException e) {
+            throw e;
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al eliminar membresía", e);
         }
     }
 }
