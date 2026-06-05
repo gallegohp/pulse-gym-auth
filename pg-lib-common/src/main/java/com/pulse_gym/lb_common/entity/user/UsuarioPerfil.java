@@ -15,10 +15,12 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.Data;
@@ -180,7 +182,9 @@ public class UsuarioPerfil {
     private List<DocumentoLegal> documentosLegales = new ArrayList<>();
 
     /**
-     * Agrega un documento legal a la lista de documentos asociados al usuario y establece la relación bidireccional entre el usuario y el documento.
+     * Agrega un documento legal a la lista de documentos asociados al usuario y
+     * establece la relación bidireccional entre el usuario y el documento.
+     * 
      * @param documento El documento legal a agregar al usuario
      */
     public void addDocumentoLegal(DocumentoLegal documento) {
@@ -189,7 +193,9 @@ public class UsuarioPerfil {
     }
 
     /**
-     * Elimina un documento legal de la lista de documentos asociados al usuario y rompe la relación bidireccional entre el usuario y el documento.
+     * Elimina un documento legal de la lista de documentos asociados al usuario y
+     * rompe la relación bidireccional entre el usuario y el documento.
+     * 
      * @param documento El documento legal a eliminar del usuario
      */
     public void removeDocumentoLegal(DocumentoLegal documento) {
@@ -197,4 +203,70 @@ public class UsuarioPerfil {
         documento.setUsuario(null);
     }
 
+    /**
+     * Lista de certificaciones asociadas al usuario
+     */
+    @OneToMany(mappedBy = "entrenador", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Certificacion> certificaciones = new ArrayList<>();
+
+    /**
+     * Agrega una certificación a la lista de certificaciones asociadas al usuario y
+     * establece la relación bidireccional entre el usuario y la certificación.
+     * 
+     * @param certificacion La certificación a agregar al usuario
+     */
+    public void addCertificacion(Certificacion certificacion) {
+        certificaciones.add(certificacion);
+        certificacion.setEntrenador(this);
+    }
+
+    /**
+     * Elimina una certificación de la lista de certificaciones asociadas al usuario
+     * y
+     * rompe la relación bidireccional entre el usuario y la certificación.
+     * 
+     * @param certificacion La certificación a eliminar del usuario
+     */
+    public void removeCertificacion(Certificacion certificacion) {
+        certificaciones.remove(certificacion);
+        certificacion.setEntrenador(null);
+    }
+
+    /**
+     * Perfil médico asociado al usuario
+     */
+    @OneToOne(mappedBy = "socio", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private PerfilMedico perfilMedico;
+
+    /**
+     * Lista de historial físico asociado al usuario (socio)
+     */
+    @OneToMany(mappedBy = "socio", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<HistorialFisico> historialFisico = new ArrayList<>();
+
+    /**
+     * Lista de mediciones tomadas por el recepcionista
+     */
+    @OneToMany(mappedBy = "recepcionista", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<HistorialFisico> medicionesRegistradas = new ArrayList<>();
+
+    /**
+     * Agrega una medición al historial del socio
+     * 
+     * @param historial La medición a agregar
+     */
+    public void addHistorialFisico(HistorialFisico historial) {
+        historialFisico.add(historial);
+        historial.setSocio(this);
+    }
+
+    /**
+     * Elimina una medición del historial del socio
+     * 
+     * @param historial La medición a eliminar
+     */
+    public void removeHistorialFisico(HistorialFisico historial) {
+        historialFisico.remove(historial);
+        historial.setSocio(null);
+    }
 }

@@ -5,7 +5,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
-public class RestablecerContraseña {
+public class RestablecerContrasena {
 
     /** Token único de recuperación de contraseña */
     @NotBlank(message = "El token es obligatorio")
