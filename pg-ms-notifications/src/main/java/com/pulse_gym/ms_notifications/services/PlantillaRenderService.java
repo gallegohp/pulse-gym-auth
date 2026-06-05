@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
 @Service
 public class PlantillaRenderService {
     
-    private static final Pattern PATRON_VARIABLE = Pattern.compile("\\{\\{(\\w+)\\}\\}");
+    private static final Pattern PATRON_VARIABLE = Pattern.compile("\\{(\\w+)\\}");
     
     public Set<String> extraerVariables(String contenido) {
         Set<String> variables = new HashSet<>();
@@ -33,7 +33,7 @@ public class PlantillaRenderService {
         String resultado = contenido;
         
         for (Map.Entry<String, Object> entry : contexto.entrySet()) {
-            String variable = "{{" + entry.getKey() + "}}";
+            String variable = "{" + entry.getKey() + "}";
             String valor = entry.getValue() != null ? entry.getValue().toString() : "";
             resultado = resultado.replace(variable, valor);
         }
