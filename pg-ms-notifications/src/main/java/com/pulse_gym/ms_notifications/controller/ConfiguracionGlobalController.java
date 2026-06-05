@@ -25,6 +25,9 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/configuracion-global")
 public class ConfiguracionGlobalController {
 
+    /**
+     * Inyeccion de servicio de configuracion global
+     */
     private final ConfiguracionGlobalService configuracionGlobalService;
 
     /**

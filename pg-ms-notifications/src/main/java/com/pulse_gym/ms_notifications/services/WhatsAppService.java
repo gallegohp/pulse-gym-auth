@@ -70,6 +70,13 @@ public class WhatsAppService {
         logger.info("WhatsApp simulado enviado a {}: {}", telefono, contenido);
     }
 
+    /**
+     * Envía un mensaje de WhatsApp utilizando la API de Twilio. Este método construye la solicitud HTTP necesaria para interactuar con la API de Twilio, incluyendo la autenticación básica y 
+     * los parámetros requeridos para el envío del mensaje. Si las credenciales de Twilio no están configuradas correctamente, se lanzará una excepción indicando que las credenciales son incompletas.
+     *
+     * @param telefono  Número de teléfono del destinatario
+     * @param contenido Contenido del mensaje
+    */
     private void enviarConTwilio(String telefono, String contenido) {
         if (twilioAccountSid == null || twilioAccountSid.isBlank()
                 || twilioAuthToken == null || twilioAuthToken.isBlank()

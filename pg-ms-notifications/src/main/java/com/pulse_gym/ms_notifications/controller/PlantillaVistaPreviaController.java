@@ -21,6 +21,9 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/plantilla")
 public class PlantillaVistaPreviaController {
 
+    /*
+     * Inyeccion de servicio de renderizado de plantillas
+     */
     private final PlantillaRenderService renderService;
 
     /**
