@@ -1,11 +1,14 @@
 package com.pulse_gym.ms_users.service;
 
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.pulse_gym.lb_common.dto.MembresiaRequestDTO;
+import com.pulse_gym.lb_common.dto.MembresiaResponseDTO;
 import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
 import com.pulse_gym.lb_common.entity.user.Membresia;
 import com.pulse_gym.lb_common.enums.EnumTipoDuracion;
@@ -20,6 +23,29 @@ public class MembresiaService {
 
     /** El repositorio de membresías */
     private final MembresiaRepository membresiaRepository;
+
+    /**
+     * Convierte una entidad Membresia a un DTO de respuesta
+     * 
+     * @param membresia La entidad de membresía a convertir
+     * @return Un DTO con la información de la membresía para la respuesta
+     */
+    private MembresiaResponseDTO convertirAResponseDTO(Membresia membresia) {
+        MembresiaResponseDTO dto = new MembresiaResponseDTO();
+        dto.setIdMembresia(membresia.getIdMembresia());
+        dto.setNombre(membresia.getNombre());
+        dto.setPrecioTotal(membresia.getPrecioTotal());
+        dto.setCantidad(membresia.getCantidad());
+        dto.setTipoDuracion(membresia.getTipoDuracion().name());
+        dto.setDuracionDescripcion(membresia.getDuracionDescripcion());
+        dto.setIncluyeIA(membresia.getIncluyeIA());
+        dto.setEsFlexible(membresia.getEsFlexible());
+        dto.setPrecioPorDia(membresia.getPrecioPorDia());
+        dto.setBeneficios(membresia.getBeneficios());
+        dto.setRestricciones(membresia.getRestricciones());
+        dto.setActivo(membresia.getActivo());
+        return dto;
+    }
 
     /**
      * Crea una nueva membresía
@@ -71,5 +97,40 @@ public class MembresiaService {
                 String.format("Membresía %s%s %s creada correctamente. Duración: %s, Precio total: $%,.0f",
                         tipoMembresia, requestDTO.getNombre(), iaTexto,
                         membresia.getDuracionDescripcion(), precioTotalCalculado));
+    }
+
+    /**
+     * Consulta las membresías activas
+     * 
+     * @param userRol    El rol del usuario que realiza la acción
+     * @param incluyeIA  Filtro por inclusión de IA
+     * @param esFlexible Filtro por flexibilidad
+     * @return Una lista de DTOs con la información de las membresías consultadas
+     */
+    @Transactional(readOnly = true)
+    public List<MembresiaResponseDTO> consultarMembresias(String userRol, Boolean incluyeIA, Boolean esFlexible) {
+        ValidacionDeRoles.validarCualquierRol(userRol);
+
+        List<Membresia> membresias = membresiaRepository.findByActivoTrue();
+
+        if (incluyeIA != null) {
+            membresias = membresias.stream()
+                    .filter(m -> m.getIncluyeIA().equals(incluyeIA))
+                    .collect(Collectors.toList());
+        }
+
+        if (esFlexible != null) {
+            membresias = membresias.stream()
+                    .filter(m -> m.getEsFlexible().equals(esFlexible))
+                    .collect(Collectors.toList());
+        }
+
+        if (membresias.isEmpty()) {
+            throw new RuntimeException("No hay membresías activas disponibles");
+        }
+
+        return membresias.stream()
+                .map(this::convertirAResponseDTO)
+                .collect(Collectors.toList());
     }
 }

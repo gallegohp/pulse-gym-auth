@@ -17,10 +17,13 @@ public class MembresiaResponseDTO {
     private BigDecimal precioTotal;
 
     /** La duración de la membresía en meses */
-    private Integer duracionMeses;
+    private Integer cantidad;
 
     /** El tipo de duración */
     private String tipoDuracion;
+
+    /** La descripción de la duración */
+    private String duracionDescripcion;
 
     /** Indica si la membresía incluye IA */
     private Boolean incluyeIA;
@@ -31,6 +34,12 @@ public class MembresiaResponseDTO {
     /** El precio por día */
     private BigDecimal precioPorDia;
 
-    /** Indica si la membresía está activa   */
+    /** Los beneficios de la membresía */
+    private String beneficios;
+
+    /** Las restricciones de la membresía */
+    private String restricciones;
+
+    /** Indica si la membresía está activa */
     private Boolean activo;
 }
