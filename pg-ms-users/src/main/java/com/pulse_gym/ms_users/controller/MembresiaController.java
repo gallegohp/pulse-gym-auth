@@ -5,7 +5,9 @@ import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -58,11 +60,13 @@ public class MembresiaController {
     /**
      * Endpoint para consultar las membresías
      * 
-     * @param incluyeIA  Indica si se deben mostrar solo las membresías que incluyen IA
+     * @param incluyeIA  Indica si se deben mostrar solo las membresías que incluyen
+     *                   IA
      * @param esFlexible Indica si se deben mostrar solo las membresías flexibles
      * @param userRol    El rol del usuario que realiza la acción (obtenido del
      *                   header "X-User-Rol")
-     * @return Una lista con las membresías que cumplen con los criterios de búsqueda
+     * @return Una lista con las membresías que cumplen con los criterios de
+     *         búsqueda
      */
     @GetMapping
     public ResponseEntity<List<MembresiaResponseDTO>> consultarMembresias(
@@ -80,6 +84,33 @@ public class MembresiaController {
         } catch (Exception e) {
             e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al consultar membresías", e);
+        }
+    }
+
+    /**
+     * Endpoint para actualizar una membresía existente
+     * 
+     * @param id         El ID de la membresía a actualizar
+     * @param requestDTO Los datos para actualizar la membresía
+     * @param userRol    El rol del usuario que realiza la acción (obtenido del
+     *                   header "X-User-Rol")
+     * @return Un mensaje global con la información de la membresía actualizada
+     */
+    @PutMapping("/{id}")
+    public ResponseEntity<MessegeGlobalDTO> actualizarMembresia(
+            @PathVariable Long id,
+            @Valid @RequestBody MembresiaRequestDTO requestDTO,
+            @RequestHeader(value = "X-User-Rol", required = false) String userRol) {
+        try {
+            MessegeGlobalDTO response = membresiaService.actualizarMembresia(id, requestDTO, userRol);
+            return ResponseEntity.ok(response);
+        } catch (SecurityAuthorizationException e) {
+            throw e;
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al actualizar membresía", e);
         }
     }
 }
