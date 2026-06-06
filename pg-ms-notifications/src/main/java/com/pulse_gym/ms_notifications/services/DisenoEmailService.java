@@ -58,7 +58,7 @@ public class DisenoEmailService {
      */
     private PlantillaDisenoEmail obtenerDiseno(EnumEventoAsociado evento) {
         if (evento != null) {
-            return disenoRepository.findByEventoAsociadoAndEliminadoFalse(evento)
+            return disenoRepository.findByEventoAsociadoAndEliminadoFalseAndActivoTrue(evento)
                     .orElseGet(() -> obtenerDisenoPorDefecto());
         }
         return obtenerDisenoPorDefecto();
