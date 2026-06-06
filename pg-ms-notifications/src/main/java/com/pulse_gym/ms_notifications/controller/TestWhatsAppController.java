@@ -11,8 +11,16 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class TestWhatsAppController {
 
+    /**
+     * Inyeccion de servicio de WhatsApp
+     */
     private final WhatsAppService whatsAppService;
 
+    /**
+     * Envia un mensaje de prueba a un usuario de WhatsApp
+     *
+     * @return Mensaje de prueba
+     */
     @GetMapping("/test-whatsapp")
     public String enviarPrueba() {
 

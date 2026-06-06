@@ -71,6 +71,11 @@ public class ConfiguracionGlobalService {
         return obtenerOInicializarConfiguracion();
     }
 
+    /**
+     * metodo privado para obtener la configuracion global del sistema o inicializarla
+     *
+     * @return Configuracion global persistida o nueva configuracion con valores por defecto si no existe ninguna en la base de datos
+     */
     private ConfiguracionGlobal obtenerOInicializarConfiguracion() {
         return configuracionGlobalRespository.findFirstByOrderByIdConfiguracionAsc()
                 .orElseGet(() -> {
@@ -81,6 +86,12 @@ public class ConfiguracionGlobalService {
                 });
     }
 
+    /**
+     * Mapea una entidad de ConfiguracionGlobal a un DTO de ConfiguracionGlobalResponseDTO para su uso en respuestas de API. Este método se encarga de extraer los valores relevantes de la entidad y 
+     * asignarlos a las propiedades correspondientes del DTO, facilitando así la transferencia de datos entre la capa de servicio y la capa de presentación.
+     * @param config 
+     * @return 
+     */
     private ConfiguracionGlobalResponseDTO mapearAResponse(ConfiguracionGlobal config) {
         ConfiguracionGlobalResponseDTO dto = new ConfiguracionGlobalResponseDTO();
         dto.setMaxNotificacionesPorDia(config.getMax_notificaciones_por_dia());

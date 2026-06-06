@@ -13,7 +13,14 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class RateLimitService {
 
+    /**
+     * Inyeccion de repositorio de notificaciones
+     */
     private final NotificacionRepository notificacionRepository;
+
+    /**
+     * Inyeccion de servicio de configuracion global
+     */
     private final ConfiguracionGlobalService configuracionGlobalService;
 
     /**
