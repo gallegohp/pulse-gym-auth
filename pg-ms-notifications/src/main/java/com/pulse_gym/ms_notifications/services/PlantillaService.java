@@ -22,6 +22,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class PlantillaService {
 
+    /**
+    * Repositorio para la gestion de plantillas de notificaciones
+    */
     private final PlantillaNotificationRepository plantillaNotificationRepository;
 
     /**

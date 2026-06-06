@@ -25,6 +25,9 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/notificaciones")
 public class NotificacionEnvioController {
 
+    /**
+     * Inyeccion de servicio de notificaciones
+     */
     private final NotificacionService notificacionService;
 
     /**

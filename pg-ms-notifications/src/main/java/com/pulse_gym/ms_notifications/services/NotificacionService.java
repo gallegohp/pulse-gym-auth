@@ -30,17 +30,59 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class NotificacionService {
 
+    /**
+     * Inyeccion de Logger para loguear los mensajes de la clase
+     */
     private static final Logger logger = LoggerFactory.getLogger(NotificacionService.class);
+    
+    /**
+     * Formato de fecha para la plantilla de notificaciones
+     */
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
+    /**
+     * Inyeccion de servicios de email 
+     */
     private final EmailService emailService;
+
+    /**
+     * Inyeccion de servicios de whatsapp
+     */     
     private final WhatsAppService whatsAppService;
+
+    /**
+     * Inyeccion de repositorio de notificaciones
+     */
     private final NotificacionRepository notificacionRepository;
+
+    /**
+     * Inyeccion de repositorio de plantillas
+     */
     private final PlantillaNotificationRepository plantillaRepository;
+
+    /**
+     * Inyeccion de servicio de renderizado de plantillas
+     */
     private final PlantillaRenderService renderService;
+    
+    /**
+     * Inyeccion de servicio de cliente de usuarios
+     */
     private final UsuarioClient usuarioClient;
+    
+    /**
+     * Inyeccion de servicio de cliente de auth
+     */
     private final AuthClient authClient;
+    
+    /**
+     * Inyeccion de servicio de preferencias de usuarios
+     */
     private final PreferenciaUsuarioService preferenciaUsuarioService;
+
+    /**
+     * Inyeccion de servicio de rate limit
+     */
     private final RateLimitService rateLimitService;
 
     /**
@@ -145,10 +187,12 @@ public class NotificacionService {
 
         try {
             if (canal == EnumCanalNotificacion.EMAIL) {
-                emailService.enviarEmail(
+                // Construir contexto con variables del usuario para pasar al diseño del email
+                Map<String, Object> contexto = construirContextoParaEmail(dto);
+                emailService.enviarEmailHtml(
                         dto.getDestinatario(),
                         notificacion.getTitulo(),
-                        dto.getContenido());
+                        dto.getContenido(), evento, contexto);
                 notificacion.setEstado(EnumEstadoNotificacion.ENVIADO);
             } else {
                 whatsAppService.enviarWhatsApp(dto.getDestinatario(), dto.getContenido());
@@ -165,6 +209,11 @@ public class NotificacionService {
         }
     }
 
+    /**
+     * Obtiene el usuario de auth por su identificador
+     * @param usuarioAuthId Identificador del usuario en auth
+     * @return Usuario de auth
+     */
     private AuthUserDTO obtenerAuthUser(Long usuarioAuthId) {
         try {
             return authClient.obtenerUsuarioPorId(usuarioAuthId);
@@ -173,6 +222,11 @@ public class NotificacionService {
         }
     }
 
+    /**
+     * Obtiene el perfil de un usuario por su email
+     * @param email Email del usuario
+     * @return Perfil del usuario
+     */
     private UsuarioPerfilResponseDTO obtenerPerfilPorEmail(String email) {
         try {
             return usuarioClient.obtenerUsuarioPorEmail(email);
@@ -184,6 +238,11 @@ public class NotificacionService {
         }
     }
 
+    /**
+     * Resolve el evento asociado a una plantilla de notificacion
+     * @param plantilla Plantilla de notificacion
+     * @return Evento asociado a la plantilla
+     */
     private EnumEventoAsociado resolverEventoPlantilla(PlantillaNotificacion plantilla) {
         if (plantilla.getEventosAsociados() != null && !plantilla.getEventosAsociados().isEmpty()) {
             return plantilla.getEventosAsociados().iterator().next();
@@ -235,6 +294,30 @@ public class NotificacionService {
             contexto.putAll(variablesAdicionales);
         }
 
+        return contexto;
+    }
+
+    /**
+     * Construye el contexto con variables del usuario para pasar al diseño del email.
+     * Este contexto se usa para reemplazar variables en el header/footer del email.
+     * @param dto Datos del envio
+     * @return Mapa con variables para el diseño
+     */
+    private Map<String, Object> construirContextoParaEmail(EnvioNotificacionDTO dto) {
+        Map<String, Object> contexto = new HashMap<>();
+        
+        // Agregar información básica disponible
+        if (dto.getUsuarioId() != null) {
+            contexto.put("usuario_id", dto.getUsuarioId());
+        }
+        
+        // Agregar variables adicionales que vengan en el contenido
+        // El contenido ya tiene las variables reemplazadas por el renderService,
+        // pero pasamos el contexto completo por si el diseño necesita algo más
+        if (dto.getContenido() != null) {
+            // Extraer variables del contenido si es necesario
+        }
+        
         return contexto;
     }
 }
