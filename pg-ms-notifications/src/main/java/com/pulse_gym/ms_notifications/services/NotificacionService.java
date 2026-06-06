@@ -187,10 +187,12 @@ public class NotificacionService {
 
         try {
             if (canal == EnumCanalNotificacion.EMAIL) {
+                // Construir contexto con variables del usuario para pasar al diseño del email
+                Map<String, Object> contexto = construirContextoParaEmail(dto);
                 emailService.enviarEmailHtml(
                         dto.getDestinatario(),
                         notificacion.getTitulo(),
-                        dto.getContenido(), evento);
+                        dto.getContenido(), evento, contexto);
                 notificacion.setEstado(EnumEstadoNotificacion.ENVIADO);
             } else {
                 whatsAppService.enviarWhatsApp(dto.getDestinatario(), dto.getContenido());
@@ -292,6 +294,30 @@ public class NotificacionService {
             contexto.putAll(variablesAdicionales);
         }
 
+        return contexto;
+    }
+
+    /**
+     * Construye el contexto con variables del usuario para pasar al diseño del email.
+     * Este contexto se usa para reemplazar variables en el header/footer del email.
+     * @param dto Datos del envio
+     * @return Mapa con variables para el diseño
+     */
+    private Map<String, Object> construirContextoParaEmail(EnvioNotificacionDTO dto) {
+        Map<String, Object> contexto = new HashMap<>();
+        
+        // Agregar información básica disponible
+        if (dto.getUsuarioId() != null) {
+            contexto.put("usuario_id", dto.getUsuarioId());
+        }
+        
+        // Agregar variables adicionales que vengan en el contenido
+        // El contenido ya tiene las variables reemplazadas por el renderService,
+        // pero pasamos el contexto completo por si el diseño necesita algo más
+        if (dto.getContenido() != null) {
+            // Extraer variables del contenido si es necesario
+        }
+        
         return contexto;
     }
 }
