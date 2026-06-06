@@ -1,5 +1,7 @@
 package com.pulse_gym.ms_notifications.services;
 
+import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +17,10 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * Servicio para enviar emails con diseño dinámico.
+ * Utiliza DisenoEmailService para generar el HTML basado en configuración de BD.
+ */
 @Service
 @RequiredArgsConstructor
 public class EmailService {
@@ -31,6 +37,12 @@ public class EmailService {
     private JavaMailSender mailSender;
 
     /**
+     * Servicio de diseño dinámico de emails
+     */
+    @Autowired
+    private DisenoEmailService disenoEmailService;
+
+    /**
      * Email del remitente
      */
     @Value("${spring.mail.username:}")
@@ -45,8 +57,8 @@ public class EmailService {
     /**
      * Método para enviar un email a un destinatario (texto plano - legacy)
      * @param destinatario Email del destinatario
-     * @param asunto       Asunto del email
-     * @param contenido    Contenido del email
+     * @param asunto    Asunto del email
+     * @param contenido Contenido del email
      */
     public void enviarEmail(String destinatario, String asunto, String contenido) {
         if (!emailEnabled) {
@@ -71,13 +83,28 @@ public class EmailService {
     }
 
     /**
-     * Método para enviar un email en formato HTML con diseño profesional
+     * Envía un email en formato HTML con diseño dinámico basado en el evento.
      * @param destinatario Email del destinatario
-     * @param asunto       Asunto del email
-     * @param contenido   Contenido HTML del email (se insertará en el body)
-     * @param evento      Evento asociado al email
+     * @param asunto    Asunto del email
+     * @param contenido Contenido HTML del email (se insertará en el body)
+     * @param evento   Evento asociado al email
      */
     public void enviarEmailHtml(String destinatario, String asunto, String contenido, EnumEventoAsociado evento) {
+        enviarEmailHtml(destinatario, asunto, contenido, evento, null);
+    }
+
+    /**
+     * Envía un email en formato HTML con diseño dinámico basado en el evento.
+     * Soporta variables adicionales para reemplazar en el diseño.
+     * @param destinatario Email del destinatario
+     * @param asunto    Asunto del email
+     * @param contenido Contenido HTML del email (se insertará en el body)
+     * @param evento   Evento asociado al email
+     * @param variables Variables adicionales para reemplazar en el diseño (puede ser null)
+     */
+    public void enviarEmailHtml(String destinatario, String asunto, String contenido, 
+            EnumEventoAsociado evento, Map<String, Object> variables) {
+        
         if (!emailEnabled) {
             logger.warn("Envío de emails deshabilitado. Email HTML no enviado a: {}", destinatario);
             return;
@@ -91,565 +118,16 @@ public class EmailService {
             helper.setTo(destinatario);
             helper.setSubject(asunto);
 
-            String htmlContent = generarPlantillaHtml(contenido, evento);
+            // Generar HTML con diseño dinámico
+            String htmlContent = disenoEmailService.generarHtml(contenido, evento, variables);
             helper.setText(htmlContent, true);
 
             mailSender.send(mimeMessage);
-            logger.info("Email HTML enviado exitosamente a: {}", destinatario);
+            logger.info("Email HTML enviado exitosamente a: {} con evento {}", destinatario, evento);
 
         } catch (MessagingException e) {
             logger.error("Error al enviar email HTML a {}: {}", destinatario, e.getMessage());
             throw new RuntimeException("No se pudo enviar el email HTML", e);
         }
-    }
-
-    /**
-     * Genera la plantilla base HTML con diseño profesional
-     * @param contenido Contenido principal del email
-     * @param evento    Evento asociado al email        
-     * @return HTML completo con el diseño
-     */
-    private String generarPlantillaHtml(String contenido, EnumEventoAsociado evento) {
-
-        if (evento == null) {
-            return String.format("""
-                    <!DOCTYPE html>
-                    <html>
-                    <head>
-                        <meta charset="UTF-8">
-                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                        <title>Pulse Gym</title>
-                        <style>
-                            body {
-                                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                                line-height: 1.6;
-                                color: #2c3e50;
-                                margin: 0;
-                                padding: 0;
-                                background: linear-gradient(135deg, #e0eafc 0%%, #cfdef3 100%%);
-                            }
-                            .container {
-                                max-width: 550px;
-                                margin: 30px auto;
-                                padding: 0;
-                                background-color: #ffffff;
-                                border-radius: 20px;
-                                box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-                                overflow: hidden;
-                            }
-                            .header {
-                                background: linear-gradient(135deg, #2c4b77 0%%, #8bb5d6 100%%);
-                                color: white;
-                                padding: 35px 20px;
-                                text-align: center;
-                            }
-                            .header h1 {
-                                margin: 0;
-                                font-size: 28px;
-                                font-weight: 300;
-                                letter-spacing: 1px;
-                            }
-                            .header p {
-                                margin: 10px 0 0;
-                                opacity: 0.9;
-                                font-size: 14px;
-                            }
-                            .content {
-                                padding: 40px 35px;
-                                background-color: #ffffff;
-                            }
-                            .contenido-mensaje {
-                                color: #5d6d7e;
-                                font-size: 15px;
-                                line-height: 1.6;
-                            }
-                            .footer {
-                                background-color: #f8f9fc;
-                                padding: 20px 30px;
-                                text-align: center;
-                                border-top: 1px solid #e8edf2;
-                            }
-                            .footer-text {
-                                color: #9aabbb;
-                                font-size: 11px;
-                                margin: 5px 0;
-                            }                            
-                        </style>
-                    </head>
-                    <body>
-                        <div class="container">
-                            <div class="header">
-                                <h1><strong>Pulse Gym</strong></h1>
-                                <p>Tu bienestar, nuestra pasión</p>
-                            </div>
-
-                            <div class="content">
-                                <div class="contenido-mensaje">
-                                    %s
-                                </div>
-                            </div>
-
-                            <div class="footer">
-                                <div class="footer-text">
-                                    © 2026 Pulse Gym - Todos los derechos reservados
-                                </div>
-                                <div class="footer-text">
-                                    Este es un mensaje automático, por favor no responder a este correo
-                                </div>
-                                <div class="footer-text">
-                                    <span class="highlight">Pulse Gym</span> - Donde los sueños se convierten en metas
-                                </div>
-                            </div>
-                        </div>
-                    </body>
-                    </html>
-                    """, contenido);
-        }    if (evento == EnumEventoAsociado.PROMOTION) {
-            return String.format("""            
-                    <!DOCTYPE html>
-                    <html>
-                    <head>
-                        <meta charset="UTF-8">
-                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                        <title>Pulse Gym</title>
-                        <style>
-                            body {
-                                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                                line-height: 1.6;
-                                color: #2c3e50;
-                                margin: 0;
-                                padding: 0;
-                                background: linear-gradient(135deg, #e0eafc 0%%, #cfdef3 100%%);
-                            }
-                            .container {
-                                max-width: 550px;
-                                margin: 30px auto;
-                                padding: 0;
-                                background-color: #ffffff;
-                                border-radius: 20px;
-                                box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-                                overflow: hidden;
-                            }
-                            .header {
-                                background: linear-gradient(135deg, #ea1616 0%%, #8bb5d6 100%%);
-                                color: white;
-                                padding: 35px 20px;
-                                text-align: center;
-                            }
-                            .header h1 {
-                                margin: 0;
-                                font-size: 28px;
-                                font-weight: 300;
-                                letter-spacing: 1px;
-                            }
-                            .header p {
-                                margin: 10px 0 0;
-                                opacity: 0.9;
-                                font-size: 14px;
-                            }
-                            .content {
-                                padding: 40px 35px;
-                                background-color: #ffffff;
-                            }
-                            .contenido-mensaje {
-                                color: #5d6d7e;
-                                font-size: 15px;
-                                line-height: 1.6;
-                            }
-                            .footer {
-                                background-color: #f8f9fc;
-                                padding: 20px 30px;
-                                text-align: center;
-                                border-top: 1px solid #e8edf2;
-                            }
-                            .footer-text {
-                                color: #9aabbb;
-                                font-size: 11px;
-                                margin: 5px 0;
-                            }                            
-                        </style>
-                    </head>
-                    <body>                        
-                        <div class="container">
-                            <div class="header">
-                                <h1><strong>Pulse Gym</strong></h1>
-                                <p>Tu bienestar, nuestra pasión</p>                                
-                            </div>                            
-                            <div class="content">
-                                <div class="contenido-mensaje">
-                                    %s
-                                </div>
-                            </div>
-                            <div class="footer">
-                                <div class="footer-text">
-                                    © 2026 Pulse Gym - Todos los derechos reservados
-                                </div>
-                                <div class="footer-text">
-                                    Este es un mensaje automático, por favor no responder a este correo
-                                </div>
-                                <div class="footer-text">
-                                    <span class="highlight">Pulse Gym</span> - Donde los sueños se convierten en metas
-                                </div>
-                            </div>
-                        </div>
-                    </body>
-                    </html>            
-                    """, contenido);    
-            } if (evento == EnumEventoAsociado.WELCOME) {
-                return String.format("""            
-                    <!DOCTYPE html>
-                    <html>
-                    <head>
-                        <meta charset="UTF-8">
-                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                        <title>Pulse Gym</title>
-                        <style>
-                            body {
-                                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                                line-height: 1.6;
-                                color: #2c3e50;
-                                margin: 0;
-                                padding: 0;
-                                background: linear-gradient(135deg, #e0eafc 0%%, #cfdef3 100%%);
-                            }
-                            .container {
-                                max-width: 550px;
-                                margin: 30px auto;
-                                padding: 0;
-                                background-color: #ffffff;
-                                border-radius: 20px;
-                                box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-                                overflow: hidden;
-                            }
-                            .header {
-                                background: linear-gradient(135deg, #2c4b77 0%%, #8bb5d6 100%%);
-                                color: white;
-                                padding: 35px 20px;
-                                text-align: center;
-                            }
-                            .header h1 {
-                                margin: 0;
-                                font-size: 28px;
-                                font-weight: 300;
-                                letter-spacing: 1px;
-                            }
-                            .header p {
-                                margin: 10px 0 0;
-                                opacity: 0.9;
-                                font-size: 14px;
-                            }
-                            .content {
-                                padding: 40px 35px;
-                                background-color: #ffffff;
-                            }                                                
-                            .contenido-mensaje {
-                                color: #5d6d7e;
-                                font-size: 15px;
-                                line-height: 1.6;
-                            }
-                            .footer {
-                                background-color: #f8f9fc;
-                                padding: 20px 30px;
-                                text-align: center;
-                                border-top: 1px solid #e8edf2;
-                            }
-                            .footer-text {
-                                color: #9aabbb;
-                                font-size: 11px;
-                                margin: 5px 0;
-                            }                            
-                        </style>
-                    </head>
-                    <body>                        
-                        <div class="container">
-                            <div class="header">
-                                <h1><strong>Pulse Gym</strong></h1>
-                                <p>Tu bienestar, nuestra pasión</p>                                
-                            </div>                            
-                            <div class="content">
-                                <div class="contenido-mensaje">
-                                    %s
-                                </div>
-                            </div>
-                            <div class="footer">
-                                <div class="footer-text">
-                                    © 2026 Pulse Gym - Todos los derechos reservados
-                                </div>
-                                <div class="footer-text">
-                                    Este es un mensaje automático, por favor no responder a este correo
-                                </div>
-                                <div class="footer-text">
-                                    <span class="highlight">Pulse Gym</span> - Donde los sueños se convierten en metas
-                                </div>
-                            </div>
-                        </div>
-                    </body>
-                    </html>            
-                    """, contenido);    
-            } if (evento == EnumEventoAsociado.ACHIEVEMENT) {
-                return String.format("""            
-                    <!DOCTYPE html>
-                    <html>
-                    <head>
-                        <meta charset="UTF-8">
-                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                        <title>Pulse Gym</title>
-                        <style>
-                            body {
-                                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                                line-height: 1.6;
-                                color: #2c3e50;
-                                margin: 0;
-                                padding: 0;
-                                background: linear-gradient(135deg, #e0eafc 0%%, #cfdef3 100%%);
-                            }
-                            .container {
-                                max-width: 550px;
-                                margin: 30px auto;
-                                padding: 0;
-                                background-color: #ffffff;
-                                border-radius: 20px;
-                                box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-                                overflow: hidden;
-                            }
-                            .header {
-                                background: linear-gradient(135deg, #2c4b77 0%%, #8bb5d6 100%%);
-                                color: white;
-                                padding: 35px 20px;
-                                text-align: center;
-                            }
-                            .header h1 {
-                                margin: 0;
-                                font-size: 28px;
-                                font-weight: 300;
-                                letter-spacing: 1px;
-                            }
-                            .header p {
-                                margin: 10px 0 0;
-                                opacity: 0.9;
-                                font-size: 14px;
-                            }
-                            .content {
-                                padding: 40px 35px;
-                                background-color: #ffffff;
-                            }                                                
-                            .contenido-mensaje {
-                                color: #5d6d7e;
-                                font-size: 15px;
-                                line-height: 1.6;
-                            }
-                            .footer {                                
-                                background-color: #f8f9fc;
-                                padding: 20px 30px;
-                                text-align: center;
-                                border-top: 1px solid #e8edf2;
-                            }
-                            .footer-text {
-                                color: #9aabbb;
-                                font-size: 11px;
-                                margin: 5px 0;
-                            }
-                        </style>                        
-                    </head>
-                    <body>
-                        <div class="container">
-                            <div class="header">
-                                <h1><strong>Pulse Gym</strong></h1>
-                                <p>Tu bienestar, nuestra pasión</p>                                
-                            </div>                            
-                            <div class="content">
-                                <div class="contenido-mensaje">
-                                    %s
-                                </div>
-                            </div>
-                            <div class="footer">
-                                <div class="footer-text">
-                                    © 2026 Pulse Gym - Todos los derechos reservados
-                                </div>
-                                <div class="footer-text">
-                                    Este es un mensaje automático, por favor no responder a este correo
-                                </div>
-                                <div class="footer-text">
-                                    <span class="highlight">Pulse Gym</span> - Donde los sueños se convierten en metas
-                                </div>
-                            </div>
-                        </div>
-                    </body>
-                    </html>            
-                    """, contenido);    
-            } if (evento == EnumEventoAsociado.MAINTENANCE_ALERT) {
-                return String.format("""            
-                    <!DOCTYPE html>
-                    <html>
-                    <head>
-                        <meta charset="UTF-8">
-                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                        <title>Pulse Gym</title>
-                        <style>
-                            body {
-                                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                                line-height: 1.6;
-                                color: #2c3e50;
-                                margin: 0;
-                                padding: 0;
-                                background: linear-gradient(135deg, #e0eafc 0%%, #cfdef3 100%%);
-                            }
-                            .container {
-                                max-width: 550px;
-                                margin: 30px auto;
-                                padding: 0;
-                                background-color: #ffffff;
-                                border-radius: 20px;
-                                box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-                                overflow: hidden;
-                            }
-                            .header {
-                                background: linear-gradient(135deg, #2c4b77 0%%, #8bb5d6 100%%);
-                                color: white;
-                                padding: 35px 20px;
-                                text-align: center;
-                            }
-                            .header h1 {
-                                margin: 0;
-                                font-size: 28px;
-                                font-weight: 300;
-                                letter-spacing: 1px;
-                            }
-                            .header p {
-                                margin: 10px 0 0;
-                                opacity: 0.9;
-                                font-size: 14px;
-                            }
-                            .content {
-                                padding: 40px 35px;
-                                background-color: #ffffff;
-                            }                                                
-                            .contenido-mensaje {
-                                color: #5d6d7e;
-                                font-size: 15px;
-                                line-height: 1.6;
-                            }
-                            .footer {                                
-                                background-color: #f8f9fc;
-                                padding: 20px 30px;
-                                text-align: center;
-                                border-top: 1px solid #e8edf2;
-                            }
-                            .footer-text {
-                                color: #9aabbb;
-                                font-size: 11px;
-                                margin: 5px 0;
-                            }
-                        </style>                        
-                    </head>
-                    <body>
-                        <div class="container">
-                            <div class="header">
-                                <h1><strong>Pulse Gym</strong></h1>
-                                <p>Tu bienestar, nuestra pasión</p>                                
-                            </div>                            
-                            <div class="content">
-                                <div class="contenido-mensaje">
-                                    %s
-                                </div>
-                            </div>
-                            <div class="footer">
-                                <div class="footer-text">
-                                    © 2026 Pulse Gym - Todos los derechos reservados
-                                </div>
-                                <div class="footer-text">
-                                    Este es un mensaje automático, por favor no responder a este correo
-                                </div>
-                                <div class="footer-text">
-                                    <span class="highlight">Pulse Gym</span> - Donde los sueños se convierten en metas
-                                </div>
-                            </div>
-                        </div>
-                    </body>
-                    </html>            
-                    """, contenido);    
-            } else if (evento == EnumEventoAsociado.PAYMENT_REMINDER) {
-                return String.format("""            
-                    <!DOCTYPE html>
-                    <html>
-                    <head>
-                        <meta charset="UTF-8">
-                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                        <title>Pulse Gym</title>
-                        <style>
-                            body {
-                                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                                line-height: 1.6;
-                                color: #2c3e50;
-                                margin: 0;
-                                padding: 0;
-                                background: linear-gradient(135deg, #e0eafc 0%%, #cfdef3 100%%);
-                            }
-                            .container {
-                                max-width: 550px;
-                                margin: 30px auto;
-                                padding: 0;
-                                background-color: #ffffff;
-                                border-radius: 20px;
-                                box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);                                
-                            }
-                            .header {
-                                background: linear-gradient(135deg, #2c4b77 0%%, #8bb5d6 100%%);
-                                color: white;
-                                padding: 35px 20px;
-                                text-align: center;
-                            }
-                            .header h1 {
-                                margin: 0;
-                                font-size: 28px;
-                                font-weight: 300;
-                                letter-spacing: 1px;
-                            }                            
-                            .contenido-mensaje {
-                                color: #5d6d7e;
-                                font-size: 15px;
-                                line-height: 1.6;
-                            }
-                            .footer {
-                                background-color: #f8f9fc;
-                                padding: 20px 30px;
-                                text-align: center;
-                                border-top: 1px solid #e8edf2;
-                            }
-                            .footer-text {
-                                color: #9aabbb;
-                                font-size: 11px;
-                                margin: 5px 0;
-                            }
-                        </style>
-                    </head>
-                    <body>
-                        <div class="container">
-                            <div class="header">
-                                <h1><strong>Pulse Gym</strong></h1>
-                                <p>Tu bienestar, nuestra pasión</p>                                
-                            </div>                            
-                            <div class="content">
-                                <div class="contenido-mensaje">
-                                    %s
-                                </div>
-                            </div>
-                            <div class="footer">
-                                <div class="footer-text">
-                                    © 2026 Pulse Gym - Todos los derechos reservados
-                                </div>
-                                <div class="footer-text">
-                                    Este es un mensaje automático, por favor no responder a este correo
-                                </div>
-                                <div class="footer-text">
-                                    <span class="highlight">Pulse Gym</span> - Donde los sueños se convierten en metas
-                                </div>
-                            </div>
-                        </div>
-                    </body>
-                    </html>            
-                    """, contenido);    
-            }
-            return "";
     }
 }
