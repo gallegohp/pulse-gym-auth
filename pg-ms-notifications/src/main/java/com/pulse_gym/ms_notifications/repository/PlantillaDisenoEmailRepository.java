@@ -22,11 +22,11 @@ public interface PlantillaDisenoEmailRepository extends JpaRepository<PlantillaD
     Optional<PlantillaDisenoEmail> findByNombreAndEliminadoFalse(String nombre);
 
     /**
-     * Busca un diseño activo por evento asociado
+     * Busca un diseño activo por evento asociado (solo los activos)
      * @param evento Evento asociado
      * @return Diseño encontrado o vacío
      */
-    Optional<PlantillaDisenoEmail> findByEventoAsociadoAndEliminadoFalse(EnumEventoAsociado evento);
+    Optional<PlantillaDisenoEmail> findByEventoAsociadoAndEliminadoFalseAndActivoTrue(EnumEventoAsociado evento);
 
     /**
      * Busca el diseño por defecto (cuando no hay evento específico)
