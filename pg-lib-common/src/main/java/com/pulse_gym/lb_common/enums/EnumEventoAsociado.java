@@ -1,11 +1,21 @@
 package com.pulse_gym.lb_common.enums;
 
 public enum EnumEventoAsociado {
-    
+
     /**
      * Evento de notificacion para bienvenida
      */
     WELCOME,
+
+    /**
+     * Evento de verificacion al registrar nuevo usuario en auth
+     */
+    REGISTRO_USUARIO,
+
+    /**
+     * Evento de bienvenida al completar perfil de usuario
+     */
+    BIENVENIDA,
 
     /**
      * Evento notificacion de recordatirio de pago
