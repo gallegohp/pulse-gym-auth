@@ -9,13 +9,16 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import com.pulse_gym.lb_common.client.AuthServiceClient;
+import com.pulse_gym.lb_common.client.NotificacionClient;
 import com.pulse_gym.lb_common.dto.AuthUserDTO;
 import com.pulse_gym.lb_common.dto.CompletarPerfilRequestDTO;
+import com.pulse_gym.lb_common.dto.EnvioEventoNotificacionDTO;
 import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
 import com.pulse_gym.lb_common.dto.UsuarioPerfilRequestDTO;
 import com.pulse_gym.lb_common.dto.UsuarioPerfilResponseDTO;
 import com.pulse_gym.lb_common.entity.user.UsuarioPerfil;
 import com.pulse_gym.lb_common.enums.EnumEstadoUsuario;
+import com.pulse_gym.lb_common.enums.EnumEventoAsociado;
 import com.pulse_gym.lb_common.enums.EnumRol;
 import com.pulse_gym.lb_common.exception.SecurityAuthorizationException;
 import com.pulse_gym.lb_common.services.ValidacionDeRoles;
@@ -29,6 +32,9 @@ public class UsuarioPerfilService {
 
     /** Cliente para interactuar con el servicio de autenticación */
     private final AuthServiceClient authServiceClient;
+
+    /** Cliente de notificaciones */
+    private final NotificacionClient notificacionClient;
 
     /**
      * Repositorio para operaciones de base de datos de usuarios
@@ -118,7 +124,37 @@ public class UsuarioPerfilService {
         usuario.setEstado(EnumEstadoUsuario.ACTIVO);
 
         usuarioRepository.save(usuario);
+
+        // Enviar correo de bienvenida
+        enviarNotificacionBienvenida(usuario);
+
         return new MessegeGlobalDTO("Perfil completado correctamente");
+    }
+
+    /**
+     * Envía notificación de bienvenida al completar perfil
+     * 
+     * @param usuario Usuario creado
+     */
+    private void enviarNotificacionBienvenida(UsuarioPerfil usuario) {
+        try {
+            // Obtener ID de auth del usuario
+            AuthUserDTO authUser = authServiceClient.obtenerUsuarioPorEmail(usuario.getEmail());
+            if (authUser == null) {
+                return;
+            }
+
+            EnvioEventoNotificacionDTO eventoDTO = new EnvioEventoNotificacionDTO();
+            eventoDTO.setUsuarioId(authUser.getId());
+            eventoDTO.setEvento(EnumEventoAsociado.BIENVENIDA);
+            eventoDTO.setVariablesAdicionales(java.util.Map.of(
+                    "nombre", usuario.getNombre(),
+                    "apellido", usuario.getApellido() != null ? usuario.getApellido() : ""
+            ));
+            notificacionClient.enviarPorEvento(eventoDTO);
+        } catch (Exception e) {
+            // No fallar el registro si falla el envío de notificación
+        }
     }
 
     /**
