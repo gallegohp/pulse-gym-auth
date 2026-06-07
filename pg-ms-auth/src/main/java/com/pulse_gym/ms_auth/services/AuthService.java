@@ -8,13 +8,16 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.pulse_gym.lb_common.client.NotificacionClient;
 import com.pulse_gym.lb_common.dto.ContrasenaOlvidada;
+import com.pulse_gym.lb_common.dto.EnvioEventoNotificacionDTO;
 import com.pulse_gym.lb_common.dto.HttpGlobalResponse;
 import com.pulse_gym.lb_common.dto.JwtDTO;
 import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
 import com.pulse_gym.lb_common.dto.RestablecerContrasena;
 import com.pulse_gym.lb_common.entity.auth.PasswordResetToken;
 import com.pulse_gym.lb_common.entity.auth.User;
+import com.pulse_gym.lb_common.enums.EnumEventoAsociado;
 import com.pulse_gym.lb_common.services.JwtService;
 import com.pulse_gym.ms_auth.dto.LoginRequestDTO;
 import com.pulse_gym.ms_auth.dto.RegisterRequestDTO;
@@ -41,6 +44,10 @@ public class AuthService {
 
     /** Servicio de Restableer la contraseña */
     private final PasswordResetTokenRepository tokenRepository;
+
+    /** Cliente de notificaciones */
+    private final NotificacionClient notificacionClient;
+
     @Value("${app.security.reset-token-expiration-minutes:10}")
     private long tokenExpirationMinutes;
 
@@ -77,7 +84,30 @@ public class AuthService {
         user.setFechaRegistro(LocalDateTime.now());
         userAuthRepository.save(user);
 
+        // Enviar correo de verificación al nuevo usuario
+        enviarNotificacionRegistro(user);
+
         return new MessegeGlobalDTO("Se ha registrado correctamente");
+    }
+
+    /**
+     * Envía notificación de verificación al registrar nuevo usuario
+     * 
+     * @param user Usuario registrado
+     */
+    private void enviarNotificacionRegistro(User user) {
+        try {
+            EnvioEventoNotificacionDTO eventoDTO = new EnvioEventoNotificacionDTO();
+            eventoDTO.setUsuarioId(user.getId());
+            eventoDTO.setEvento(EnumEventoAsociado.REGISTRO_USUARIO);
+            eventoDTO.setVariablesAdicionales(java.util.Map.of(
+                    "username", user.getUsername(),
+                    "email", user.getEmail()
+            ));
+            notificacionClient.enviarPorEvento(eventoDTO);
+        } catch (Exception e) {
+            // No fallar el registro si falla el envío de notificación
+        }
     }
 
     /**
