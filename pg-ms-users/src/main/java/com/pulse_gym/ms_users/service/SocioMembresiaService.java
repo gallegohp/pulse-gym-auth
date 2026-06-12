@@ -11,6 +11,7 @@ import com.pulse_gym.lb_common.dto.AsignarMembresiaRequestDTO;
 import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
 import com.pulse_gym.lb_common.dto.RenovarMembresiaRequestDTO;
 import com.pulse_gym.lb_common.dto.SocioMembresiaResponseDTO;
+import com.pulse_gym.lb_common.dto.SuspenderMembresiaRequestDTO;
 import com.pulse_gym.lb_common.entity.user.Membresia;
 import com.pulse_gym.lb_common.entity.user.SocioMembresia;
 import com.pulse_gym.lb_common.entity.user.UsuarioPerfil;
@@ -100,7 +101,7 @@ public class SocioMembresiaService {
      */
     @Transactional
     public MessegeGlobalDTO asignarMembresia(AsignarMembresiaRequestDTO requestDTO, String userRol) {
-        ValidacionDeRoles.validarRecepcionista(userRol);
+        ValidacionDeRoles.validarEntrenadorORecepcionista(userRol);
 
         UsuarioPerfil socio = usuarioRepository.findById(requestDTO.getIdSocio())
                 .orElseThrow(() -> new RuntimeException("Socio no encontrado con ID: " + requestDTO.getIdSocio()));
@@ -157,7 +158,8 @@ public class SocioMembresiaService {
             if (!userIdAutenticado.equals(idSocio)) {
                 throw new SecurityAuthorizationException("Acceso denegado. Solo puede consultar su propia membresía");
             }
-        } else if (!userRol.equals(EnumRol.administrador.name()) && !userRol.equals(EnumRol.recepcionista.name())) {
+        } else if (!userRol.equals(EnumRol.administrador.name()) && !userRol.equals(EnumRol.recepcionista.name())
+                && !userRol.equals(EnumRol.entrenador.name())) {
             throw new SecurityAuthorizationException("Acceso denegado. Rol no autorizado: " + userRol);
         }
 
@@ -200,7 +202,8 @@ public class SocioMembresiaService {
             if (!userIdAutenticado.equals(socioMembresia.getSocio().getIdUsuario())) {
                 throw new SecurityAuthorizationException("Acceso denegado. Solo puede renovar su propia membresía");
             }
-        } else if (!userRol.equals(EnumRol.administrador.name()) && !userRol.equals(EnumRol.recepcionista.name())) {
+        } else if (!userRol.equals(EnumRol.administrador.name()) && !userRol.equals(EnumRol.recepcionista.name())
+                && !userRol.equals(EnumRol.entrenador.name())) {
             throw new SecurityAuthorizationException("Acceso denegado. Rol no autorizado: " + userRol);
         }
 
@@ -232,5 +235,66 @@ public class SocioMembresiaService {
         return new MessegeGlobalDTO(String.format(
                 "Membresía renovada correctamente. Nueva fecha de vencimiento: %s",
                 nuevaFechaVencimiento));
+    }
+
+    /**
+     * Cancela una membresía activa de un socio. Solo puede ser realizada por un
+     * recepcionista.
+     * 
+     * @param idSocioMembresia ID de la asignación de membresía a cancelar
+     * @param motivo           Motivo de la cancelación
+     * @param userRol          Rol del usuario autenticado (debe ser recepcionista)
+     * @return Mensaje de confirmación indicando que la membresía fue cancelada con
+     *         el motivo especificado
+     */
+    @Transactional
+    public MessegeGlobalDTO cancelarMembresia(Long idSocioMembresia, String motivo, String userRol) {
+        ValidacionDeRoles.validarEntrenadorORecepcionista(userRol);
+
+        SocioMembresia socioMembresia = socioMembresiaRepository.findById(idSocioMembresia)
+                .orElseThrow(() -> new RuntimeException(
+                        "Asignación de membresía no encontrada con ID: " + idSocioMembresia));
+
+        if (socioMembresia.getEstado() == EnumEstadoSocioMembresia.CANCELADA) {
+            throw new RuntimeException("La membresía ya está cancelada");
+        }
+
+        socioMembresia.setEstado(EnumEstadoSocioMembresia.CANCELADA);
+        socioMembresia.setObservaciones("Cancelada: " + motivo +
+                (socioMembresia.getObservaciones() != null ? " - " + socioMembresia.getObservaciones() : ""));
+
+        socioMembresiaRepository.save(socioMembresia);
+
+        return new MessegeGlobalDTO("Membresía cancelada correctamente. Motivo: " + motivo);
+    }
+
+    /**
+     * Suspende una membresía activa de un socio. Solo puede ser realizada por un
+     * recepcionista.
+     * 
+     * @param requestDTO DTO con el idSocioMembresia y el motivo de la suspensión
+     * @param userRol    Rol del usuario autenticado (debe ser recepcionista)
+     * @return Mensaje de confirmación indicando que la membresía fue suspendida con
+     *         el motivo especificado
+     */
+    @Transactional
+    public MessegeGlobalDTO suspenderMembresia(SuspenderMembresiaRequestDTO requestDTO, String userRol) {
+        ValidacionDeRoles.validarEntrenadorORecepcionista(userRol);
+
+        SocioMembresia socioMembresia = socioMembresiaRepository.findById(requestDTO.getIdSocioMembresia())
+                .orElseThrow(() -> new RuntimeException(
+                        "Asignación de membresía no encontrada con ID: " + requestDTO.getIdSocioMembresia()));
+
+        if (socioMembresia.getEstado() != EnumEstadoSocioMembresia.ACTIVA) {
+            throw new RuntimeException("Solo se pueden suspender membresías activas");
+        }
+
+        socioMembresia.setEstado(EnumEstadoSocioMembresia.SUSPENDIDA);
+        socioMembresia.setObservaciones("Suspendida: " + requestDTO.getMotivo() +
+                (socioMembresia.getObservaciones() != null ? " - " + socioMembresia.getObservaciones() : ""));
+
+        socioMembresiaRepository.save(socioMembresia);
+
+        return new MessegeGlobalDTO("Membresía suspendida correctamente. Motivo: " + requestDTO.getMotivo());
     }
 }
