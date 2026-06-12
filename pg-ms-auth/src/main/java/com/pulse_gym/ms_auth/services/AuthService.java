@@ -3,11 +3,14 @@ package com.pulse_gym.ms_auth.services;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.pulse_gym.lb_common.client.AuthServiceClient;
 import com.pulse_gym.lb_common.client.NotificacionClient;
 import com.pulse_gym.lb_common.dto.ContrasenaOlvidada;
 import com.pulse_gym.lb_common.dto.EnvioEventoNotificacionDTO;
@@ -30,6 +33,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AuthService {
 
+    private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
+
     /** Repositorio de UserAuthRepository */
     private final UserAuthRepository userAuthRepository;
 
@@ -47,6 +52,9 @@ public class AuthService {
 
     /** Cliente de notificaciones */
     private final NotificacionClient notificacionClient;
+
+    /** Cliente para interactuar con el servicio de autenticación */
+    private final AuthServiceClient authServiceClient;
 
     @Value("${app.security.reset-token-expiration-minutes:10}")
     private long tokenExpirationMinutes;
@@ -84,7 +92,6 @@ public class AuthService {
         user.setFechaRegistro(LocalDateTime.now());
         userAuthRepository.save(user);
 
-        // Enviar correo de verificación al nuevo usuario
         enviarNotificacionRegistro(user);
 
         return new MessegeGlobalDTO("Se ha registrado correctamente");
@@ -97,6 +104,7 @@ public class AuthService {
      */
     private void enviarNotificacionRegistro(User user) {
         try {
+            logger.info("Enviando notificación de registro para usuario: {}", user.getEmail());
             EnvioEventoNotificacionDTO eventoDTO = new EnvioEventoNotificacionDTO();
             eventoDTO.setUsuarioId(user.getId());
             eventoDTO.setEvento(EnumEventoAsociado.REGISTRO_USUARIO);
@@ -105,7 +113,9 @@ public class AuthService {
                     "email", user.getEmail()
             ));
             notificacionClient.enviarPorEvento(eventoDTO);
+            logger.info("Notificación de registro enviada exitosamente para usuario: {}", user.getEmail());
         } catch (Exception e) {
+            logger.error("Error al enviar notificación de registro para usuario {}: {}", user.getEmail(), e.getMessage());
             // No fallar el registro si falla el envío de notificación
         }
     }
@@ -137,7 +147,33 @@ public class AuthService {
         jwtDTO.setJwt(jwt);
         response.setMessege("Inicio de sesion exitoso");
         response.setData(jwtDTO);
+
+        enviarNotificacionLogin(user);
+
         return response;
+    }
+
+    /**
+     * Envía notificación de inicio de sesion
+     * 
+     * @param user Usuario que inicia sesion
+     */
+    private void enviarNotificacionLogin(User user) {
+        try {
+            logger.info("Enviando notificación de login para usuario: {}", user.getEmail());
+            EnvioEventoNotificacionDTO eventoDTO = new EnvioEventoNotificacionDTO();
+            eventoDTO.setUsuarioId(user.getId());
+            eventoDTO.setEvento(EnumEventoAsociado.LOGIN_USUARIO);
+            eventoDTO.setVariablesAdicionales(java.util.Map.of(
+                    "username", user.getUsername(),
+                    "email", user.getEmail()
+            ));
+            notificacionClient.enviarPorEvento(eventoDTO);
+            logger.info("Notificación de login enviada exitosamente para usuario: {}", user.getEmail());
+        } catch (Exception e) {
+            logger.error("Error al enviar notificación de login para usuario {}: {}", user.getEmail(), e.getMessage());
+            // No fallar el login si falla el envío de notificación
+        }
     }
 
     /**
