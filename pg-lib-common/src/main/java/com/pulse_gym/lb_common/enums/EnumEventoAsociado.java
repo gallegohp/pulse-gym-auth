@@ -18,6 +18,11 @@ public enum EnumEventoAsociado {
     BIENVENIDA,
 
     /**
+     * Evento de inicio de sesion de usuario
+     */
+    LOGIN_USUARIO,
+
+    /**
      * Evento notificacion de recordatirio de pago
      */
     PAYMENT_REMINDER,
