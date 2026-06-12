@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -18,6 +20,7 @@ import com.pulse_gym.lb_common.dto.AsignarMembresiaRequestDTO;
 import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
 import com.pulse_gym.lb_common.dto.RenovarMembresiaRequestDTO;
 import com.pulse_gym.lb_common.dto.SocioMembresiaResponseDTO;
+import com.pulse_gym.lb_common.dto.SuspenderMembresiaRequestDTO;
 import com.pulse_gym.lb_common.exception.SecurityAuthorizationException;
 import com.pulse_gym.ms_users.service.SocioMembresiaService;
 
@@ -114,6 +117,60 @@ public class SocioMembresiaController {
         } catch (Exception e) {
             e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al renovar membresía", e);
+        }
+    }
+
+    /**
+     * Endpoint para cancelar una membresía activa de un socio.
+     * 
+     * @param idSocioMembresia ID de la membresía a cancelar (viene en la URL)
+     * @param motivo           Motivo de la cancelación (parámetro de consulta)
+     * @param userRol          Rol del usuario autenticado - header "X-User-Rol"
+     *                         (debe ser recepcionista)
+     * @return Mensaje de confirmación de cancelación con el motivo incluido y
+     *         código HTTP 200
+     */
+    @DeleteMapping("/{idSocioMembresia}/cancelar")
+    public ResponseEntity<MessegeGlobalDTO> cancelarMembresia(
+            @PathVariable Long idSocioMembresia,
+            @RequestParam String motivo,
+            @RequestHeader(value = "X-User-Rol", required = false) String userRol) {
+        try {
+            MessegeGlobalDTO response = socioMembresiaService.cancelarMembresia(idSocioMembresia, motivo, userRol);
+            return ResponseEntity.ok(response);
+        } catch (SecurityAuthorizationException e) {
+            throw e;
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al cancelar membresía", e);
+        }
+    }
+
+    /**
+     * Endpoint para suspender una membresía activa de un socio.
+     * 
+     * @param requestDTO DTO con el idSocioMembresia y el motivo de la suspensión
+     * @param userRol    Rol del usuario autenticado - header "X-User-Rol" (debe ser
+     *                   recepcionista)
+     * @return Mensaje de confirmación de suspensión con el motivo incluido y código
+     *         HTTP 200
+     */
+    @PutMapping("/suspender")
+    public ResponseEntity<MessegeGlobalDTO> suspenderMembresia(
+            @Valid @RequestBody SuspenderMembresiaRequestDTO requestDTO,
+            @RequestHeader(value = "X-User-Rol", required = false) String userRol) {
+        try {
+            MessegeGlobalDTO response = socioMembresiaService.suspenderMembresia(requestDTO, userRol);
+            return ResponseEntity.ok(response);
+        } catch (SecurityAuthorizationException e) {
+            throw e;
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al suspender membresía", e);
         }
     }
 
