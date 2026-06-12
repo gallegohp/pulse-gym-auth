@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,6 +16,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.pulse_gym.lb_common.dto.AsignarMembresiaRequestDTO;
 import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
+import com.pulse_gym.lb_common.dto.RenovarMembresiaRequestDTO;
 import com.pulse_gym.lb_common.dto.SocioMembresiaResponseDTO;
 import com.pulse_gym.lb_common.exception.SecurityAuthorizationException;
 import com.pulse_gym.ms_users.service.SocioMembresiaService;
@@ -86,4 +88,33 @@ public class SocioMembresiaController {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al consultar membresías", e);
         }
     }
+
+    /**
+     * Endpoint para renovar una membresía existente de un socio.
+     * 
+     * @param requestDTO        DTO con el idSocioMembresia de la membresía a
+     *                          renovar
+     * @param userRol           Rol del usuario autenticado - header "X-User-Rol"
+     * @param userIdAutenticado ID del usuario autenticado - header "X-User-Id"
+     * @return Mensaje de confirmación con la nueva fecha de vencimiento y código
+     *         HTTP 200
+     */
+    @PutMapping("/renovar")
+    public ResponseEntity<MessegeGlobalDTO> renovarMembresia(
+            @Valid @RequestBody RenovarMembresiaRequestDTO requestDTO,
+            @RequestHeader(value = "X-User-Rol", required = false) String userRol,
+            @RequestHeader(value = "X-User-Id", required = false) Long userIdAutenticado) {
+        try {
+            MessegeGlobalDTO response = socioMembresiaService.renovarMembresia(requestDTO, userRol, userIdAutenticado);
+            return ResponseEntity.ok(response);
+        } catch (SecurityAuthorizationException e) {
+            throw e;
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al renovar membresía", e);
+        }
+    }
+
 }

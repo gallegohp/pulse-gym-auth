@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.pulse_gym.lb_common.dto.AsignarMembresiaRequestDTO;
 import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
+import com.pulse_gym.lb_common.dto.RenovarMembresiaRequestDTO;
 import com.pulse_gym.lb_common.dto.SocioMembresiaResponseDTO;
 import com.pulse_gym.lb_common.entity.user.Membresia;
 import com.pulse_gym.lb_common.entity.user.SocioMembresia;
@@ -173,5 +174,63 @@ public class SocioMembresiaService {
         return membresias.stream()
                 .map(this::convertirAResponseDTO)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Renueva una membresía existente de un socio. Marca la membresía actual como
+     * RENOVADA y crea una nueva asignación con fechas actualizadas.
+     * 
+     * @param requestDTO        DTO con el idSocioMembresia de la membresía a
+     *                          renovar, más opciones de renovación automática y
+     *                          observaciones
+     * @param userRol           Rol del usuario autenticado (socio, administrador o
+     *                          recepcionista)
+     * @param userIdAutenticado ID del usuario que realiza la solicitud
+     * @return Mensaje de confirmación con la nueva fecha de vencimiento
+     */
+    @Transactional
+    public MessegeGlobalDTO renovarMembresia(RenovarMembresiaRequestDTO requestDTO, String userRol,
+            Long userIdAutenticado) {
+
+        SocioMembresia socioMembresia = socioMembresiaRepository.findById(requestDTO.getIdSocioMembresia())
+                .orElseThrow(() -> new RuntimeException(
+                        "Asignación de membresía no encontrada con ID: " + requestDTO.getIdSocioMembresia()));
+
+        if (userRol.equals(EnumRol.socio.name())) {
+            if (!userIdAutenticado.equals(socioMembresia.getSocio().getIdUsuario())) {
+                throw new SecurityAuthorizationException("Acceso denegado. Solo puede renovar su propia membresía");
+            }
+        } else if (!userRol.equals(EnumRol.administrador.name()) && !userRol.equals(EnumRol.recepcionista.name())) {
+            throw new SecurityAuthorizationException("Acceso denegado. Rol no autorizado: " + userRol);
+        }
+
+        Membresia membresia = socioMembresia.getMembresia();
+        if (!membresia.getActivo()) {
+            throw new RuntimeException("La membresía base ya no está activa");
+        }
+
+        socioMembresia.setEstado(EnumEstadoSocioMembresia.RENOVADA);
+        socioMembresiaRepository.save(socioMembresia);
+
+        LocalDate nuevaFechaInicio = LocalDate.now();
+        LocalDate nuevaFechaVencimiento = calcularFechaVencimiento(nuevaFechaInicio, membresia);
+
+        SocioMembresia nuevaMembresia = new SocioMembresia();
+        nuevaMembresia.setSocio(socioMembresia.getSocio());
+        nuevaMembresia.setMembresia(membresia);
+        nuevaMembresia.setFechaInicio(nuevaFechaInicio);
+        nuevaMembresia.setFechaVencimiento(nuevaFechaVencimiento);
+        nuevaMembresia.setEstado(EnumEstadoSocioMembresia.ACTIVA);
+        nuevaMembresia.setRenovacionAutomatica(
+                requestDTO.getRenovacionAutomatica() != null ? requestDTO.getRenovacionAutomatica()
+                        : socioMembresia.getRenovacionAutomatica());
+        nuevaMembresia.setObservaciones("Renovación de membresía anterior ID: " + socioMembresia.getIdSocioMembresia() +
+                (requestDTO.getObservaciones() != null ? " - " + requestDTO.getObservaciones() : ""));
+
+        socioMembresiaRepository.save(nuevaMembresia);
+
+        return new MessegeGlobalDTO(String.format(
+                "Membresía renovada correctamente. Nueva fecha de vencimiento: %s",
+                nuevaFechaVencimiento));
     }
 }
