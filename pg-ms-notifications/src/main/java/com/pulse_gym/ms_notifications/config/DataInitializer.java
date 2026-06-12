@@ -1,6 +1,8 @@
 package com.pulse_gym.ms_notifications.config;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,8 +10,11 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 import com.pulse_gym.lb_common.entity.notification.PlantillaDisenoEmail;
+import com.pulse_gym.lb_common.entity.notification.PlantillaNotificacion;
+import com.pulse_gym.lb_common.enums.EnumCanalNotificacion;
 import com.pulse_gym.lb_common.enums.EnumEventoAsociado;
 import com.pulse_gym.ms_notifications.repository.PlantillaDisenoEmailRepository;
+import com.pulse_gym.ms_notifications.repository.PlantillaNotificationRepository;
 
 /**
  * Inicializa los diseños de email por defecto al iniciar la aplicación.
@@ -21,13 +26,26 @@ public class DataInitializer implements CommandLineRunner {
     private static final Logger logger = LoggerFactory.getLogger(DataInitializer.class);
 
     private final PlantillaDisenoEmailRepository disenoRepository;
+    private final PlantillaNotificationRepository plantillaRepository;
 
-    public DataInitializer(PlantillaDisenoEmailRepository disenoRepository) {
+    public DataInitializer(PlantillaDisenoEmailRepository disenoRepository, 
+            PlantillaNotificationRepository plantillaRepository) {
         this.disenoRepository = disenoRepository;
+        this.plantillaRepository = plantillaRepository;
     }
 
     @Override
     public void run(String... args) {
+        // Inicializar plantillas de contenido
+        if (plantillaRepository.count() == 0) {
+            logger.info("Inicializando plantillas de notificacion...");
+            inicializarPlantillas();
+            logger.info("Plantillas de notificacion inicializadas correctamente");
+        } else {
+            logger.info("Las plantillas de notificacion ya existen en la base de datos");
+        }
+
+        // Inicializar diseños de email
         if (disenoRepository.count() == 0) {
             logger.info("Inicializando diseños de email por defecto...");
             inicializarDisenos();
@@ -35,6 +53,42 @@ public class DataInitializer implements CommandLineRunner {
         } else {
             logger.info("Los diseños de email ya existen en la base de datos");
         }
+    }
+
+    private void inicializarPlantillas() {
+        logger.info("Inicializando plantillas de notificación...");
+        
+        // Plantilla REGISTRO_USUARIO
+        PlantillaNotificacion registro = new PlantillaNotificacion();
+        registro.setNombre("Registro de Usuario");
+        registro.setTitulo("Bienvenido a Pulse Gym");
+        registro.setDescripcion("Notificacion de bienvenida al registrar nuevo usuario");
+        registro.setContenido("Hola {{username}}! Te damos la bienvenida a Pulse Gym. Tu cuenta ha sido creada exitosamente.");
+        registro.setTipoPlantilla(EnumCanalNotificacion.EMAIL);
+        registro.setEventoAsociado(EnumEventoAsociado.REGISTRO_USUARIO);
+        registro.setEventosAsociados(Set.of(EnumEventoAsociado.REGISTRO_USUARIO));
+        registro.setEstado(true);
+        registro.setEliminada(false);
+        registro.setFechaCreacion(LocalDateTime.now());
+        PlantillaNotificacion registroGuardada = plantillaRepository.save(registro);
+        logger.info("Plantilla REGISTRO_USUARIO creada con ID: {}", registroGuardada.getIdPlantilla());
+
+        // Plantilla LOGIN_USUARIO
+        PlantillaNotificacion login = new PlantillaNotificacion();
+        login.setNombre("Login de Usuario");
+        login.setTitulo("Inicio de sesion detectado");
+        login.setDescripcion("Notificacion de inicio de sesion");
+        login.setContenido("Hola {{username}}! Se ha iniciado sesion en tu cuenta desde un nuevo dispositivo.");
+        login.setTipoPlantilla(EnumCanalNotificacion.EMAIL);
+        login.setEventoAsociado(EnumEventoAsociado.LOGIN_USUARIO);
+        login.setEventosAsociados(Set.of(EnumEventoAsociado.LOGIN_USUARIO));
+        login.setEstado(true);
+        login.setEliminada(false);
+        login.setFechaCreacion(LocalDateTime.now());
+        PlantillaNotificacion loginGuardada = plantillaRepository.save(login);
+        logger.info("Plantilla LOGIN_USUARIO creada con ID: {}", loginGuardada.getIdPlantilla());
+
+        logger.info("Se crearon {} plantillas de notificacion", plantillaRepository.count());
     }
 
     private void inicializarDisenos() {
