@@ -141,14 +141,20 @@ public class NotificacionService {
      * @param request Datos del evento y usuario destino
      */
     public void enviarNotificacionPorEvento(EnvioEventoNotificacionDTO request) {
+        logger.info("Buscando plantilla para evento: {} y usuario: {}", request.getEvento(), request.getUsuarioId());
+        
         List<PlantillaNotificacion> plantillas = plantillaRepository
                 .findByEventosAsociadosContainingAndEstadoTrueAndEliminadaFalse(request.getEvento());
 
         if (plantillas.isEmpty()) {
+            logger.error("No existe plantilla activa para el evento: {} - usuario: {}", request.getEvento(), request.getUsuarioId());
             throw new RuntimeException("No existe plantilla activa para el evento: " + request.getEvento());
         }
 
         PlantillaNotificacion plantilla = plantillas.get(0);
+        logger.info("Plantilla encontrada: {} (ID: {}) para evento: {}", 
+                plantilla.getNombre(), plantilla.getIdPlantilla(), request.getEvento());
+        
         enviarNotificacionConPlantilla(
                 plantilla.getIdPlantilla(),
                 request.getUsuarioId(),
