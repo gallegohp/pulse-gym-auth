@@ -53,3 +53,8 @@ security:
     token-expiration: 3600000
     reset-token-expiration-minutes: 10
     # frontend-url: http://localhost:3000
+
+# Configuración de microservicios
+microservicio:
+  notificaciones:
+    url: ${NOTIFICACIONES_SERVICE_URL:http://pg-ms-notifications:8083}
