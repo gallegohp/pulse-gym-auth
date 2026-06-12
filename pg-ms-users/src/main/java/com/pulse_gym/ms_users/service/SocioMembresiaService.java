@@ -1,6 +1,8 @@
 package com.pulse_gym.ms_users.service;
 
 import java.time.LocalDate;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,6 +14,8 @@ import com.pulse_gym.lb_common.entity.user.Membresia;
 import com.pulse_gym.lb_common.entity.user.SocioMembresia;
 import com.pulse_gym.lb_common.entity.user.UsuarioPerfil;
 import com.pulse_gym.lb_common.enums.EnumEstadoSocioMembresia;
+import com.pulse_gym.lb_common.enums.EnumRol;
+import com.pulse_gym.lb_common.exception.SecurityAuthorizationException;
 import com.pulse_gym.lb_common.services.ValidacionDeRoles;
 import com.pulse_gym.ms_users.repository.MembresiaRepository;
 import com.pulse_gym.ms_users.repository.SocioMembresiaRepository;
@@ -134,4 +138,40 @@ public class SocioMembresiaService {
                 membresia.getNombre(), socio.getNombre(), fechaVencimiento));
     }
 
+    /**
+     * Consulta todas las membresías de un socio.
+     * 
+     * @param idSocio           ID del socio a consultar
+     * @param userRol           Rol del usuario autenticado (socio, administrador o
+     *                          recepcionista)
+     * @param userIdAutenticado ID del usuario que realiza la consulta
+     * @return Lista de DTOs con los datos de cada membresía del socio (incluye
+     *         fechas, estado, renovación automática, etc.)
+     */
+    @Transactional(readOnly = true)
+    public List<SocioMembresiaResponseDTO> consultarMembresiasSocio(Long idSocio, String userRol,
+            Long userIdAutenticado) {
+
+        if (userRol.equals(EnumRol.socio.name())) {
+            if (!userIdAutenticado.equals(idSocio)) {
+                throw new SecurityAuthorizationException("Acceso denegado. Solo puede consultar su propia membresía");
+            }
+        } else if (!userRol.equals(EnumRol.administrador.name()) && !userRol.equals(EnumRol.recepcionista.name())) {
+            throw new SecurityAuthorizationException("Acceso denegado. Rol no autorizado: " + userRol);
+        }
+
+        UsuarioPerfil socio = usuarioRepository.findById(idSocio)
+                .orElseThrow(() -> new RuntimeException("Socio no encontrado con ID: " + idSocio));
+
+        List<SocioMembresia> membresias = socioMembresiaRepository
+                .findBySocio_IdUsuarioOrderByFechaCreacionDesc(idSocio);
+
+        if (membresias.isEmpty()) {
+            throw new RuntimeException("El socio " + socio.getNombre() + " no tiene membresías asignadas");
+        }
+
+        return membresias.stream()
+                .map(this::convertirAResponseDTO)
+                .collect(Collectors.toList());
+    }
 }
