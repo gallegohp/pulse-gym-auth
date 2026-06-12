@@ -3,10 +3,16 @@ package com.pulse_gym.ms_users.service;
 import java.time.LocalDate;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.pulse_gym.lb_common.dto.AsignarMembresiaRequestDTO;
+import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
 import com.pulse_gym.lb_common.dto.SocioMembresiaResponseDTO;
 import com.pulse_gym.lb_common.entity.user.Membresia;
 import com.pulse_gym.lb_common.entity.user.SocioMembresia;
+import com.pulse_gym.lb_common.entity.user.UsuarioPerfil;
+import com.pulse_gym.lb_common.enums.EnumEstadoSocioMembresia;
+import com.pulse_gym.lb_common.services.ValidacionDeRoles;
 import com.pulse_gym.ms_users.repository.MembresiaRepository;
 import com.pulse_gym.ms_users.repository.SocioMembresiaRepository;
 import com.pulse_gym.ms_users.repository.UsuarioPerfilRepository;
@@ -26,24 +32,30 @@ public class SocioMembresiaService {
     private final UsuarioPerfilRepository usuarioRepository;
 
     /** Repositorio para gestionar las membresías */
-    private final MembresiaRepository membresiaRepository; 
+    private final MembresiaRepository membresiaRepository;
 
     /**
-     * Calcula la fecha de vencimiento de una membresía a partir de la fecha de inicio y el tipo de duración de la membresía.
+     * Calcula la fecha de vencimiento de una membresía a partir de la fecha de
+     * inicio y el tipo de duración de la membresía.
+     * 
      * @param fechaInicio La fecha de inicio de la membresía
-     * @param membresia La membresía para la cual se va a calcular la fecha de vencimiento
+     * @param membresia   La membresía para la cual se va a calcular la fecha de
+     *                    vencimiento
      * @return La fecha de vencimiento calculada para la membresía del socio
      */
-     private LocalDate calcularFechaVencimiento(LocalDate fechaInicio, Membresia membresia) {
+    private LocalDate calcularFechaVencimiento(LocalDate fechaInicio, Membresia membresia) {
         int diasTotales = membresia.getTipoDuracion().calcularDiasTotales(
-            membresia.getCantidad() != null ? membresia.getCantidad() : 1);
+                membresia.getCantidad() != null ? membresia.getCantidad() : 1);
         return fechaInicio.plusDays(diasTotales);
     }
-    
+
     /**
-     * Convierte una entidad SocioMembresia a un DTO de respuesta SocioMembresiaResponseDTO.
+     * Convierte una entidad SocioMembresia a un DTO de respuesta
+     * SocioMembresiaResponseDTO.
+     * 
      * @param sm La entidad SocioMembresia a convertir
-     * @return Un objeto SocioMembresiaResponseDTO con los datos de la membresía del socio
+     * @return Un objeto SocioMembresiaResponseDTO con los datos de la membresía del
+     *         socio
      */
     private SocioMembresiaResponseDTO convertirAResponseDTO(SocioMembresia sm) {
         SocioMembresiaResponseDTO dto = new SocioMembresiaResponseDTO();
@@ -71,5 +83,55 @@ public class SocioMembresiaService {
         dto.setFechaActualizacion(sm.getFechaActualizacion());
         return dto;
     }
-    
+
+    /**
+     * Asigna una membresía a un socio.
+     * 
+     * @param requestDTO Datos de la asignación (idSocio, idMembresia, fechaInicio,
+     *                   renovacionAutomatica, observaciones)
+     * @param userRol    Rol del usuario que hace la solicitud
+     * @return Mensaje con el formato: "Membresía 'X' asignada correctamente al
+     *         socio Y. Vence el: Z"
+     */
+    @Transactional
+    public MessegeGlobalDTO asignarMembresia(AsignarMembresiaRequestDTO requestDTO, String userRol) {
+        ValidacionDeRoles.validarRecepcionista(userRol);
+
+        UsuarioPerfil socio = usuarioRepository.findById(requestDTO.getIdSocio())
+                .orElseThrow(() -> new RuntimeException("Socio no encontrado con ID: " + requestDTO.getIdSocio()));
+
+        Membresia membresia = membresiaRepository.findById(requestDTO.getIdMembresia())
+                .orElseThrow(
+                        () -> new RuntimeException("Membresía no encontrada con ID: " + requestDTO.getIdMembresia()));
+
+        if (!membresia.getActivo()) {
+            throw new RuntimeException("La membresía no está activa");
+        }
+
+        if (socioMembresiaRepository.existsBySocio_IdUsuarioAndEstado(requestDTO.getIdSocio(),
+                EnumEstadoSocioMembresia.ACTIVA)) {
+            throw new RuntimeException(
+                    "El socio ya tiene una membresía activa. Debe renovar o cancelar la actual primero.");
+        }
+
+        LocalDate fechaInicio = requestDTO.getFechaInicio() != null ? requestDTO.getFechaInicio() : LocalDate.now();
+        LocalDate fechaVencimiento = calcularFechaVencimiento(fechaInicio, membresia);
+
+        SocioMembresia socioMembresia = new SocioMembresia();
+        socioMembresia.setSocio(socio);
+        socioMembresia.setMembresia(membresia);
+        socioMembresia.setFechaInicio(fechaInicio);
+        socioMembresia.setFechaVencimiento(fechaVencimiento);
+        socioMembresia.setEstado(EnumEstadoSocioMembresia.ACTIVA);
+        socioMembresia.setRenovacionAutomatica(
+                requestDTO.getRenovacionAutomatica() != null ? requestDTO.getRenovacionAutomatica() : false);
+        socioMembresia.setObservaciones(requestDTO.getObservaciones());
+
+        socioMembresiaRepository.save(socioMembresia);
+
+        return new MessegeGlobalDTO(String.format(
+                "Membresía '%s' asignada correctamente al socio %s. Vence el: %s",
+                membresia.getNombre(), socio.getNombre(), fechaVencimiento));
+    }
+
 }
