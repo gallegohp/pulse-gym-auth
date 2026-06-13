@@ -269,4 +269,44 @@ public class UsuarioPerfil {
         historialFisico.remove(historial);
         historial.setSocio(null);
     }
+
+    /**
+     * Lista de membresías asignadas al socio (historial)
+     */
+    @OneToMany(mappedBy = "socio", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<SocioMembresia> membresiaAsignadas = new ArrayList<>();
+
+    /**
+     * Membresía activa actual del socio (helper method)
+     * 
+     * @return La membresía activa actual o null si no tiene
+     */
+    public SocioMembresia getMembresiaActiva() {
+        if (membresiaAsignadas == null)
+            return null;
+        return membresiaAsignadas.stream()
+                .filter(SocioMembresia::isActiva)
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
+     * Agrega una membresía al historial del socio
+     * 
+     * @param socioMembresia La membresía a agregar
+     */
+    public void addMembresiaAsignadav(SocioMembresia socioMembresia) {
+        membresiaAsignadas.add(socioMembresia);
+        socioMembresia.setSocio(this);
+    }
+
+    /**
+     * Elimina una membresía del historial del socio
+     * 
+     * @param socioMembresia La membresía a eliminar
+     */
+    public void removeMembresiaAsignada(SocioMembresia socioMembresia) {
+        membresiaAsignadas.remove(socioMembresia);
+        socioMembresia.setSocio(null);
+    }
 }
