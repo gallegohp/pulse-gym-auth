@@ -1,6 +1,7 @@
 package com.pulse_gym.ms_auth.services;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -97,28 +98,25 @@ public class AuthService {
         return new MessegeGlobalDTO("Se ha registrado correctamente");
     }
 
-    /**
-     * Envía notificación de verificación al registrar nuevo usuario
-     * 
-     * @param user Usuario registrado
-     */
     private void enviarNotificacionRegistro(User user) {
-        try {
-            logger.info("Enviando notificación de registro para usuario: {}", user.getEmail());
-            EnvioEventoNotificacionDTO eventoDTO = new EnvioEventoNotificacionDTO();
-            eventoDTO.setUsuarioId(user.getId());
-            eventoDTO.setEvento(EnumEventoAsociado.REGISTRO_USUARIO);
-            eventoDTO.setVariablesAdicionales(java.util.Map.of(
-                    "username", user.getUsername(),
-                    "email", user.getEmail()
-            ));
-            notificacionClient.enviarPorEvento(eventoDTO);
-            logger.info("Notificación de registro enviada exitosamente para usuario: {}", user.getEmail());
-        } catch (Exception e) {
-            logger.error("Error al enviar notificación de registro para usuario {}: {}", user.getEmail(), e.getMessage());
-            // No fallar el registro si falla el envío de notificación
-        }
+    try {
+        logger.info("Enviando notificación de registro para usuario: {}", user.getEmail());
+        EnvioEventoNotificacionDTO eventoDTO = new EnvioEventoNotificacionDTO();
+        eventoDTO.setUsuarioId(user.getId());
+        eventoDTO.setEvento(EnumEventoAsociado.REGISTRO_USUARIO);
+        eventoDTO.setVariablesAdicionales(Map.of(
+            "username", user.getUsername(),
+            "email", user.getEmail(),
+            "nombre", user.getUsername(),  // Añadir nombre si está disponible
+            "fecha_registro", LocalDateTime.now().toString()
+        ));
+        notificacionClient.enviarPorEvento(eventoDTO);
+        logger.info("Notificación de registro enviada exitosamente");
+    } catch (Exception e) {
+        logger.error("Error al enviar notificación de registro: {}", e.getMessage(), e);
+        // No fallar el registro
     }
+}
 
     /**
      * Inicio de sesion
