@@ -58,3 +58,9 @@ security:
 microservicio:
   notificaciones:
     url: ${NOTIFICACIONES_SERVICE_URL:http://pg-ms-notifications:8083}
+
+logging:
+  level:
+    com.pulse_gym: DEBUG
+    com.pulse_gym.ms_auth.services: DEBUG
+    org.springframework.web: DEBUG

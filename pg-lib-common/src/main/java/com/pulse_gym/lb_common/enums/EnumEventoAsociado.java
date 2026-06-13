@@ -11,12 +11,7 @@ public enum EnumEventoAsociado {
      * Evento de verificacion al registrar nuevo usuario en auth
      */
     REGISTRO_USUARIO,
-
-    /**
-     * Evento de bienvenida al completar perfil de usuario
-     */
-    BIENVENIDA,
-
+    
     /**
      * Evento de inicio de sesion de usuario
      */
