@@ -54,10 +54,6 @@ public class SocioMembresia {
     @Column(name = "estado", nullable = false)
     private EnumEstadoSocioMembresia estado = EnumEstadoSocioMembresia.ACTIVA;
 
-    /** Indica si la renovación es automática */
-    @Column(name = "renovacion_automatica", nullable = false)
-    private Boolean renovacionAutomatica = false;
-
     /** Fecha de creación del registro */
     @Column(name = "fecha_creacion", nullable = false, updatable = false)
     private LocalDateTime fechaCreacion;

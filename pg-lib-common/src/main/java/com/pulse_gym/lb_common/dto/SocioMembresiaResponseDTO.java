@@ -51,9 +51,6 @@ public class SocioMembresiaResponseDTO {
     /** Estado de la membresía */
     private String estado;
 
-    /** Indica si la membresía tiene renovación automática */
-    private Boolean renovacionAutomatica;
-
     /** Días restantes hasta el vencimiento */
     private Long diasRestantes;
 

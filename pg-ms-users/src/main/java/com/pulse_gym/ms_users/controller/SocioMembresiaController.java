@@ -174,4 +174,36 @@ public class SocioMembresiaController {
         }
     }
 
+    /**
+     * Endpoint para obtener la membresía activa de un socio específico.
+     * 
+     * @param idSocio           ID del socio a consultar (viene en la URL)
+     * @param userRol           Rol del usuario autenticado - header "X-User-Rol"
+     * @param userIdAutenticado ID del usuario autenticado - header "X-User-Id"
+     * @return DTO con los datos de la membresía activa del socio, o null si no
+     *         tiene ninguna activa, con código HTTP 200
+     */
+    @GetMapping("/socio/{idSocio}/activa")
+    public ResponseEntity<SocioMembresiaResponseDTO> obtenerMembresiaActiva(
+            @PathVariable Long idSocio,
+            @RequestHeader(value = "X-User-Rol", required = false) String userRol,
+            @RequestHeader(value = "X-User-Id", required = false) Long userIdAutenticado) {
+        try {
+            List<SocioMembresiaResponseDTO> membresias = socioMembresiaService.consultarMembresiasSocio(
+                    idSocio, userRol, userIdAutenticado);
+            SocioMembresiaResponseDTO activa = membresias.stream()
+                    .filter(SocioMembresiaResponseDTO::getEstaActiva)
+                    .findFirst()
+                    .orElse(null);
+            return ResponseEntity.ok(activa);
+        } catch (SecurityAuthorizationException e) {
+            throw e;
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al obtener membresía activa", e);
+        }
+    }
+
 }

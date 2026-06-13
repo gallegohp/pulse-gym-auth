@@ -19,9 +19,6 @@ public class AsignarMembresiaRequestDTO {
     /** Fecha de inicio de la membresía */
     private LocalDate fechaInicio;
 
-    /** Indica si la membresía tiene renovación automática */
-    private Boolean renovacionAutomatica = false;
-
     /** Observaciones */
     private String observaciones;
 }

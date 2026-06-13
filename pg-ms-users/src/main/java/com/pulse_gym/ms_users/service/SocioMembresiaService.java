@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -79,7 +80,6 @@ public class SocioMembresiaService {
         dto.setFechaInicio(sm.getFechaInicio());
         dto.setFechaVencimiento(sm.getFechaVencimiento());
         dto.setEstado(sm.getEstado().name());
-        dto.setRenovacionAutomatica(sm.getRenovacionAutomatica());
         dto.setDiasRestantes(sm.getDiasRestantes());
         dto.setEstaActiva(sm.isActiva());
         dto.setEstaVencida(sm.isVencida());
@@ -129,8 +129,6 @@ public class SocioMembresiaService {
         socioMembresia.setFechaInicio(fechaInicio);
         socioMembresia.setFechaVencimiento(fechaVencimiento);
         socioMembresia.setEstado(EnumEstadoSocioMembresia.ACTIVA);
-        socioMembresia.setRenovacionAutomatica(
-                requestDTO.getRenovacionAutomatica() != null ? requestDTO.getRenovacionAutomatica() : false);
         socioMembresia.setObservaciones(requestDTO.getObservaciones());
 
         socioMembresiaRepository.save(socioMembresia);
@@ -224,9 +222,6 @@ public class SocioMembresiaService {
         nuevaMembresia.setFechaInicio(nuevaFechaInicio);
         nuevaMembresia.setFechaVencimiento(nuevaFechaVencimiento);
         nuevaMembresia.setEstado(EnumEstadoSocioMembresia.ACTIVA);
-        nuevaMembresia.setRenovacionAutomatica(
-                requestDTO.getRenovacionAutomatica() != null ? requestDTO.getRenovacionAutomatica()
-                        : socioMembresia.getRenovacionAutomatica());
         nuevaMembresia.setObservaciones("Renovación de membresía anterior ID: " + socioMembresia.getIdSocioMembresia() +
                 (requestDTO.getObservaciones() != null ? " - " + requestDTO.getObservaciones() : ""));
 
@@ -296,5 +291,30 @@ public class SocioMembresiaService {
         socioMembresiaRepository.save(socioMembresia);
 
         return new MessegeGlobalDTO("Membresía suspendida correctamente. Motivo: " + requestDTO.getMotivo());
+    }
+
+    /**
+     * Tarea programada que se ejecuta diariamente a medianoche para actualizar las
+     * membresías vencidas.
+     * Cambia el estado de las membresías activas vencidas a VENCIDA y, si tienen
+     * renovación automática activada,
+     * crea automáticamente una nueva membresía renovada con fechas actualizadas.
+     * 
+     * @return void (no retorna valor)
+     */
+    @Scheduled(cron = "0 0 0 * * ?")
+    @Transactional
+    public void actualizarMembresiasVencidas() {
+        log.info("Ejecutando tarea programada: actualizar membresías vencidas");
+
+        List<SocioMembresia> vencidas = socioMembresiaRepository.findVencidasActivas();
+
+        for (SocioMembresia sm : vencidas) {
+            sm.setEstado(EnumEstadoSocioMembresia.VENCIDA);
+            sm.setObservaciones("Vencimiento automático el " + LocalDate.now());
+        }
+
+        socioMembresiaRepository.saveAll(vencidas);
+        log.info("Membresías vencidas actualizadas: {}", vencidas.size());
     }
 }
