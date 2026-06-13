@@ -10,9 +10,6 @@ public class RenovarMembresiaRequestDTO {
     @NotNull(message = "El ID de la asignación de membresía es obligatorio")
     private Long idSocioMembresia;
     
-    /** Indica si la membresía tiene renovación automática */
-    private Boolean renovacionAutomatica;
-    
     /** Observaciones */
     private String observaciones;
 }
