@@ -24,6 +24,7 @@ import com.pulse_gym.lb_common.enums.EnumEventoAsociado;
 import com.pulse_gym.ms_notifications.repository.NotificacionRepository;
 import com.pulse_gym.ms_notifications.repository.PlantillaNotificationRepository;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -140,6 +141,7 @@ public class NotificacionService {
      *
      * @param request Datos del evento y usuario destino
      */
+    @Transactional
     public void enviarNotificacionPorEvento(EnvioEventoNotificacionDTO request) {
         logger.info("Buscando plantilla para evento: {} y usuario: {}", request.getEvento(), request.getUsuarioId());
         

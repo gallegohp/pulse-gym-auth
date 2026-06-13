@@ -146,7 +146,7 @@ public class UsuarioPerfilService {
 
             EnvioEventoNotificacionDTO eventoDTO = new EnvioEventoNotificacionDTO();
             eventoDTO.setUsuarioId(authUser.getId());
-            eventoDTO.setEvento(EnumEventoAsociado.BIENVENIDA);
+            eventoDTO.setEvento(EnumEventoAsociado.WELCOME);
             eventoDTO.setVariablesAdicionales(java.util.Map.of(
                     "nombre", usuario.getNombre(),
                     "apellido", usuario.getApellido() != null ? usuario.getApellido() : ""

@@ -66,7 +66,7 @@ public class ConfiguracionGlobalService {
      *
      * @return Configuracion persistida o por defecto
      */
-    @Transactional(readOnly = true)
+    @Transactional
     public ConfiguracionGlobal obtenerLimitesEfectivos() {
         return obtenerOInicializarConfiguracion();
     }

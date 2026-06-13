@@ -96,6 +96,7 @@ public class PreferenciaUsuarioService {
      * @param tipoEvento  Evento de la notificacion
      * @param canal       Canal de envio
      */
+    @Transactional
     public void validarPreferenciasUsuario(Long usuarioId, EnumEventoAsociado tipoEvento, EnumCanalNotificacion canal) {
         PreferenciaUsuario preferencia = obtenerOPreferenciasPorDefecto(usuarioId);
 
