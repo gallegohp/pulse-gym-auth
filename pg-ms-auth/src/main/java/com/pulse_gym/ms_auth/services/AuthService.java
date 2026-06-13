@@ -99,24 +99,30 @@ public class AuthService {
     }
 
     private void enviarNotificacionRegistro(User user) {
-    try {
-        logger.info("Enviando notificación de registro para usuario: {}", user.getEmail());
-        EnvioEventoNotificacionDTO eventoDTO = new EnvioEventoNotificacionDTO();
-        eventoDTO.setUsuarioId(user.getId());
-        eventoDTO.setEvento(EnumEventoAsociado.REGISTRO_USUARIO);
-        eventoDTO.setVariablesAdicionales(Map.of(
-            "username", user.getUsername(),
-            "email", user.getEmail(),
-            "nombre", user.getUsername(),  // Añadir nombre si está disponible
-            "fecha_registro", LocalDateTime.now().toString()
-        ));
-        notificacionClient.enviarPorEvento(eventoDTO);
-        logger.info("Notificación de registro enviada exitosamente");
-    } catch (Exception e) {
-        logger.error("Error al enviar notificación de registro: {}", e.getMessage(), e);
-        // No fallar el registro
+        try {
+            logger.info(">>> INICIANDO envío de notificación de registro para usuario: {}", user.getEmail());
+            logger.info(">>> ID de usuario: {}", user.getId());
+            logger.info(">>> Evento: {}", EnumEventoAsociado.REGISTRO_USUARIO);
+
+            EnvioEventoNotificacionDTO eventoDTO = new EnvioEventoNotificacionDTO();
+            eventoDTO.setUsuarioId(user.getId());
+            eventoDTO.setEvento(EnumEventoAsociado.REGISTRO_USUARIO);
+            eventoDTO.setVariablesAdicionales(Map.of(
+                    "username", user.getUsername(),
+                    "email", user.getEmail(),
+                    "nombre", user.getUsername(),
+                    "fecha_registro", LocalDateTime.now().toString()));
+
+            logger.info(">>> Llamando a notificacionClient.enviarPorEvento con DTO: {}", eventoDTO);
+
+            notificacionClient.enviarPorEvento(eventoDTO);
+
+            logger.info(">>> Notificación de registro enviada exitosamente");
+        } catch (Exception e) {
+            logger.error(">>> ERROR CRÍTICO al enviar notificación: {}", e.getMessage(), e);
+            e.printStackTrace(); // Esto forzará la impresión del stack trace
+        }
     }
-}
 
     /**
      * Inicio de sesion
@@ -164,8 +170,7 @@ public class AuthService {
             eventoDTO.setEvento(EnumEventoAsociado.LOGIN_USUARIO);
             eventoDTO.setVariablesAdicionales(java.util.Map.of(
                     "username", user.getUsername(),
-                    "email", user.getEmail()
-            ));
+                    "email", user.getEmail()));
             notificacionClient.enviarPorEvento(eventoDTO);
             logger.info("Notificación de login enviada exitosamente para usuario: {}", user.getEmail());
         } catch (Exception e) {
