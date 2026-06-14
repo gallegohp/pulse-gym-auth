@@ -17,19 +17,29 @@ import com.pulse_gym.ms_notifications.util.EventoNotificacionUtil;
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * Servicio para gestionar las preferencias de notificaciones de los usuarios.
+ * Permite obtener, actualizar y validar preferencias de canal y categorías de
+ * notificaciones.
+ */
 @Service
 @RequiredArgsConstructor
 public class PreferenciaUsuarioService {
 
+    /** Repositorio para operaciones CRUD de preferencias de usuario */
     private final PreferenciaUsuarioRepository preferenciaUsuarioRepository;
+
+    /** Servicio para validar límites de envío de notificaciones */
     private final RateLimitService rateLimitService;
 
     /**
-     * Obtiene las preferencias del usuario autenticado
+     * Obtiene las preferencias del usuario autenticado.
+     * Si el usuario no tiene preferencias configuradas, se crean con valores por
+     * defecto.
      *
-     * @param usuarioId Identificador del usuario en auth
-     * @param userRol   Rol del usuario autenticado
-     * @return Preferencias del usuario
+     * @param usuarioId Identificador del usuario en el sistema de autenticación
+     * @param userRol   Rol del usuario autenticado (debe ser SOCIO)
+     * @return DTO con las preferencias del usuario
      */
     @Transactional(readOnly = true)
     public PreferenciaUsuarioResponseDTO obtenerMisPreferencias(Long usuarioId, String userRol) {
@@ -38,12 +48,12 @@ public class PreferenciaUsuarioService {
     }
 
     /**
-     * Actualiza las preferencias del usuario autenticado
+     * Actualiza las preferencias del usuario autenticado.
      *
-     * @param usuarioId Identificador del usuario en auth
-     * @param request   Datos de preferencias
-     * @param userRol   Rol del usuario autenticado
-     * @return Preferencias actualizadas
+     * @param usuarioId Identificador del usuario en el sistema de autenticación
+     * @param request   DTO con los nuevos datos de preferencias
+     * @param userRol   Rol del usuario autenticado (debe ser SOCIO)
+     * @return DTO con las preferencias actualizadas
      */
     @Transactional
     public PreferenciaUsuarioResponseDTO actualizarMisPreferencias(
@@ -64,10 +74,13 @@ public class PreferenciaUsuarioService {
     }
 
     /**
-     * Verifica si un envio esta permitido segun preferencias y limites
+     * Verifica si un envío de notificación está permitido según las preferencias
+     * del usuario
+     * y los límites de rate limiting.
      *
-     * @param request Datos de verificacion
-     * @return Resultado de la verificacion
+     * @param request DTO con los datos de verificación (usuarioId, tipoEvento,
+     *                canal)
+     * @return DTO con el resultado de la verificación (permitido + motivo)
      */
     @Transactional(readOnly = true)
     public VerificarPreferenciaResponseDTO verificarEnvioPermitido(VerificarPreferenciaRequestDTO request) {
@@ -90,11 +103,14 @@ public class PreferenciaUsuarioService {
     }
 
     /**
-     * Valida preferencias de canal y categoria antes de un envio
+     * Valida las preferencias de canal y categoría antes de un envío.
+     * Para eventos de autenticación (REGISTRO_USUARIO, LOGIN_USUARIO) solo valida
+     * el canal,
+     * saltando la validación de categorías (logros, mantenimiento, promociones).
      *
-     * @param usuarioId   Identificador del usuario en auth
-     * @param tipoEvento  Evento de la notificacion
-     * @param canal       Canal de envio
+     * @param usuarioId  Identificador del usuario en el sistema de autenticación
+     * @param tipoEvento Evento de la notificación a enviar
+     * @param canal      Canal por el que se desea enviar la notificación
      */
     @Transactional
     public void validarPreferenciasUsuario(Long usuarioId, EnumEventoAsociado tipoEvento, EnumCanalNotificacion canal) {
@@ -102,6 +118,12 @@ public class PreferenciaUsuarioService {
 
         if (!EventoNotificacionUtil.canalHabilitado(preferencia.getPreferencia(), canal)) {
             throw new RuntimeException("El usuario no acepta notificaciones por el canal solicitado");
+        }
+
+        // Para eventos de autenticación, no validamos categorías (logros,
+        // mantenimiento, promociones)
+        if (tipoEvento == EnumEventoAsociado.REGISTRO_USUARIO || tipoEvento == EnumEventoAsociado.LOGIN_USUARIO) {
+            return;
         }
 
         if (EventoNotificacionUtil.esLogro(tipoEvento) && Boolean.FALSE.equals(preferencia.getLogros_habilitado())) {
@@ -120,20 +142,26 @@ public class PreferenciaUsuarioService {
     }
 
     /**
-     * Obtiene las preferencias del usuario o crea una nueva con valores por defecto si no existen
-     * @param usuarioId Identificador del usuario en auth
-     * @return Preferencias del usuario
+     * Obtiene las preferencias del usuario o crea una nueva con valores por defecto
+     * si no existen.
+     *
+     * @param usuarioId Identificador del usuario en el sistema de autenticación
+     * @return Entidad de preferencias del usuario
      */
     private PreferenciaUsuario obtenerOPreferenciasPorDefecto(Long usuarioId) {
         return preferenciaUsuarioRepository.findByIdUsuario(usuarioId)
                 .orElseGet(() -> crearPreferenciaPorDefecto(usuarioId));
     }
 
-    
     /**
-     * Crea las preferencias del usuario con valores por defecto
-     * @param usuarioId Identificador del usuario en auth
-     * @return Preferencias del usuario
+     * Crea las preferencias del usuario con valores por defecto:
+     * - Canal: AMBOS
+     * - Logros: habilitado
+     * - Mantenimientos: habilitado
+     * - Promociones: habilitado
+     *
+     * @param usuarioId Identificador del usuario en el sistema de autenticación
+     * @return Entidad de preferencias recién creada
      */
     private PreferenciaUsuario crearPreferenciaPorDefecto(Long usuarioId) {
         PreferenciaUsuario preferencia = new PreferenciaUsuario();
@@ -146,9 +174,11 @@ public class PreferenciaUsuarioService {
     }
 
     /**
-     * Mapea una entidad de PreferenciaUsuario a un DTO de PreferenciaUsuarioResponseDTO para su uso en respuestas de API. Este método se encarga de extraer los valores relevantes de la entidad y
-     * @param preferencia       PreferenciaUsuario a mapear
-     * @return                 PreferenciaUsuarioResponseDTO con los datos mapeados de la entidad PreferenciaUsuario, listo para ser utilizado en respuestas de API o en la capa de presentación.
+     * Convierte una entidad PreferenciaUsuario a su correspondiente DTO de
+     * respuesta.
+     *
+     * @param preferencia Entidad de preferencias a convertir
+     * @return DTO con los datos de preferencias mapeados
      */
     private PreferenciaUsuarioResponseDTO mapearAResponse(PreferenciaUsuario preferencia) {
         PreferenciaUsuarioResponseDTO dto = new PreferenciaUsuarioResponseDTO();
