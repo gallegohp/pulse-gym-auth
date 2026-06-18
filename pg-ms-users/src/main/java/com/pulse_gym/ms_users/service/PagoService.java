@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import org.springframework.stereotype.Service;
 
 import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
+import com.pulse_gym.lb_common.dto.PaymentResultDTO;
 import com.pulse_gym.lb_common.dto.RegistrarPagoRequestDTO;
 import com.pulse_gym.lb_common.entity.user.Pago;
 import com.pulse_gym.lb_common.entity.user.SocioMembresia;
@@ -15,6 +16,7 @@ import com.pulse_gym.lb_common.services.ValidacionDeRoles;
 import com.pulse_gym.ms_users.repository.PagoRepository;
 import com.pulse_gym.ms_users.repository.SocioMembresiaRepository;
 import com.pulse_gym.ms_users.repository.UsuarioPerfilRepository;
+import com.pulse_gym.ms_users.service.payment.MercadoPagoGateway;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +35,8 @@ public class PagoService {
 
     /** Repositorio para operaciones con usuarios */
     private final UsuarioPerfilRepository usuarioRepository;
+
+    private final MercadoPagoGateway mercadoPagoGateway;
 
     /**
      * Registra un nuevo pago para una membresía asignada a un socio.
@@ -128,29 +132,72 @@ public class PagoService {
             throw new RuntimeException("El monto debe ser mayor a 0");
         }
 
-        log.info("🔹 Procesando pago con pasarela para el socio: {} (ID: {})", userEmail, socio.getIdUsuario());
+        // ============================================================
+        // 🚀 INTEGRACIÓN CON MERCADO PAGO - PROCESAR PAGO
+        // ============================================================
+        log.info("🔹 Procesando pago con MercadoPago para el socio: {} (ID: {})", userEmail, socio.getIdUsuario());
         log.info("🔹 Monto: ${}, Método: {}", requestDTO.getMonto(), metodoPago);
 
+        PaymentResultDTO paymentResult;
+
+        // 🔥 NUEVO: Siempre usar el método con token en sandbox
+        // Generamos un token simulado a partir del número de tarjeta
+        String simulatedCardToken = requestDTO.getCardNumber().replaceAll("\\s+", "").replaceAll("-", "");
+
+        log.info("🔹 Usando token simulado para sandbox: {}", simulatedCardToken);
+
+        paymentResult = mercadoPagoGateway.processCardPaymentWithToken(
+                simulatedCardToken, // Token simulado
+                requestDTO.getMonto(),
+                "Pago membresía Pulse Gym - " + socioMembresia.getMembresia().getNombre(),
+                userEmail,
+                determinePaymentMethod(requestDTO.getCardNumber()) // "visa" o "master"
+        );
+
+        // Verificar resultado del pago
+        if (!paymentResult.getSuccess()) {
+            log.error("❌ Pago rechazado por MercadoPago: {}", paymentResult.getMessage());
+            throw new RuntimeException("El pago fue rechazado: " + paymentResult.getMessage());
+        }
+
+        log.info("✅ Pago APROBADO por MercadoPago. Transacción: {}", paymentResult.getTransactionId());
+
+        // Crear el pago en nuestra base de datos
         Pago pago = new Pago();
         pago.setSocioMembresia(socioMembresia);
         pago.setMonto(requestDTO.getMonto());
-        pago.setFechaPago(java.time.LocalDateTime.now());
+        pago.setFechaPago(LocalDateTime.now());
         pago.setMetodoPago(metodoPago);
-        pago.setNumeroComprobante(requestDTO.getNumeroComprobante());
-        pago.setAdminRegistro(null); // ← SIN admin porque es desde app
-        pago.setObservaciones("Pago desde aplicación móvil - " +
-                (requestDTO.getObservaciones() != null ? requestDTO.getObservaciones() : ""));
+        pago.setNumeroComprobante(paymentResult.getTransactionId());
+        pago.setAdminRegistro(null);
+        pago.setObservaciones("Pago desde aplicación móvil - Transacción: " + paymentResult.getTransactionId() +
+                (requestDTO.getObservaciones() != null ? " - " + requestDTO.getObservaciones() : ""));
         pago.setAnulado(false);
 
         Pago pagoGuardado = pagoRepository.save(pago);
 
-        log.info("Pago registrado exitosamente desde app. ID: {}", pagoGuardado.getIdPago());
+        log.info("✅ Pago registrado exitosamente en BD. ID: {}", pagoGuardado.getIdPago());
 
         return new MessegeGlobalDTO(String.format(
-                "Pago realizado exitosamente desde la aplicación. Socio: %s, Monto: $%,.0f, Método: %s, Comprobante: %s",
+                "✅ Pago realizado exitosamente desde la aplicación. Socio: %s, Monto: $%,.0f, Método: %s, Transacción: %s",
                 socio.getNombre(),
                 pago.getMonto(),
                 metodoPago.name(),
-                pago.getNumeroComprobante() != null ? pago.getNumeroComprobante() : "N/A"));
+                paymentResult.getTransactionId()));
+    }
+
+    // Método helper para determinar el método de pago
+    private String determinePaymentMethod(String cardNumber) {
+        String clean = cardNumber.replaceAll("\\s+", "").replaceAll("-", "");
+        if (clean.matches("^(5[1-5]|222[1-9]|22[3-9]|2[3-6]|27[0-1]|2720).*")) {
+            return "master";
+        }
+        if (clean.startsWith("4")) {
+            return "visa";
+        }
+        if (clean.matches("^(34|37).*")) {
+            return "amex";
+        }
+        return "visa";
     }
 }
