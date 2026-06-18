@@ -52,4 +52,34 @@ public class PagoController {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al registrar pago", e);
         }
     }
+
+    /**
+     * Endpoint para que un socio realice un pago desde la aplicación móvil.
+     * 
+     * @param requestDTO        DTO con los datos del pago (idSocioMembresia, monto,
+     *                          metodoPago, etc.)
+     * @param userRol           Rol del usuario autenticado - header "X-User-Rol"
+     *                          (debe ser socio)
+     * @param userIdAutenticado ID del usuario autenticado - header "X-User-Id"
+     * @param userEmail         Email del socio autenticado - header "X-User-Email"
+     * @return Mensaje de confirmación del pago con código HTTP 201 (Created)
+     */
+    @PostMapping("/pago-app")
+    public ResponseEntity<MessegeGlobalDTO> realizarPagoApp(
+            @Valid @RequestBody RegistrarPagoRequestDTO requestDTO,
+            @RequestHeader(value = "X-User-Rol", required = false) String userRol,
+            @RequestHeader(value = "X-User-Id", required = false) Long userIdAutenticado,
+            @RequestHeader(value = "X-User-Email", required = false) String userEmail) { // ← NUEVO
+        try {
+            MessegeGlobalDTO response = pagoService.realizarPagoApp(requestDTO, userRol, userIdAutenticado, userEmail);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (SecurityAuthorizationException e) {
+            throw e;
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al procesar pago desde app", e);
+        }
+    }
 }

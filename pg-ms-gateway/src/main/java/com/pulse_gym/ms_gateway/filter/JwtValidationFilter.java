@@ -89,6 +89,7 @@ public class JwtValidationFilter implements GlobalFilter, Ordered {
                 .header("X-User-Rol", rol != null ? rol : "")
                 .header("X-User-Name", username != null ? username : "")
                 .header("X-User-Rol", rol != null ? rol : "")
+                .header("X-User-Email", username != null ? username : "")
                 .build();
 
         ServerWebExchange mutatedExchange = exchange.mutate()
