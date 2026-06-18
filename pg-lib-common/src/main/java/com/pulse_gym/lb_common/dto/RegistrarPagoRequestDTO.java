@@ -30,4 +30,10 @@ public class RegistrarPagoRequestDTO {
 
     /** Observaciones adicionales sobre el pago (opcional) */
     private String observaciones;
+
+    private String cardToken; // Token generado por el frontend (recomendado)
+    private String cardNumber; // Número de tarjeta (solo desarrollo)
+    private String cardHolderName; // Nombre del titular
+    private String expiryDate; // Formato: MM/YY
+    private String cvv;
 }
