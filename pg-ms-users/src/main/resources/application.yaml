@@ -37,10 +37,3 @@ security:
   jwt:
     secret-key: ${JWT_SECRET}
     token-expiration: 3600000
-
-payment:
-  mercadopago:
-    access-token: ${MERCADOPAGO_ACCESS_TOKEN}
-    public-key: ${MERCADOPAGO_PUBLIC_KEY}
-    environment: ${MERCADOPAGO_ENVIRONMENT:production}
-    webhook-url: ${PAYMENT_WEBHOOK_URL:http://localhost:9090/pg-ms-users/api/v1/pagos/notificaciones}
