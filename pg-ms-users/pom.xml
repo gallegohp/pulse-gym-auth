@@ -68,13 +68,6 @@
 			<artifactId>pg-lib-common</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
-
-		<!-- Mercado Pago SDK -->
-		<dependency>
-			<groupId>com.mercadopago</groupId>
-			<artifactId>sdk-java</artifactId>
-			<version>2.1.7</version>
-		</dependency>
 	</dependencies>
 
 	<build>
