@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
+import com.pulse_gym.lb_common.dto.PreferenceResponseDTO;
 import com.pulse_gym.lb_common.dto.RegistrarPagoRequestDTO;
 import com.pulse_gym.lb_common.exception.SecurityAuthorizationException;
 import com.pulse_gym.ms_users.service.PagoService;
@@ -64,22 +65,21 @@ public class PagoController {
      * @param userEmail         Email del socio autenticado - header "X-User-Email"
      * @return Mensaje de confirmación del pago con código HTTP 201 (Created)
      */
-    @PostMapping("/pago-app")
-    public ResponseEntity<MessegeGlobalDTO> realizarPagoApp(
-            @Valid @RequestBody RegistrarPagoRequestDTO requestDTO,
-            @RequestHeader(value = "X-User-Rol", required = false) String userRol,
-            @RequestHeader(value = "X-User-Id", required = false) Long userIdAutenticado,
-            @RequestHeader(value = "X-User-Email", required = false) String userEmail) { // ← NUEVO
-        try {
-            MessegeGlobalDTO response = pagoService.realizarPagoApp(requestDTO, userRol, userIdAutenticado, userEmail);
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
-        } catch (SecurityAuthorizationException e) {
-            throw e;
-        } catch (RuntimeException e) {
-            throw e;
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al procesar pago desde app", e);
-        }
+@PostMapping("/pago-app")
+public ResponseEntity<PreferenceResponseDTO> realizarPagoApp(
+        @RequestBody RegistrarPagoRequestDTO requestDTO, // Quitamos @Valid para manejarlo manualmente si es necesario
+        @RequestHeader("X-User-Roles") String userRol,
+        @RequestHeader("X-User-Email") String userEmail) {
+    
+    // Forzamos un método temporal para que pase las validaciones internas de tu DTO si es necesario,
+    // o simplemente ignoramos ese campo ya que Mercado Pago generará su propia preferencia.
+    if (requestDTO.getMetodoPago() == null) {
+        // Asignamos un valor temporal del Enum que tengas (ej. TARJETA o DEBITO) 
+        // solo para que no falle si tu lógica interna lo requiere.
+        // requestDTO.setMetodoPago(MetodoPago.TARJETA); 
     }
+
+    PreferenceResponseDTO response = pagoService.iniciarPagoMembresiaApp(requestDTO, userRol, userEmail);
+    return ResponseEntity.ok(response);
+}
 }

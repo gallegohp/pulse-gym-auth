@@ -42,15 +42,14 @@ services:
       - consul
       - db-mysql
     environment:
-      MERCADOPAGO_ACCESS_TOKEN: ${MERCADOPAGO_ACCESS_TOKEN}
-      MERCADOPAGO_PUBLIC_KEY: ${MERCADOPAGO_PUBLIC_KEY}
-      MERCADOPAGO_ENVIRONMENT: ${MERCADOPAGO_ENVIRONMENT}
       JWT_SECRET: ${JWT_SECRET}
       SPRING_DATASOURCE_URL: jdbc:mysql://db-mysql:3306/users_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
       SPRING_DATASOURCE_USERNAME: pulsegym
       SPRING_DATASOURCE_PASSWORD: 123
     networks:
       - pulsegym
+    env_file:
+      - .env
 
   pg-ms-auth:
     build: ./pg-ms-auth
