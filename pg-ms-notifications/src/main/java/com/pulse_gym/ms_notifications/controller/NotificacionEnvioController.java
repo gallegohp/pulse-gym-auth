@@ -20,22 +20,28 @@ import com.pulse_gym.ms_notifications.services.NotificacionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * Controlador REST que expone endpoints públicos y administrativos para el envío
+ * de notificaciones dentro del sistema Pulse Gym. Soporta el envío manual por canal,
+ * envíos basados en plantillas existentes y envíos reactivos basados en eventos del sistema.
+ */
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/notificaciones")
 public class NotificacionEnvioController {
 
     /**
-     * Inyeccion de servicio de notificaciones
+     * Inyección del servicio NotificacionService encargado de procesar y despachar
+     * las notificaciones a través de los canales configurados (Email, WhatsApp, etc.).
      */
     private final NotificacionService notificacionService;
 
     /**
-     * Envia una notificacion manual por canal
+     * Envía una notificación manual especificando directamente el canal, destinatario y contenido.
      *
-     * @param request Datos del envio
-     * @param userRol Rol del usuario autenticado
-     * @return Resultado del envio
+     * @param request DTO que contiene los datos detallados del envío (destinatario, canal, asunto, mensaje).
+     * @param userRol Rol del usuario autenticado, provisto por la cabecera X-User-Rol.
+     * @return ResponseEntity con un mapa que indica el estado de éxito y un mensaje informativo.
      */
     @PostMapping("/enviar")
     public ResponseEntity<Map<String, Object>> enviarNotificacion(
@@ -59,13 +65,14 @@ public class NotificacionEnvioController {
     }
 
     /**
-     * Envia una notificacion usando plantilla y variables dinamicas
+     * Envía una notificación utilizando una plantilla preexistente y un conjunto de variables dinámicas para el usuario.
+     * Recupera la plantilla por su identificador y la renderiza usando los datos del usuario obtenido de auth y las variables adicionales.
      *
-     * @param plantillaId          Identificador de la plantilla
-     * @param usuarioId            Identificador del usuario en auth
-     * @param variablesAdicionales Variables adicionales
-     * @param userRol              Rol del usuario autenticado
-     * @return Resultado del envio
+     * @param plantillaId          Identificador único de la plantilla de notificación.
+     * @param usuarioId            Identificador único del usuario destino (para extraer email, username, etc.).
+     * @param variablesAdicionales Mapa opcional con variables dinámicas que se reemplazarán en el cuerpo de la plantilla.
+     * @param userRol              Rol del usuario que ejecuta la petición (requiere privilegios de administrador).
+     * @return ResponseEntity con el resultado de la operación (éxito o mensaje de error).
      */
     @PostMapping("/enviar-plantilla/{plantillaId}/usuario/{usuarioId}")
     public ResponseEntity<Map<String, Object>> enviarConPlantilla(
@@ -94,11 +101,12 @@ public class NotificacionEnvioController {
     }
 
     /**
-     * Envia una notificacion segun el evento configurado en plantillas activas
+     * Envía una notificación reaccionando automáticamente a un evento del sistema (por ejemplo: REGISTRO_USUARIO, LOGIN_USUARIO).
+     * Identifica las plantillas activas asociadas al evento y procesa el envío al usuario correspondiente.
      *
-     * @param request Datos del evento
-     * @param userRol Rol del usuario autenticado
-     * @return Resultado del envio
+     * @param request DTO que encapsula los datos del evento, el usuario objetivo y los parámetros adicionales del evento.
+     * @param userRol Rol del usuario autenticado (requiere rol de administrador).
+     * @return ResponseEntity indicando si la notificación se pudo enviar correctamente para el evento especificado.
      */
     @PostMapping("/enviar-evento")
     public ResponseEntity<Map<String, Object>> enviarPorEvento(

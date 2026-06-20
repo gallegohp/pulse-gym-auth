@@ -20,13 +20,21 @@ import com.pulse_gym.ms_notifications.services.ConfiguracionGlobalService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * Controlador REST que expone endpoints para la gestión de la configuración global
+ * del microservicio de notificaciones. Permite consultar y actualizar los límites
+ * de envío globales.
+ * 
+ * Acceso restringido a usuarios con rol de administrador.
+ */
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/configuracion-global")
 public class ConfiguracionGlobalController {
 
     /**
-     * Inyeccion de servicio de configuracion global
+     * Inyección del servicio ConfiguracionGlobalService para gestionar
+     * las operaciones de negocio y persistencia de la configuración global de notificaciones.
      */
     private final ConfiguracionGlobalService configuracionGlobalService;
 
