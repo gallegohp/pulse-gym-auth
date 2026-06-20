@@ -35,244 +35,260 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        // Inicializar plantillas de contenido
-        if (plantillaRepository.count() == 0) {
-            logger.info("Inicializando plantillas de notificacion...");
-            inicializarPlantillas();
-            logger.info("Plantillas de notificacion inicializadas correctamente");
-        } else {
-            logger.info("Las plantillas de notificacion ya existen en la base de datos");
+        logger.info("Verificando e inicializando plantillas de notificacion si faltan...");
+        inicializarPlantillasFaltantes();
+
+        logger.info("Verificando e inicializando diseños de email si faltan...");
+        inicializarDisenosFaltantes();
+    }
+
+    private void inicializarPlantillasFaltantes() {
+        // 1. REGISTRO_USUARIO
+        if (plantillaRepository.findByEventosAsociadosContainingAndEstadoTrueAndEliminadaFalse(EnumEventoAsociado.REGISTRO_USUARIO).isEmpty()) {
+            PlantillaNotificacion registro = new PlantillaNotificacion();
+            registro.setNombre("Registro de Usuario");
+            registro.setTitulo("Bienvenido a Pulse Gym");
+            registro.setDescripcion("Notificacion de bienvenida al registrar nuevo usuario");
+            registro.setContenido("Hola {username}! Te damos la bienvenida a Pulse Gym. Tu cuenta ha sido creada exitosamente con el email {email}.");
+            registro.setTipoPlantilla(EnumCanalNotificacion.EMAIL);
+            registro.setEventoAsociado(EnumEventoAsociado.REGISTRO_USUARIO);
+            registro.setEventosAsociados(Set.of(EnumEventoAsociado.REGISTRO_USUARIO));
+            registro.setEstado(true);
+            registro.setEliminada(false);
+            registro.setFechaCreacion(LocalDateTime.now());
+            plantillaRepository.save(registro);
+            logger.info("Plantilla REGISTRO_USUARIO creada.");
         }
 
-        // Inicializar diseños de email
-        if (disenoRepository.count() == 0) {
-            logger.info("Inicializando diseños de email por defecto...");
-            inicializarDisenos();
-            logger.info("Diseños de email inicializados correctamente");
-        } else {
-            logger.info("Los diseños de email ya existen en la base de datos");
+        // 2. LOGIN_USUARIO
+        if (plantillaRepository.findByEventosAsociadosContainingAndEstadoTrueAndEliminadaFalse(EnumEventoAsociado.LOGIN_USUARIO).isEmpty()) {
+            PlantillaNotificacion login = new PlantillaNotificacion();
+            login.setNombre("Login de Usuario");
+            login.setTitulo("Inicio de sesion detectado");
+            login.setDescripcion("Notificacion de inicio de sesion");
+            login.setContenido("Hola {username}! Se ha iniciado sesion en tu cuenta desde un nuevo dispositivo. Email: {email}. Si no fuiste tú, contacta a soporte.");
+            login.setTipoPlantilla(EnumCanalNotificacion.EMAIL);
+            login.setEventoAsociado(EnumEventoAsociado.LOGIN_USUARIO);
+            login.setEventosAsociados(Set.of(EnumEventoAsociado.LOGIN_USUARIO));
+            login.setEstado(true);
+            login.setEliminada(false);
+            login.setFechaCreacion(LocalDateTime.now());
+            plantillaRepository.save(login);
+            logger.info("Plantilla LOGIN_USUARIO creada.");
+        }
+
+        // 3. WELCOME
+        if (plantillaRepository.findByEventosAsociadosContainingAndEstadoTrueAndEliminadaFalse(EnumEventoAsociado.WELCOME).isEmpty()) {
+            PlantillaNotificacion welcome = new PlantillaNotificacion();
+            welcome.setNombre("Bienvenida a Pulse Gym");
+            welcome.setTitulo("¡Bienvenido a Pulse Gym, {nombre}!");
+            welcome.setDescripcion("Notificación de bienvenida al completar el perfil");
+            welcome.setContenido("Hola {nombre} {apellido}! Gracias por completar tu perfil. Ahora puedes acceder a todas las funcionalidades de Pulse Gym. Tu objetivo \"{objetivo}\" está más cerca.");
+            welcome.setTipoPlantilla(EnumCanalNotificacion.EMAIL);
+            welcome.setEventoAsociado(EnumEventoAsociado.WELCOME);
+            welcome.setEventosAsociados(Set.of(EnumEventoAsociado.WELCOME));
+            welcome.setEstado(true);
+            welcome.setEliminada(false);
+            welcome.setFechaCreacion(LocalDateTime.now());
+            plantillaRepository.save(welcome);
+            logger.info("Plantilla WELCOME creada.");
         }
     }
 
-    private void inicializarPlantillas() {
-        logger.info("Creando plantillas de notificación...");
+    private void inicializarDisenosFaltantes() {
+        // Default
+        if (disenoRepository.findByNombreAndEliminadoFalseAndActivoTrue("default").isEmpty()) {
+            disenoRepository.save(crearDisenoDefault());
+            logger.info("Diseño DEFAULT creado.");
+        }
+        
+        // Registro
+        if (disenoRepository.findByEventoAsociadoAndEliminadoFalseAndActivoTrue(EnumEventoAsociado.REGISTRO_USUARIO).isEmpty()) {
+            PlantillaDisenoEmail registroDiseno = new PlantillaDisenoEmail();
+            registroDiseno.setNombre("registro");
+            registroDiseno.setEventoAsociado(EnumEventoAsociado.REGISTRO_USUARIO);
+            registroDiseno.setCanal(EnumCanalNotificacion.EMAIL);
+            registroDiseno.setColorPrincipal("#2c4b77");
+            registroDiseno.setColorSecundario("#8bb5d6");
+            registroDiseno.setColorTextoHeader("#ffffff");
+            registroDiseno.setTituloHeader("¡Bienvenido a Pulse Gym!");
+            registroDiseno.setSubtituloHeader("Comienza tu viaje fitness hoy");
+            registroDiseno.setColorFondoContenido("#ffffff");
+            registroDiseno.setColorTextoContenido("#5d6d7e");
+            registroDiseno.setColorFondoFooter("#f8f9fc");
+            registroDiseno.setColorTextoFooter("#9aabbb");
+            registroDiseno.setTextoFooter("© 2026 Pulse Gym - Todos los derechos reservados");
+            registroDiseno.setTextoFooterSecundario("Este es un mensaje automático, por favor no responder a este correo");
+            registroDiseno.setActivo(true);
+            registroDiseno.setEliminado(false);
+            registroDiseno.setFechaCreacion(LocalDateTime.now());
+            disenoRepository.save(registroDiseno);
+            logger.info("Diseño REGISTRO_USUARIO creado.");
+        }
 
-        PlantillaNotificacion registro = new PlantillaNotificacion();
-        registro.setNombre("Registro de Usuario");
-        registro.setTitulo("Bienvenido a Pulse Gym");
-        registro.setDescripcion("Notificacion de bienvenida al registrar nuevo usuario");
-        registro.setContenido("Hola {{username}}! Te damos la bienvenida a Pulse Gym. Tu cuenta ha sido creada exitosamente con el email {{email}}.");
-        registro.setTipoPlantilla(EnumCanalNotificacion.EMAIL);
-        registro.setEventoAsociado(EnumEventoAsociado.REGISTRO_USUARIO);
-        registro.setEventosAsociados(Set.of(EnumEventoAsociado.REGISTRO_USUARIO));
-        registro.setEstado(true);
-        registro.setEliminada(false);
-        registro.setFechaCreacion(LocalDateTime.now());
-        PlantillaNotificacion registroGuardada = plantillaRepository.save(registro);
-        logger.info("Plantilla REGISTRO_USUARIO creada con ID: {}", registroGuardada.getIdPlantilla());
+        // Login
+        if (disenoRepository.findByEventoAsociadoAndEliminadoFalseAndActivoTrue(EnumEventoAsociado.LOGIN_USUARIO).isEmpty()) {
+            PlantillaDisenoEmail loginDiseno = new PlantillaDisenoEmail();
+            loginDiseno.setNombre("login");
+            loginDiseno.setEventoAsociado(EnumEventoAsociado.LOGIN_USUARIO);
+            loginDiseno.setCanal(EnumCanalNotificacion.EMAIL);
+            loginDiseno.setColorPrincipal("#f39c12");
+            loginDiseno.setColorSecundario("#e67e22");
+            loginDiseno.setColorTextoHeader("#ffffff");
+            loginDiseno.setTituloHeader("Nuevo inicio de sesión");
+            loginDiseno.setSubtituloHeader("Pulse Gym - Seguridad de tu cuenta");
+            loginDiseno.setColorFondoContenido("#ffffff");
+            loginDiseno.setColorTextoContenido("#5d6d7e");
+            loginDiseno.setColorFondoFooter("#f8f9fc");
+            loginDiseno.setColorTextoFooter("#9aabbb");
+            loginDiseno.setTextoFooter("© 2026 Pulse Gym - Todos los derechos reservados");
+            loginDiseno.setTextoFooterSecundario("Si no reconoces esta actividad, contacta a soporte inmediatamente");
+            loginDiseno.setActivo(true);
+            loginDiseno.setEliminado(false);
+            loginDiseno.setFechaCreacion(LocalDateTime.now());
+            disenoRepository.save(loginDiseno);
+            logger.info("Diseño LOGIN_USUARIO creado.");
+        }
 
-        PlantillaNotificacion login = new PlantillaNotificacion();
-        login.setNombre("Login de Usuario");
-        login.setTitulo("Inicio de sesion detectado");
-        login.setDescripcion("Notificacion de inicio de sesion");
-        login.setContenido("Hola {{username}}! Se ha iniciado sesion en tu cuenta desde un nuevo dispositivo. Email: {{email}}. Si no fuiste tú, contacta a soporte.");
-        login.setTipoPlantilla(EnumCanalNotificacion.EMAIL);
-        login.setEventoAsociado(EnumEventoAsociado.LOGIN_USUARIO);
-        login.setEventosAsociados(Set.of(EnumEventoAsociado.LOGIN_USUARIO));
-        login.setEstado(true);
-        login.setEliminada(false);
-        login.setFechaCreacion(LocalDateTime.now());
-        PlantillaNotificacion loginGuardada = plantillaRepository.save(login);
-        logger.info("Plantilla LOGIN_USUARIO creada con ID: {}", loginGuardada.getIdPlantilla());
+        // Welcome
+        if (disenoRepository.findByEventoAsociadoAndEliminadoFalseAndActivoTrue(EnumEventoAsociado.WELCOME).isEmpty()) {
+            PlantillaDisenoEmail welcomeDiseno = new PlantillaDisenoEmail();
+            welcomeDiseno.setNombre("welcome");
+            welcomeDiseno.setEventoAsociado(EnumEventoAsociado.WELCOME);
+            welcomeDiseno.setCanal(EnumCanalNotificacion.EMAIL);
+            welcomeDiseno.setColorPrincipal("#2c4b77");
+            welcomeDiseno.setColorSecundario("#8bb5d6");
+            welcomeDiseno.setColorTextoHeader("#ffffff");
+            welcomeDiseno.setTituloHeader("¡Bienvenido a Pulse Gym!");
+            welcomeDiseno.setSubtituloHeader("Tu viaje fitness comienza hoy");
+            welcomeDiseno.setColorFondoContenido("#ffffff");
+            welcomeDiseno.setColorTextoContenido("#5d6d7e");
+            welcomeDiseno.setColorFondoFooter("#f8f9fc");
+            welcomeDiseno.setColorTextoFooter("#9aabbb");
+            welcomeDiseno.setTextoFooter("© 2026 Pulse Gym - Todos los derechos reservados");
+            welcomeDiseno.setTextoFooterSecundario("Este es un mensaje automático, por favor no responder a este correo");
+            welcomeDiseno.setActivo(true);
+            welcomeDiseno.setEliminado(false);
+            welcomeDiseno.setFechaCreacion(LocalDateTime.now());
+            disenoRepository.save(welcomeDiseno);
+            logger.info("Diseño WELCOME creado.");
+        }
 
-        PlantillaNotificacion welcome = new PlantillaNotificacion();
-        welcome.setNombre("Bienvenida a Pulse Gym");
-        welcome.setTitulo("¡Bienvenido a Pulse Gym, {{nombre}}!");
-        welcome.setDescripcion("Notificación de bienvenida al completar el perfil");
-        welcome.setContenido("Hola {{nombre}} {{apellido}}! Gracias por completar tu perfil. Ahora puedes acceder a todas las funcionalidades de Pulse Gym. Tu objetivo \"{{objetivo}}\" está más cerca.");
-        welcome.setTipoPlantilla(EnumCanalNotificacion.EMAIL);
-        welcome.setEventoAsociado(EnumEventoAsociado.WELCOME);
-        welcome.setEventosAsociados(Set.of(EnumEventoAsociado.WELCOME));
-        welcome.setEstado(true);
-        welcome.setEliminada(false);
-        welcome.setFechaCreacion(LocalDateTime.now());
-        PlantillaNotificacion welcomeGuardada = plantillaRepository.save(welcome);
-        logger.info("Plantilla WELCOME creada con ID: {}", welcomeGuardada.getIdPlantilla());
+        // Promocion
+        if (disenoRepository.findByEventoAsociadoAndEliminadoFalseAndActivoTrue(EnumEventoAsociado.PROMOTION).isEmpty()) {
+            PlantillaDisenoEmail promocion = new PlantillaDisenoEmail();
+            promocion.setNombre("promocion");
+            promocion.setEventoAsociado(EnumEventoAsociado.PROMOTION);
+            promocion.setCanal(EnumCanalNotificacion.EMAIL);
+            promocion.setColorPrincipal("#ea1616");
+            promocion.setColorSecundario("#c83f3f");
+            promocion.setColorTextoHeader("#ffffff");
+            promocion.setTituloHeader("Pulse Gym");
+            promocion.setSubtituloHeader("Tu bienestar, nuestra pasión");
+            promocion.setColorFondoContenido("#ffffff");
+            promocion.setColorTextoContenido("#5d6d7e");
+            promocion.setColorFondoFooter("#f8f9fc");
+            promocion.setColorTextoFooter("#9aabbb");
+            promocion.setTextoFooter("© 2026 Pulse Gym - Todos los derechos reservados");
+            promocion.setTextoFooterSecundario("Este es un mensaje automático, por favor no responder a este correo");
+            promocion.setActivo(true);
+            promocion.setEliminado(false);
+            promocion.setFechaCreacion(LocalDateTime.now());
+            disenoRepository.save(promocion);
+            logger.info("Diseño PROMOTION creado.");
+        }
 
-        logger.info("Total plantillas creadas: {}", plantillaRepository.count());
+        // Achievement
+        if (disenoRepository.findByEventoAsociadoAndEliminadoFalseAndActivoTrue(EnumEventoAsociado.ACHIEVEMENT).isEmpty()) {
+            PlantillaDisenoEmail logro = new PlantillaDisenoEmail();
+            logro.setNombre("logro");
+            logro.setEventoAsociado(EnumEventoAsociado.ACHIEVEMENT);
+            logro.setCanal(EnumCanalNotificacion.EMAIL);
+            logro.setColorPrincipal("#d4af37");
+            logro.setColorSecundario("#f4d03f");
+            logro.setColorTextoHeader("#ffffff");
+            logro.setTituloHeader("Pulse Gym");
+            logro.setSubtituloHeader("¡Felicitaciones!");
+            logro.setColorFondoContenido("#ffffff");
+            logro.setColorTextoContenido("#5d6d7e");
+            logro.setColorFondoFooter("#f8f9fc");
+            logro.setColorTextoFooter("#9aabbb");
+            logro.setTextoFooter("© 2026 Pulse Gym - Todos los derechos reservados");
+            logro.setTextoFooterSecundario("Este es un mensaje automático, por favor no responder a este correo");
+            logro.setActivo(true);
+            logro.setEliminado(false);
+            logro.setFechaCreacion(LocalDateTime.now());
+            disenoRepository.save(logro);
+            logger.info("Diseño ACHIEVEMENT creado.");
+        }
+
+        // Payment reminder
+        if (disenoRepository.findByEventoAsociadoAndEliminadoFalseAndActivoTrue(EnumEventoAsociado.PAYMENT_REMINDER).isEmpty()) {
+            PlantillaDisenoEmail pago = new PlantillaDisenoEmail();
+            pago.setNombre("pago");
+            pago.setEventoAsociado(EnumEventoAsociado.PAYMENT_REMINDER);
+            pago.setCanal(EnumCanalNotificacion.EMAIL);
+            pago.setColorPrincipal("#e67e22");
+            pago.setColorSecundario("#f39c12");
+            pago.setColorTextoHeader("#ffffff");
+            pago.setTituloHeader("Pulse Gym");
+            pago.setSubtituloHeader("Recordatorio de pago");
+            pago.setColorFondoContenido("#ffffff");
+            pago.setColorTextoContenido("#5d6d7e");
+            pago.setColorFondoFooter("#f8f9fc");
+            pago.setColorTextoFooter("#9aabbb");
+            pago.setTextoFooter("© 2026 Pulse Gym - Todos los derechos reservados");
+            pago.setTextoFooterSecundario("Este es un mensaje automático, por favor no responder a este correo");
+            pago.setActivo(true);
+            pago.setEliminado(false);
+            pago.setFechaCreacion(LocalDateTime.now());
+            disenoRepository.save(pago);
+            logger.info("Diseño PAYMENT_REMINDER creado.");
+        }
+
+        // Maintenance alert
+        if (disenoRepository.findByEventoAsociadoAndEliminadoFalseAndActivoTrue(EnumEventoAsociado.MAINTENANCE_ALERT).isEmpty()) {
+            PlantillaDisenoEmail mantenimiento = new PlantillaDisenoEmail();
+            mantenimiento.setNombre("mantenimiento");
+            mantenimiento.setEventoAsociado(EnumEventoAsociado.MAINTENANCE_ALERT);
+            mantenimiento.setCanal(EnumCanalNotificacion.EMAIL);
+            mantenimiento.setColorPrincipal("#7f8c8d");
+            mantenimiento.setColorSecundario("#95a5a6");
+            mantenimiento.setColorTextoHeader("#ffffff");
+            mantenimiento.setTituloHeader("Pulse Gym");
+            mantenimiento.setSubtituloHeader("Aviso importante");
+            mantenimiento.setColorFondoContenido("#ffffff");
+            mantenimiento.setColorTextoContenido("#5d6d7e");
+            mantenimiento.setColorFondoFooter("#f8f9fc");
+            mantenimiento.setColorTextoFooter("#9aabbb");
+            mantenimiento.setTextoFooter("© 2026 Pulse Gym - Todos los derechos reservados");
+            mantenimiento.setTextoFooterSecundario("Este es un mensaje automático, por favor no responder a este correo");
+            mantenimiento.setActivo(true);
+            mantenimiento.setEliminado(false);
+            mantenimiento.setFechaCreacion(LocalDateTime.now());
+            disenoRepository.save(mantenimiento);
+            logger.info("Diseño MAINTENANCE_ALERT creado.");
+        }
     }
 
-    private void inicializarDisenos() {
-        logger.info("Creando diseños de email...");
-
-        PlantillaDisenoEmail defaultDiseno = new PlantillaDisenoEmail();
-        defaultDiseno.setNombre("default");
-        defaultDiseno.setEventoAsociado(null);
-        defaultDiseno.setCanal(EnumCanalNotificacion.EMAIL);
-        defaultDiseno.setColorPrincipal("#2c4b77");
-        defaultDiseno.setColorSecundario("#8bb5d6");
-        defaultDiseno.setColorTextoHeader("#ffffff");
-        defaultDiseno.setTituloHeader("Pulse Gym");
-        defaultDiseno.setSubtituloHeader("Tu bienestar, nuestra pasión");
-        defaultDiseno.setColorFondoContenido("#ffffff");
-        defaultDiseno.setColorTextoContenido("#5d6d7e");
-        defaultDiseno.setColorFondoFooter("#f8f9fc");
-        defaultDiseno.setColorTextoFooter("#9aabbb");
-        defaultDiseno.setTextoFooter("© 2026 Pulse Gym - Todos los derechos reservados");
-        defaultDiseno.setTextoFooterSecundario("Este es un mensaje automático, por favor no responder a este correo");
-        defaultDiseno.setActivo(true);
-        defaultDiseno.setEliminado(false);
-        defaultDiseno.setFechaCreacion(LocalDateTime.now());
-        disenoRepository.save(defaultDiseno);
-        logger.info("Diseño DEFAULT creado");
-
-        PlantillaDisenoEmail registroDiseno = new PlantillaDisenoEmail();
-        registroDiseno.setNombre("registro");
-        registroDiseno.setEventoAsociado(EnumEventoAsociado.REGISTRO_USUARIO);
-        registroDiseno.setCanal(EnumCanalNotificacion.EMAIL);
-        registroDiseno.setColorPrincipal("#2c4b77");
-        registroDiseno.setColorSecundario("#8bb5d6");
-        registroDiseno.setColorTextoHeader("#ffffff");
-        registroDiseno.setTituloHeader("¡Bienvenido a Pulse Gym!");
-        registroDiseno.setSubtituloHeader("Comienza tu viaje fitness hoy");
-        registroDiseno.setColorFondoContenido("#ffffff");
-        registroDiseno.setColorTextoContenido("#5d6d7e");
-        registroDiseno.setColorFondoFooter("#f8f9fc");
-        registroDiseno.setColorTextoFooter("#9aabbb");
-        registroDiseno.setTextoFooter("© 2026 Pulse Gym - Todos los derechos reservados");
-        registroDiseno.setTextoFooterSecundario("Este es un mensaje automático, por favor no responder a este correo");
-        registroDiseno.setActivo(true);
-        registroDiseno.setEliminado(false);
-        registroDiseno.setFechaCreacion(LocalDateTime.now());
-        disenoRepository.save(registroDiseno);
-        logger.info("Diseño para REGISTRO_USUARIO creado");
-
-        PlantillaDisenoEmail loginDiseno = new PlantillaDisenoEmail();
-        loginDiseno.setNombre("login");
-        loginDiseno.setEventoAsociado(EnumEventoAsociado.LOGIN_USUARIO);
-        loginDiseno.setCanal(EnumCanalNotificacion.EMAIL);
-        loginDiseno.setColorPrincipal("#f39c12");
-        loginDiseno.setColorSecundario("#e67e22");
-        loginDiseno.setColorTextoHeader("#ffffff");
-        loginDiseno.setTituloHeader("Nuevo inicio de sesión");
-        loginDiseno.setSubtituloHeader("Pulse Gym - Seguridad de tu cuenta");
-        loginDiseno.setColorFondoContenido("#ffffff");
-        loginDiseno.setColorTextoContenido("#5d6d7e");
-        loginDiseno.setColorFondoFooter("#f8f9fc");
-        loginDiseno.setColorTextoFooter("#9aabbb");
-        loginDiseno.setTextoFooter("© 2026 Pulse Gym - Todos los derechos reservados");
-        loginDiseno.setTextoFooterSecundario("Si no reconoces esta actividad, contacta a soporte inmediatamente");
-        loginDiseno.setActivo(true);
-        loginDiseno.setEliminado(false);
-        loginDiseno.setFechaCreacion(LocalDateTime.now());
-        disenoRepository.save(loginDiseno);
-        logger.info("Diseño para LOGIN_USUARIO creado");
-
-        PlantillaDisenoEmail welcomeDiseno = new PlantillaDisenoEmail();
-        welcomeDiseno.setNombre("welcome");
-        welcomeDiseno.setEventoAsociado(EnumEventoAsociado.WELCOME);
-        welcomeDiseno.setCanal(EnumCanalNotificacion.EMAIL);
-        welcomeDiseno.setColorPrincipal("#2c4b77");
-        welcomeDiseno.setColorSecundario("#8bb5d6");
-        welcomeDiseno.setColorTextoHeader("#ffffff");
-        welcomeDiseno.setTituloHeader("¡Bienvenido a Pulse Gym!");
-        welcomeDiseno.setSubtituloHeader("Tu viaje fitness comienza hoy");
-        welcomeDiseno.setColorFondoContenido("#ffffff");
-        welcomeDiseno.setColorTextoContenido("#5d6d7e");
-        welcomeDiseno.setColorFondoFooter("#f8f9fc");
-        welcomeDiseno.setColorTextoFooter("#9aabbb");
-        welcomeDiseno.setTextoFooter("© 2026 Pulse Gym - Todos los derechos reservados");
-        welcomeDiseno.setTextoFooterSecundario("Este es un mensaje automático, por favor no responder a este correo");
-        welcomeDiseno.setActivo(true);
-        welcomeDiseno.setEliminado(false);
-        welcomeDiseno.setFechaCreacion(LocalDateTime.now());
-        disenoRepository.save(welcomeDiseno);
-        logger.info("Diseño para WELCOME creado");
-
-        PlantillaDisenoEmail promocion = new PlantillaDisenoEmail();
-        promocion.setNombre("promocion");
-        promocion.setEventoAsociado(EnumEventoAsociado.PROMOTION);
-        promocion.setCanal(EnumCanalNotificacion.EMAIL);
-        promocion.setColorPrincipal("#ea1616");
-        promocion.setColorSecundario("#c83f3f");
-        promocion.setColorTextoHeader("#ffffff");
-        promocion.setTituloHeader("Pulse Gym");
-        promocion.setSubtituloHeader("Tu bienestar, nuestra pasión");
-        promocion.setColorFondoContenido("#ffffff");
-        promocion.setColorTextoContenido("#5d6d7e");
-        promocion.setColorFondoFooter("#f8f9fc");
-        promocion.setColorTextoFooter("#9aabbb");
-        promocion.setTextoFooter("© 2026 Pulse Gym - Todos los derechos reservados");
-        promocion.setTextoFooterSecundario("Este es un mensaje automático, por favor no responder a este correo");
-        promocion.setActivo(true);
-        promocion.setEliminado(false);
-        promocion.setFechaCreacion(LocalDateTime.now());
-        disenoRepository.save(promocion);
-        logger.info("Diseño para PROMOTION creado");
-
-        PlantillaDisenoEmail logro = new PlantillaDisenoEmail();
-        logro.setNombre("logro");
-        logro.setEventoAsociado(EnumEventoAsociado.ACHIEVEMENT);
-        logro.setCanal(EnumCanalNotificacion.EMAIL);
-        logro.setColorPrincipal("#d4af37");
-        logro.setColorSecundario("#f4d03f");
-        logro.setColorTextoHeader("#ffffff");
-        logro.setTituloHeader("Pulse Gym");
-        logro.setSubtituloHeader("¡Felicitaciones!");
-        logro.setColorFondoContenido("#ffffff");
-        logro.setColorTextoContenido("#5d6d7e");
-        logro.setColorFondoFooter("#f8f9fc");
-        logro.setColorTextoFooter("#9aabbb");
-        logro.setTextoFooter("© 2026 Pulse Gym - Todos los derechos reservados");
-        logro.setTextoFooterSecundario("Este es un mensaje automático, por favor no responder a este correo");
-        logro.setActivo(true);
-        logro.setEliminado(false);
-        logro.setFechaCreacion(LocalDateTime.now());
-        disenoRepository.save(logro);
-        logger.info("Diseño para ACHIEVEMENT creado");
-
-        PlantillaDisenoEmail pago = new PlantillaDisenoEmail();
-        pago.setNombre("pago");
-        pago.setEventoAsociado(EnumEventoAsociado.PAYMENT_REMINDER);
-        pago.setCanal(EnumCanalNotificacion.EMAIL);
-        pago.setColorPrincipal("#e67e22");
-        pago.setColorSecundario("#f39c12");
-        pago.setColorTextoHeader("#ffffff");
-        pago.setTituloHeader("Pulse Gym");
-        pago.setSubtituloHeader("Recordatorio de pago");
-        pago.setColorFondoContenido("#ffffff");
-        pago.setColorTextoContenido("#5d6d7e");
-        pago.setColorFondoFooter("#f8f9fc");
-        pago.setColorTextoFooter("#9aabbb");
-        pago.setTextoFooter("© 2026 Pulse Gym - Todos los derechos reservados");
-        pago.setTextoFooterSecundario("Este es un mensaje automático, por favor no responder a este correo");
-        pago.setActivo(true);
-        pago.setEliminado(false);
-        pago.setFechaCreacion(LocalDateTime.now());
-        disenoRepository.save(pago);
-        logger.info("Diseño para PAYMENT_REMINDER creado");
-
-        PlantillaDisenoEmail mantenimiento = new PlantillaDisenoEmail();
-        mantenimiento.setNombre("mantenimiento");
-        mantenimiento.setEventoAsociado(EnumEventoAsociado.MAINTENANCE_ALERT);
-        mantenimiento.setCanal(EnumCanalNotificacion.EMAIL);
-        mantenimiento.setColorPrincipal("#7f8c8d");
-        mantenimiento.setColorSecundario("#95a5a6");
-        mantenimiento.setColorTextoHeader("#ffffff");
-        mantenimiento.setTituloHeader("Pulse Gym");
-        mantenimiento.setSubtituloHeader("Aviso importante");
-        mantenimiento.setColorFondoContenido("#ffffff");
-        mantenimiento.setColorTextoContenido("#5d6d7e");
-        mantenimiento.setColorFondoFooter("#f8f9fc");
-        mantenimiento.setColorTextoFooter("#9aabbb");
-        mantenimiento.setTextoFooter("© 2026 Pulse Gym - Todos los derechos reservados");
-        mantenimiento.setTextoFooterSecundario("Este es un mensaje automático, por favor no responder a este correo");
-        mantenimiento.setActivo(true);
-        mantenimiento.setEliminado(false);
-        mantenimiento.setFechaCreacion(LocalDateTime.now());
-        disenoRepository.save(mantenimiento);
-        logger.info("Diseño para MAINTENANCE_ALERT creado");
-
-        logger.info("Total diseños creados: {}", disenoRepository.count());
+    private PlantillaDisenoEmail crearDisenoDefault() {
+        logger.warn("Creando diseño por defecto");
+        PlantillaDisenoEmail diseno = new PlantillaDisenoEmail();
+        diseno.setNombre("default");
+        diseno.setColorPrincipal("#2c4b77");
+        diseno.setColorSecundario("#8bb5d6");
+        diseno.setColorTextoHeader("#ffffff");
+        diseno.setTituloHeader("Pulse Gym");
+        diseno.setSubtituloHeader("Tu bienestar, nuestra pasión");
+        diseno.setColorFondoContenido("#ffffff");
+        diseno.setColorTextoContenido("#5d6d7e");
+        diseno.setColorFondoFooter("#f8f9fc");
+        diseno.setColorTextoFooter("#9aabbb");
+        diseno.setTextoFooter("© 2026 Pulse Gym - Todos los derechos reservados");
+        diseno.setTextoFooterSecundario("Este es un mensaje automático, por favor no responder a este correo");
+        diseno.setActivo(true);
+        diseno.setEliminado(false);
+        diseno.setFechaCreacion(LocalDateTime.now());
+        return diseno;
     }
 }
