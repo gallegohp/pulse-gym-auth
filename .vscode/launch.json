@@ -9,6 +9,16 @@
             "projectName": "pg-ms-users",
             "args": "",
             "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-LbCommonApplication<pg-lib-common>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.pulse_gym.lb_common.LbCommonApplication",
+            "projectName": "pg-lib-common",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
         }
     ]
 }
