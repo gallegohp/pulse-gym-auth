@@ -18,22 +18,43 @@ import com.pulse_gym.ms_notifications.services.PreferenciaUsuarioService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * Controlador REST para la gestión de preferencias de notificaciones de los usuarios.
+ * Expone endpoints para que los socios puedan consultar y actualizar sus preferencias
+ * de canales y categorías de notificaciones.
+ * 
+ * Los endpoints de este controlador requieren que el usuario esté autenticado como socio.
+ * Las preferencias incluyen:
+ * - Canal preferido (EMAIL, WHATSAPP o AMBOS)
+ * - Notificaciones de logros (habilitado/deshabilitado)
+ * - Notificaciones de mantenimiento (habilitado/deshabilitado)
+ * - Notificaciones promocionales (habilitado/deshabilitado)
+ */
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/preferencias")
 public class PreferenciaController {
 
     /**
-     * Inyeccion de servicio de preferencias de usuario
+     * Inyección del servicio de preferencias de usuario.
+     * Se utiliza para obtener, actualizar y validar las preferencias de notificaciones
+     * de los usuarios del sistema.
      */
     private final PreferenciaUsuarioService preferenciaUsuarioService;
 
     /**
-     * Obtiene las preferencias del socio autenticado
+     * Obtiene las preferencias de notificaciones del socio autenticado.
+     * Si el usuario no tiene preferencias configuradas previamente, el sistema
+     * crea automáticamente preferencias con valores por defecto:
+     * - Canal: AMBOS (EMAIL y WHATSAPP)
+     * - Logros: habilitado
+     * - Mantenimientos: habilitado
+     * - Promociones: habilitado
      *
-     * @param usuarioId Identificador del usuario en auth
-     * @param userRol   Rol del usuario autenticado
-     * @return Preferencias del usuario
+     * @param usuarioId Identificador del usuario en el sistema de autenticación (cabecera X-User-Id)
+     * @param userRol   Rol del usuario autenticado (cabecera X-User-Rol)
+     * @return ResponseEntity con un mapa que incluye las preferencias del usuario en la clave "data".
+     *         Si el usuario no tiene preferencias, se devuelven las preferencias por defecto creadas automáticamente
      */
     @GetMapping("/mis-preferencias")
     public ResponseEntity<Map<String, Object>> obtenerMisPreferencias(
@@ -48,12 +69,21 @@ public class PreferenciaController {
     }
 
     /**
-     * Actualiza las preferencias del socio autenticado
+     * Actualiza las preferencias de notificaciones del socio autenticado.
+     * Permite modificar el canal preferido y las categorías de notificaciones que desea recibir.
+     * Los cambios se persisten inmediatamente en la base de datos.
      *
-     * @param usuarioId Identificador del usuario en auth
-     * @param request   Datos de preferencias
-     * @param userRol   Rol del usuario autenticado
-     * @return Preferencias actualizadas
+     * @param usuarioId Identificador del usuario en el sistema de autenticación (cabecera X-User-Id)
+     * @param request   DTO con los nuevos datos de preferencias:
+     *                - preferencia: canal preferido (EMAIL, WHATSAPP o AMBOS)
+     *                - logrosHabilitado: habilitar/deshabilitar notificaciones de logros
+     *                - mantenimientosHabilitado: habilitar/deshabilitar notificaciones de mantenimiento
+     *                - promocionesHabilitado: habilitar/deshabilitar notificaciones promocionales
+     * @param userRol   Rol del usuario autenticado (cabecera X-User-Rol)
+     * @return ResponseEntity con un mapa que incluye:
+     *         - "success": true si la actualización fue exitosa
+     *         - "message": mensaje de confirmación
+     *         - "data": las preferencias actualizadas
      */
     @PutMapping("/mis-preferencias")
     public ResponseEntity<Map<String, Object>> actualizarMisPreferencias(
