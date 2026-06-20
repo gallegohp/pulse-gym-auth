@@ -22,17 +22,42 @@ import com.pulse_gym.ms_notifications.repository.PlantillaNotificationRepository
 @Component
 public class DataInitializer implements CommandLineRunner {
 
+    /**
+     * Logger para registrar el proceso de inicialización de datos. Se utiliza para informar sobre la creación de plantillas y diseños, así como para advertir si se están creando registros por defecto.
+     */
     private static final Logger logger = LoggerFactory.getLogger(DataInitializer.class);
 
+    /**
+     * Repositorio para gestionar los diseños de email. Se utiliza para verificar la existencia de diseños asociados a eventos específicos y para crear nuevos diseños si es necesario.
+     */
     private final PlantillaDisenoEmailRepository disenoRepository;
+
+    /**
+     * Repositorio para gestionar las plantillas de notificación. Se utiliza para verificar la existencia de plantillas asociadas a eventos específicos y para crear nuevas plantillas si es necesario.
+     */
     private final PlantillaNotificationRepository plantillaRepository;
 
+    /**
+     * Constructor para inicializar los repositorios necesarios.
+     *
+     * @param disenoRepository Repositorio para gestionar los diseños de email.
+     * @param plantillaRepository Repositorio para gestionar las plantillas de notificación.
+     */
     public DataInitializer(PlantillaDisenoEmailRepository disenoRepository,
             PlantillaNotificationRepository plantillaRepository) {
         this.disenoRepository = disenoRepository;
         this.plantillaRepository = plantillaRepository;
     }
 
+    /** Método que se ejecuta al iniciar la aplicación. Verifica la existencia de plantillas y diseños asociados a eventos específicos y los crea si no existen. 
+     * Se registran logs para informar sobre el proceso de inicialización. 
+     * 
+     * Eventos cubiertos:
+     * - REGISTRO_USUARIO
+     * - LOGIN_USUARIO
+     * - WELCOME
+     * 
+     * */
     @Override
     public void run(String... args) {
         logger.info("Verificando e inicializando plantillas de notificacion si faltan...");
@@ -42,6 +67,9 @@ public class DataInitializer implements CommandLineRunner {
         inicializarDisenosFaltantes();
     }
 
+    /**
+     * Inicializa las plantillas de notificación que faltan.
+     */
     private void inicializarPlantillasFaltantes() {
         // 1. REGISTRO_USUARIO
         if (plantillaRepository.findByEventosAsociadosContainingAndEstadoTrueAndEliminadaFalse(EnumEventoAsociado.REGISTRO_USUARIO).isEmpty()) {
@@ -95,6 +123,9 @@ public class DataInitializer implements CommandLineRunner {
         }
     }
 
+    /**
+     * Inicializa los diseños de email que faltan.
+     */     
     private void inicializarDisenosFaltantes() {
         // Default
         if (disenoRepository.findByNombreAndEliminadoFalseAndActivoTrue("default").isEmpty()) {
@@ -271,6 +302,10 @@ public class DataInitializer implements CommandLineRunner {
         }
     }
 
+    /**
+     * Crea un diseño de email por defecto que se utilizará para eventos que no tengan un diseño específico asignado. Este diseño incluye colores, títulos y textos genéricos que reflejan la identidad de Pulse Gym.
+     * @return Un objeto PlantillaDisenoEmail con la configuración por defecto.
+     */
     private PlantillaDisenoEmail crearDisenoDefault() {
         logger.warn("Creando diseño por defecto");
         PlantillaDisenoEmail diseno = new PlantillaDisenoEmail();

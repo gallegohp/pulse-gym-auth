@@ -22,18 +22,23 @@ import com.pulse_gym.ms_notifications.services.PlantillaDisenoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
-/**
- * Controlador REST para gestionar las plantillas de diseño de emails
- */
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/diseno-email")
 public class PlantillaDisenoController {
 
+    /**
+     * Inyeccion de PlantillaDisenoService para manejar las operaciones de base de datos
+     * relacionadas con los diseños de email
+     */
     private final PlantillaDisenoService disenoService;
 
     /**
-     * Crea un nuevo diseño de email
+     * Controlador para crear un nuevo diseño de email
+     * @param request
+     * @param userRol
+     * @return 
      */
     @PostMapping("/crear")
     public ResponseEntity<Map<String, Object>> crearDiseno(
