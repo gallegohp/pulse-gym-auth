@@ -50,7 +50,9 @@ services:
       - pulsegym
 
   pg-ms-auth:
-    build: ./pg-ms-auth
+    build:
+      context: .
+      dockerfile: pg-ms-auth/Dockerfile
     container_name: pg-ms-auth
     ports:
       - "8090:8090"
@@ -68,7 +70,9 @@ services:
       - pulsegym
 
   pg-ms-operation:
-    build: ./pg-ms-operation
+    build:
+      context: .
+      dockerfile: pg-ms-operation/Dockerfile
     container_name: pg-ms-operation
     ports:
       - "8082:8082"
@@ -120,7 +124,9 @@ services:
       - pulsegym
 
   pg-ms-reports:
-    build: ./pg-ms-reports
+    build:
+      context: .
+      dockerfile: pg-ms-reports/Dockerfile
     container_name: pg-ms-reports
     ports:
       - "8084:8084"
@@ -136,7 +142,9 @@ services:
       - pulsegym
 
   pg-ms-gateway:
-    build: ./pg-ms-gateway
+    build:
+      context: .
+      dockerfile: pg-ms-gateway/Dockerfile
     container_name: pg-ms-gateway
     ports:
       - "9090:9090"
