@@ -1,20 +1,27 @@
 package com.pulse_gym.ms_auth.services;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.pulse_gym.lb_common.client.AuthServiceClient;
+import com.pulse_gym.lb_common.client.NotificacionClient;
 import com.pulse_gym.lb_common.dto.ContrasenaOlvidada;
+import com.pulse_gym.lb_common.dto.EnvioEventoNotificacionDTO;
 import com.pulse_gym.lb_common.dto.HttpGlobalResponse;
 import com.pulse_gym.lb_common.dto.JwtDTO;
 import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
 import com.pulse_gym.lb_common.dto.RestablecerContrasena;
 import com.pulse_gym.lb_common.entity.auth.PasswordResetToken;
 import com.pulse_gym.lb_common.entity.auth.User;
+import com.pulse_gym.lb_common.enums.EnumEventoAsociado;
 import com.pulse_gym.lb_common.services.JwtService;
 import com.pulse_gym.ms_auth.dto.LoginRequestDTO;
 import com.pulse_gym.ms_auth.dto.RegisterRequestDTO;
@@ -27,27 +34,37 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AuthService {
 
-    /** Repositorio de UserAuthRepository */
+    private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
+
+    /** Repositorio para operaciones CRUD de usuarios de autenticación */
     private final UserAuthRepository userAuthRepository;
 
-    /** */
+    /** Codificador de contraseñas usando BCrypt */
     private final PasswordEncoder passwordEncoder;
 
-    /** Servicio de Jwt */
+    /** Servicio para generación y validación de tokens JWT */
     private final JwtService jwtService;
 
-    /** Servicio de Email */
+    /** Servicio para envío de correos electrónicos */
     private final EmailService emailService;
 
-    /** Servicio de Restableer la contraseña */
+    /** Repositorio para tokens de restablecimiento de contraseña */
     private final PasswordResetTokenRepository tokenRepository;
+
+    /** Cliente Feign para comunicación con el microservicio de notificaciones */
+    private final NotificacionClient notificacionClient;
+
+    /** Cliente para interactuar con el servicio de autenticación */
+    private final AuthServiceClient authServiceClient;
+
+    /** Tiempo de expiración del token de restablecimiento en minutos */
     @Value("${app.security.reset-token-expiration-minutes:10}")
     private long tokenExpirationMinutes;
 
     /**
-     * Genera un código OTP de 4 dígitos
-     * 
-     * @return Código OTP de 4 dígitos
+     * Genera un código OTP de 4 dígitos para restablecimiento de contraseña.
+     *
+     * @return Código OTP de 4 dígitos como String
      */
     private String generateOTP() {
         int otp = 1000 + (int) (Math.random() * 9000);
@@ -55,19 +72,24 @@ public class AuthService {
     }
 
     /**
-     * Registra un nuevo usuario en el sistema
-     * 
+     * Registra un nuevo usuario en el sistema.
+     * Valida que el email no esté en uso, crea el usuario y envía notificación de
+     * registro.
+     *
      * @param requestDTO Datos del usuario a registrar (email, password, username,
      *                   rol, estado)
      * @return Mensaje de éxito si se registró correctamente, o error si el email ya
      *         existe
      */
     public MessegeGlobalDTO register(RegisterRequestDTO requestDTO) {
+        logger.info("=== PASO 1: Iniciando registro para email: {} ===", requestDTO.getEmail());
 
         if (userAuthRepository.findByEmail(requestDTO.getEmail()).isPresent()) {
+            logger.warn("=== PASO 2: Email ya existe: {} ===", requestDTO.getEmail());
             return new MessegeGlobalDTO("El correo ya esta en uso");
         }
 
+        logger.info("=== PASO 3: Creando usuario ===");
         User user = new User();
         user.setEmail(requestDTO.getEmail());
         user.setPassword(passwordEncoder.encode(requestDTO.getPassword()));
@@ -75,22 +97,72 @@ public class AuthService {
         user.setRol(requestDTO.getRol());
         user.setEstado(requestDTO.getEstado());
         user.setFechaRegistro(LocalDateTime.now());
-        userAuthRepository.save(user);
 
+        logger.info("=== PASO 4: Guardando usuario en BD ===");
+        userAuthRepository.save(user);
+        logger.info("=== PASO 5: Usuario guardado con ID: {} ===", user.getId());
+
+        logger.info("=== PASO 6: Verificando notificacionClient, es null? {} ===", notificacionClient == null);
+
+        if (notificacionClient != null) {
+            logger.info("=== PASO 7: Llamando a enviarNotificacionRegistro ===");
+            enviarNotificacionRegistro(user);
+            logger.info("=== PASO 8: enviarNotificacionRegistro finalizado ===");
+        } else {
+            logger.error("=== PASO 8 ERROR: notificacionClient es NULL ===");
+        }
+
+        logger.info("=== PASO 9: Registro completado exitosamente ===");
         return new MessegeGlobalDTO("Se ha registrado correctamente");
     }
 
     /**
-     * Inicio de sesion
-     * 
-     * @param requestDTO
-     * @return HttpGlobalResponse<JwtDTO>
+     * Envía notificación de registro al microservicio de notificaciones.
+     *
+     * @param user Usuario recién registrado
+     */
+    private void enviarNotificacionRegistro(User user) {
+        try {
+            logger.info(">>> INICIANDO envío de notificación de registro para usuario: {}", user.getEmail());
+            logger.info(">>> ID de usuario: {}", user.getId());
+            logger.info(">>> Evento: {}", EnumEventoAsociado.REGISTRO_USUARIO);
+
+            EnvioEventoNotificacionDTO eventoDTO = new EnvioEventoNotificacionDTO();
+            eventoDTO.setUsuarioId(user.getId());
+            eventoDTO.setEvento(EnumEventoAsociado.REGISTRO_USUARIO);
+            eventoDTO.setVariablesAdicionales(Map.of(
+                    "username", user.getUsername(),
+                    "email", user.getEmail(),
+                    "nombre", user.getUsername(),
+                    "fecha_registro", LocalDateTime.now().toString()));
+
+            logger.info(">>> Llamando a notificacionClient.enviarPorEvento con DTO: {}", eventoDTO);
+
+            Map<String, Object> respuesta = notificacionClient.enviarPorEvento(eventoDTO);
+            logger.info(">>> Respuesta de notificacionClient: {}", respuesta);
+
+            logger.info(">>> Notificación de registro enviada exitosamente");
+        } catch (Exception e) {
+            logger.error(">>> ERROR CRÍTICO al enviar notificación: {}", e.getMessage(), e);
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Inicia sesión de un usuario existente.
+     * Valida credenciales y genera token JWT.
+     *
+     * @param requestDTO Credenciales de login (email, password)
+     * @return Respuesta con token JWT y mensaje de éxito o error
      */
     public HttpGlobalResponse<JwtDTO> login(LoginRequestDTO requestDTO) {
+        logger.info("=== LOGIN: Iniciando login para email: {} ===", requestDTO.getEmail());
+
         HttpGlobalResponse<JwtDTO> response = new HttpGlobalResponse<>();
         Optional<User> userFound = userAuthRepository.findByEmail(requestDTO.getEmail());
 
         if (userFound.isEmpty()) {
+            logger.warn("=== LOGIN: Usuario no encontrado: {} ===", requestDTO.getEmail());
             response.setMessege("Este usuario no se encuentra registrado");
             return response;
         }
@@ -98,26 +170,70 @@ public class AuthService {
         User user = userFound.get();
 
         if (!passwordEncoder.matches(requestDTO.getPassword(), user.getPassword())) {
+            logger.warn("=== LOGIN: Contraseña incorrecta para email: {} ===", requestDTO.getEmail());
             response.setMessege("Correo o contraseña son incorrectos");
             return response;
         }
+
+        logger.info("=== LOGIN: Credenciales válidas, generando token para usuario ID: {} ===", user.getId());
 
         JwtDTO jwtDTO = new JwtDTO();
         String jwt = jwtService.generateToken(user.getId(), user.getRol().name(), user.getEmail());
         jwtDTO.setJwt(jwt);
         response.setMessege("Inicio de sesion exitoso");
         response.setData(jwtDTO);
+
+        logger.info("=== LOGIN: Verificando notificacionClient para login, es null? {} ===",
+                notificacionClient == null);
+
+        if (notificacionClient != null) {
+            logger.info("=== LOGIN: Llamando a enviarNotificacionLogin ===");
+            enviarNotificacionLogin(user);
+            logger.info("=== LOGIN: enviarNotificacionLogin finalizado ===");
+        } else {
+            logger.error("=== LOGIN ERROR: notificacionClient es NULL ===");
+        }
+
         return response;
     }
 
     /**
-     * Refresco del jwt
-     * 
-     * @param token
-     * @return JwtDTO
-     * @throws Exception
+     * Envía notificación de inicio de sesión al microservicio de notificaciones.
+     *
+     * @param user Usuario que inició sesión
+     */
+    private void enviarNotificacionLogin(User user) {
+        try {
+            logger.info(">>> Enviando notificación de login para usuario: {}", user.getEmail());
+
+            EnvioEventoNotificacionDTO eventoDTO = new EnvioEventoNotificacionDTO();
+            eventoDTO.setUsuarioId(user.getId());
+            eventoDTO.setEvento(EnumEventoAsociado.LOGIN_USUARIO);
+            eventoDTO.setVariablesAdicionales(Map.of(
+                    "username", user.getUsername(),
+                    "email", user.getEmail()));
+
+            logger.info(">>> Llamando a notificacionClient.enviarPorEvento para login");
+
+            Map<String, Object> respuesta = notificacionClient.enviarPorEvento(eventoDTO);
+            logger.info(">>> Respuesta de notificacionClient login: {}", respuesta);
+
+            logger.info(">>> Notificación de login enviada exitosamente para usuario: {}", user.getEmail());
+        } catch (Exception e) {
+            logger.error(">>> Error al enviar notificación de login para usuario {}: {}", user.getEmail(),
+                    e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Refresca un token JWT que está cerca de expirar.
+     *
+     * @param token Token JWT actual
+     * @return Nuevo token JWT renovado
+     * @throws Exception Si el token es inválido o está expirado
      */
     public JwtDTO refreshToken(String token) throws Exception {
+        logger.info("=== REFRESH: Refrescando token ===");
         JwtDTO responseDTO = new JwtDTO();
         String jwt = jwtService.refreshToken(token);
         responseDTO.setJwt(jwt);
@@ -125,24 +241,30 @@ public class AuthService {
     }
 
     /**
-     * Solicita recuperación de contraseña con 4 digitos
-     * 
+     * Solicita recuperación de contraseña enviando un código OTP al email del
+     * usuario.
+     *
      * @param requestDTO Contiene el username del usuario
      * @return Mensaje de éxito o error
      */
     @Transactional
     public MessegeGlobalDTO forgotPassword(ContrasenaOlvidada requestDTO) {
+        logger.info("=== FORGOT PASSWORD: Solicitud para username: {} ===", requestDTO.getUsername());
+
         Optional<User> userOpt = userAuthRepository.findByUsername(requestDTO.getUsername());
 
         if (userOpt.isEmpty()) {
+            logger.warn("=== FORGOT PASSWORD: Username no encontrado: {} ===", requestDTO.getUsername());
             return new MessegeGlobalDTO("Si el username existe, recibirás un email con instrucciones");
         }
 
         User user = userOpt.get();
+        logger.info("=== FORGOT PASSWORD: Usuario encontrado con ID: {} ===", user.getId());
 
         tokenRepository.deleteByUserId(user.getId());
 
         String token = generateOTP();
+        logger.info("=== FORGOT PASSWORD: Token OTP generado: {} ===", token);
 
         PasswordResetToken resetToken = new PasswordResetToken();
         resetToken.setToken(token);
@@ -151,44 +273,54 @@ public class AuthService {
         resetToken.setUsed(false);
 
         tokenRepository.save(resetToken);
+        logger.info("=== FORGOT PASSWORD: Token guardado en BD ===");
 
         emailService.sendPasswordResetEmailSimple(user.getEmail(), user.getUsername(), token);
+        logger.info("=== FORGOT PASSWORD: Email enviado a: {} ===", user.getEmail());
 
         return new MessegeGlobalDTO("Si el username existe, recibirás un email con instrucciones");
     }
 
     /**
-     * Restablece la contraseña usando un token válido
-     * 
+     * Restablece la contraseña usando un token OTP válido.
+     *
      * @param requestDTO Contiene token, nueva contraseña y confirmación
      * @return Mensaje de éxito o error
      */
     @Transactional
     public MessegeGlobalDTO resetPassword(RestablecerContrasena requestDTO) {
-        // Validar que las contraseñas coincidan
+        logger.info("=== RESET PASSWORD: Iniciando restablecimiento ===");
+
         if (!requestDTO.getNewPassword().equals(requestDTO.getConfirmPassword())) {
+            logger.warn("=== RESET PASSWORD: Las contraseñas no coinciden ===");
             return new MessegeGlobalDTO("Las contraseñas no coinciden");
         }
 
         Optional<PasswordResetToken> tokenOpt = tokenRepository.findByToken(requestDTO.getToken());
 
         if (tokenOpt.isEmpty()) {
+            logger.warn("=== RESET PASSWORD: Token no encontrado: {} ===", requestDTO.getToken());
             return new MessegeGlobalDTO("Token inválido o expirado");
         }
 
         PasswordResetToken resetToken = tokenOpt.get();
 
         if (resetToken.isUsed()) {
+            logger.warn("=== RESET PASSWORD: Token ya utilizado ===");
             return new MessegeGlobalDTO("Este token ya ha sido utilizado");
         }
 
         if (resetToken.isExpired()) {
+            logger.warn("=== RESET PASSWORD: Token expirado ===");
             return new MessegeGlobalDTO("El token ha expirado");
         }
 
         User user = resetToken.getUser();
+        logger.info("=== RESET PASSWORD: Token válido para usuario ID: {} ===", user.getId());
+
         user.setPassword(passwordEncoder.encode(requestDTO.getNewPassword()));
         userAuthRepository.save(user);
+        logger.info("=== RESET PASSWORD: Contraseña actualizada ===");
 
         resetToken.setUsed(true);
         tokenRepository.save(resetToken);
