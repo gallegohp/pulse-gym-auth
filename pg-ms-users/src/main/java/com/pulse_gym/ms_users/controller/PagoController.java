@@ -55,31 +55,28 @@ public class PagoController {
     }
 
     /**
-     * Endpoint para que un socio realice un pago desde la aplicación móvil.
+     * Endpoint para que un socio inicie un pago de membresía desde la aplicación
+     * móvil.
      * 
-     * @param requestDTO        DTO con los datos del pago (idSocioMembresia, monto,
-     *                          metodoPago, etc.)
-     * @param userRol           Rol del usuario autenticado - header "X-User-Rol"
-     *                          (debe ser socio)
-     * @param userIdAutenticado ID del usuario autenticado - header "X-User-Id"
-     * @param userEmail         Email del socio autenticado - header "X-User-Email"
-     * @return Mensaje de confirmación del pago con código HTTP 201 (Created)
+     * @param requestDTO DTO con los datos del pago (idSocioMembresia, metodoPago)
+     * @param userRol    Rol del usuario autenticado - header "X-User-Rol" (debe ser
+     *                   socio)
+     * @param userEmail  Email del socio autenticado - header "X-User-Email"
+     * @return DTO con ID de preferencia y URL de pago de MercadoPago (código 200)
+     *         o mensaje de error (código 400 o 500)
      */
-@PostMapping("/pago-app")
-public ResponseEntity<PreferenceResponseDTO> realizarPagoApp(
-        @RequestBody RegistrarPagoRequestDTO requestDTO, // Quitamos @Valid para manejarlo manualmente si es necesario
-        @RequestHeader("X-User-Roles") String userRol,
-        @RequestHeader("X-User-Email") String userEmail) {
-    
-    // Forzamos un método temporal para que pase las validaciones internas de tu DTO si es necesario,
-    // o simplemente ignoramos ese campo ya que Mercado Pago generará su propia preferencia.
-    if (requestDTO.getMetodoPago() == null) {
-        // Asignamos un valor temporal del Enum que tengas (ej. TARJETA o DEBITO) 
-        // solo para que no falle si tu lógica interna lo requiere.
-        // requestDTO.setMetodoPago(MetodoPago.TARJETA); 
+    @PostMapping("/pago-app")
+    public ResponseEntity<?> realizarPagoApp(
+            @RequestBody RegistrarPagoRequestDTO requestDTO,
+            @RequestHeader(value = "X-User-Rol") String userRol,
+            @RequestHeader(value = "X-User-Email") String userEmail) {
+        try {
+            PreferenceResponseDTO response = pagoService.iniciarPagoMembresiaApp(requestDTO, userRol, userEmail);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Error de validación: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error al procesar el pago: " + e.getMessage());
+        }
     }
-
-    PreferenceResponseDTO response = pagoService.iniciarPagoMembresiaApp(requestDTO, userRol, userEmail);
-    return ResponseEntity.ok(response);
-}
 }

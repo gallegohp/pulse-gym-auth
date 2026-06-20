@@ -2,7 +2,8 @@ package com.pulse_gym.lb_common.dto;
 
 import java.math.BigDecimal;
 
-import jakarta.validation.constraints.DecimalMin;
+import com.pulse_gym.lb_common.enums.EnumMetodoPago;
+
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
@@ -13,17 +14,12 @@ public class RegistrarPagoRequestDTO {
     @NotNull(message = "El ID de la membresía asignada es obligatorio")
     private Long idSocioMembresia;
 
-    /** Monto del pago a realizar */
-    @NotNull(message = "El monto es obligatorio")
-    @DecimalMin(value = "0.01", message = "El monto debe ser mayor a 0")
+    /** Monto del pago (Ahora es opcional en el JSON, se calcula en el Backend) */
     private BigDecimal monto;
 
-    /**
-     * Método de pago (EFECTIVO, TRANSFERENCIA_BANCOLOMBIA, TARJETA_CREDITO,
-     * TARJETA_DEBITO, OTRO)
-     */
+    /** Método de pago */
     @NotNull(message = "El método de pago es obligatorio")
-    private String metodoPago;
+    private EnumMetodoPago metodoPago;
 
     /** Número de comprobante o referencia del pago (opcional) */
     private String numeroComprobante;
