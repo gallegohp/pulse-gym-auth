@@ -3,6 +3,7 @@ package com.pulse_gym.lb_common.entity.user;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import com.pulse_gym.lb_common.enums.EnumEstadoPago;
 import com.pulse_gym.lb_common.enums.EnumMetodoPago;
 
 import jakarta.persistence.Column;
@@ -72,6 +73,11 @@ public class Pago {
     /** Motivo de la anulación del pago */
     @Column(name = "motivo_anulacion", columnDefinition = "TEXT")
     private String motivoAnulacion;
+
+    /** Estado del pago (PENDIENTE, APROBADO, RECHAZADO, ANULADO) */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "estado")
+    private EnumEstadoPago estado;
 
     /**
      * Asigna automáticamente la fecha actual si no se especifica antes de persistir

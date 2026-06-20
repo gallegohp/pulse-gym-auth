@@ -15,5 +15,6 @@ public enum EnumMetodoPago {
     TARJETA_DEBITO,
 
     /** Pago realizado con otro método no especificado */
-    OTRO
+    OTRO;
+
 }
