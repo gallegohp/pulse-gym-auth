@@ -47,9 +47,10 @@ public class PlantillaRenderService {
         String resultado = contenido;
         
         for (Map.Entry<String, Object> entry : contexto.entrySet()) {
-            String variable = "{" + entry.getKey() + "}";
+            String doubleCurly = "{{" + entry.getKey() + "}}";
+            String singleCurly = "{" + entry.getKey() + "}";
             String valor = entry.getValue() != null ? entry.getValue().toString() : "";
-            resultado = resultado.replace(variable, valor);
+            resultado = resultado.replace(doubleCurly, valor).replace(singleCurly, valor);
         }
         
         return resultado;
