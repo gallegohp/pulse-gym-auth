@@ -130,6 +130,19 @@ public class JwtService {
     }
 
     /**
+     * Extrae el email del usuario del token
+     * 
+     * @param token Token JWT
+     * @return Email del usuario o null si no existe
+     */
+    public String extractGmail(String token) {
+        return extractClaims(token, claims -> {
+            Object gmail = claims.get("gmail");
+            return gmail != null ? gmail.toString() : null;
+        });
+    }
+
+    /**
      * Renueva un token JWT (refresca la fecha de expiración)
      * 
      * @param token Token JWT actual (puede estar cerca de expirar)

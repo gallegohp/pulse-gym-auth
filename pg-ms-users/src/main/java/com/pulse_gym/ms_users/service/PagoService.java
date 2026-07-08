@@ -4,9 +4,11 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.mercadopago.core.MPRequestOptions;
 import com.mercadopago.client.preference.PreferenceBackUrlsRequest;
@@ -24,13 +26,13 @@ import com.pulse_gym.lb_common.entity.user.SocioMembresia;
 import com.pulse_gym.lb_common.entity.user.UsuarioPerfil;
 import com.pulse_gym.lb_common.enums.EnumEstadoPago;
 import com.pulse_gym.lb_common.enums.EnumMetodoPago;
+import com.pulse_gym.lb_common.enums.EnumRol;
 import com.pulse_gym.lb_common.exception.SecurityAuthorizationException;
 import com.pulse_gym.lb_common.services.ValidacionDeRoles;
 import com.pulse_gym.ms_users.repository.PagoRepository;
 import com.pulse_gym.ms_users.repository.SocioMembresiaRepository;
 import com.pulse_gym.ms_users.repository.UsuarioPerfilRepository;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -253,5 +255,56 @@ public class PagoService {
                 } catch (Exception e) {
                         throw new RuntimeException("Error general al inicializar pago: " + e.getMessage());
                 }
+        }
+
+        /**
+         * Consulta el historial de pagos de un socio con validación de permisos
+         * 
+         * @param idSocio           ID del socio a consultar
+         * @param userRol           Rol del usuario autenticado
+         * @param userIdAutenticado ID del usuario autenticado
+         * @param userEmail         Email del usuario autenticado
+         * @return Lista de pagos del socio
+         * @throws SecurityAuthorizationException Si el usuario no tiene permisos
+         * @throws RuntimeException               Si no se encuentra el socio o no tiene
+         *                                        pagos
+         */
+        @Transactional(readOnly = true)
+        public List<PagoResponseDTO> consultarHistorialPagos(Long idSocio, String userRol, Long userIdAutenticado,
+                        String userEmail) {
+
+                if (userRol.equals(EnumRol.socio.name())) {
+                        UsuarioPerfil socioAutenticado = usuarioRepository.findByEmail(userEmail)
+                                        .orElseThrow(() -> new RuntimeException(
+                                                        "Socio autenticado no encontrado con email: " + userEmail));
+
+                        UsuarioPerfil socioConsultado = usuarioRepository.findById(idSocio)
+                                        .orElseThrow(() -> new RuntimeException(
+                                                        "Socio no encontrado con ID: " + idSocio));
+
+                        if (!socioAutenticado.getEmail().equals(socioConsultado.getEmail())) {
+                                throw new SecurityAuthorizationException(
+                                                "Acceso denegado. Solo puede consultar su propio historial. Tu email: "
+                                                                +
+                                                                socioAutenticado.getEmail() + ", consultado: "
+                                                                + socioConsultado.getEmail());
+                        }
+                } else if (!userRol.equals(EnumRol.administrador.name())
+                                && !userRol.equals(EnumRol.recepcionista.name())) {
+                        throw new SecurityAuthorizationException("Acceso denegado. Rol no autorizado: " + userRol);
+                }
+
+                UsuarioPerfil socio = usuarioRepository.findById(idSocio)
+                                .orElseThrow(() -> new RuntimeException("Socio no encontrado con ID: " + idSocio));
+
+                List<Pago> pagos = pagoRepository.findBySocioId(idSocio);
+
+                if (pagos.isEmpty()) {
+                        throw new RuntimeException("El socio " + socio.getNombre() + " no tiene pagos registrados");
+                }
+
+                return pagos.stream()
+                                .map(this::convertirAResponseDTO)
+                                .collect(Collectors.toList());
         }
 }
