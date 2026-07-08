@@ -9,5 +9,8 @@ public enum EnumEstadoPago {
     APROBADO,
 
     /** Pago rechazado por el sistema de pagos o por la pasarela */
-    RECHAZADO
+    RECHAZADO,
+
+    /** Pago cancelado por el usuario */
+    ANULADO
 }

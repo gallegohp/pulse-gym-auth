@@ -7,12 +7,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.pulse_gym.lb_common.dto.AnularPagoRequestDTO;
 import com.pulse_gym.lb_common.dto.FiltroPagosRequestDTO;
 import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
 import com.pulse_gym.lb_common.dto.PagoResponseDTO;
@@ -141,6 +143,32 @@ public class PagoController {
         } catch (Exception e) {
             e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al filtrar pagos", e);
+        }
+    }
+
+    /**
+     * Anula un pago existente
+     * 
+     * @param requestDTO DTO con el ID del pago y motivo de anulación
+     * @param userRol    Rol del usuario autenticado (header)
+     * @return Mensaje de confirmación de la anulación
+     * @throws SecurityAuthorizationException Si el usuario no tiene permisos
+     * @throws ResponseStatusException        Si ocurre un error interno
+     */
+    @PutMapping("/anular")
+    public ResponseEntity<MessegeGlobalDTO> anularPago(
+            @Valid @RequestBody AnularPagoRequestDTO requestDTO,
+            @RequestHeader(value = "X-User-Rol", required = false) String userRol) {
+        try {
+            MessegeGlobalDTO response = pagoService.anularPago(requestDTO, userRol);
+            return ResponseEntity.ok(response);
+        } catch (SecurityAuthorizationException e) {
+            throw e;
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al anular pago", e);
         }
     }
 }

@@ -19,6 +19,7 @@ import com.mercadopago.client.preference.PreferenceItemRequest;
 import com.mercadopago.client.preference.PreferenceRequest;
 import com.mercadopago.exceptions.MPApiException;
 import com.mercadopago.resources.preference.Preference;
+import com.pulse_gym.lb_common.dto.AnularPagoRequestDTO;
 import com.pulse_gym.lb_common.dto.FiltroPagosRequestDTO;
 import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
 import com.pulse_gym.lb_common.dto.PagoResponseDTO;
@@ -367,5 +368,38 @@ public class PagoService {
                 return pagos.stream()
                                 .map(this::convertirAResponseDTO)
                                 .collect(Collectors.toList());
+        }
+
+        /**
+         * Anula un pago existente
+         * 
+         * @param requestDTO DTO con el ID del pago y motivo de anulación
+         * @param userRol    Rol del usuario autenticado
+         * @return Mensaje de confirmación de la anulación
+         * @throws RuntimeException Si el pago no existe o ya está anulado
+         */
+        @Transactional
+        public MessegeGlobalDTO anularPago(AnularPagoRequestDTO requestDTO, String userRol) {
+                ValidacionDeRoles.validarAdminORecepcionista(userRol);
+
+                Pago pago = pagoRepository.findById(requestDTO.getIdPago())
+                                .orElseThrow(() -> new RuntimeException(
+                                                "Pago no encontrado con ID: " + requestDTO.getIdPago()));
+
+                if (pago.isAnulado()) {
+                        throw new RuntimeException("Este pago ya está anulado");
+                }
+
+                pago.setAnulado(true);
+                pago.setFechaAnulacion(LocalDateTime.now());
+                pago.setMotivoAnulacion(requestDTO.getMotivo());
+                pago.setEstado(EnumEstadoPago.ANULADO);
+
+                pagoRepository.save(pago);
+
+                return new MessegeGlobalDTO(String.format(
+                                "Pago ID: %d anulado correctamente. Motivo: %s",
+                                pago.getIdPago(),
+                                requestDTO.getMotivo()));
         }
 }
