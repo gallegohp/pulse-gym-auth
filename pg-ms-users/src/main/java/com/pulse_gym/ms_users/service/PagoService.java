@@ -3,10 +3,12 @@ package com.pulse_gym.ms_users.service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,6 +19,7 @@ import com.mercadopago.client.preference.PreferenceItemRequest;
 import com.mercadopago.client.preference.PreferenceRequest;
 import com.mercadopago.exceptions.MPApiException;
 import com.mercadopago.resources.preference.Preference;
+import com.pulse_gym.lb_common.dto.FiltroPagosRequestDTO;
 import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
 import com.pulse_gym.lb_common.dto.PagoResponseDTO;
 import com.pulse_gym.lb_common.dto.PreferenceResponseDTO;
@@ -33,6 +36,7 @@ import com.pulse_gym.ms_users.repository.PagoRepository;
 import com.pulse_gym.ms_users.repository.SocioMembresiaRepository;
 import com.pulse_gym.ms_users.repository.UsuarioPerfilRepository;
 
+import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -301,6 +305,63 @@ public class PagoService {
 
                 if (pagos.isEmpty()) {
                         throw new RuntimeException("El socio " + socio.getNombre() + " no tiene pagos registrados");
+                }
+
+                return pagos.stream()
+                                .map(this::convertirAResponseDTO)
+                                .collect(Collectors.toList());
+        }
+
+        /**
+         * Filtra pagos aplicando criterios de búsqueda
+         * 
+         * @param filtro  DTO con los filtros a aplicar
+         * @param userRol Rol del usuario autenticado
+         * @return Lista de pagos que coinciden con los filtros
+         * @throws RuntimeException Si no se encuentran pagos
+         */
+        @Transactional(readOnly = true)
+        public List<PagoResponseDTO> filtrarPagos(FiltroPagosRequestDTO filtro, String userRol) {
+                ValidacionDeRoles.validarAdminORecepcionista(userRol);
+
+                Specification<Pago> spec = (root, query, cb) -> {
+                        List<Predicate> predicates = new ArrayList<>();
+
+                        if (filtro.getIdSocio() != null) {
+                                predicates.add(cb.equal(root.get("socioMembresia").get("socio").get("idUsuario"),
+                                                filtro.getIdSocio()));
+                        }
+
+                        if (filtro.getMetodoPago() != null && !filtro.getMetodoPago().isEmpty()) {
+                                try {
+                                        EnumMetodoPago metodo = EnumMetodoPago
+                                                        .valueOf(filtro.getMetodoPago().toUpperCase());
+                                        predicates.add(cb.equal(root.get("metodoPago"), metodo));
+                                } catch (IllegalArgumentException e) {
+
+                                }
+                        }
+
+                        if (filtro.getAnulado() != null) {
+                                predicates.add(cb.equal(root.get("anulado"), filtro.getAnulado()));
+                        }
+
+                        if (filtro.getFechaInicio() != null && filtro.getFechaFin() != null) {
+                                predicates.add(cb.between(root.get("fechaPago"), filtro.getFechaInicio(),
+                                                filtro.getFechaFin()));
+                        } else if (filtro.getFechaInicio() != null) {
+                                predicates.add(cb.greaterThanOrEqualTo(root.get("fechaPago"), filtro.getFechaInicio()));
+                        } else if (filtro.getFechaFin() != null) {
+                                predicates.add(cb.lessThanOrEqualTo(root.get("fechaPago"), filtro.getFechaFin()));
+                        }
+
+                        return cb.and(predicates.toArray(new Predicate[0]));
+                };
+
+                List<Pago> pagos = pagoRepository.findAll(spec);
+
+                if (pagos.isEmpty()) {
+                        throw new RuntimeException("No se encontraron pagos con los filtros aplicados");
                 }
 
                 return pagos.stream()
