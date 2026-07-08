@@ -1,7 +1,11 @@
 package com.pulse_gym.ms_users.controller;
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -10,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
+import com.pulse_gym.lb_common.dto.PagoResponseDTO;
 import com.pulse_gym.lb_common.dto.PreferenceResponseDTO;
 import com.pulse_gym.lb_common.dto.RegistrarPagoRequestDTO;
 import com.pulse_gym.lb_common.exception.SecurityAuthorizationException;
@@ -77,6 +82,38 @@ public class PagoController {
             return ResponseEntity.badRequest().body("Error de validación: " + e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Error al procesar el pago: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Consulta el historial de pagos de un socio
+     * 
+     * @param idSocio           ID del socio a consultar
+     * @param userRol           Rol del usuario autenticado (header)
+     * @param userIdAutenticado ID del usuario autenticado (header)
+     * @param userEmail         Email del usuario autenticado (header)
+     * @return Lista de pagos del socio
+     * @throws SecurityAuthorizationException Si el usuario no tiene permisos
+     * @throws ResponseStatusException        Si ocurre un error interno
+     */
+    @GetMapping("/socio/{idSocio}")
+    public ResponseEntity<List<PagoResponseDTO>> consultarHistorialPagos(
+            @PathVariable Long idSocio,
+            @RequestHeader(value = "X-User-Rol", required = false) String userRol,
+            @RequestHeader(value = "X-User-Id", required = false) Long userIdAutenticado,
+            @RequestHeader(value = "X-User-Email", required = false) String userEmail) {
+        try {
+            List<PagoResponseDTO> pagos = pagoService.consultarHistorialPagos(
+                    idSocio, userRol, userIdAutenticado, userEmail);
+            return ResponseEntity.ok(pagos);
+        } catch (SecurityAuthorizationException e) {
+            throw e;
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Error al consultar historial de pagos", e);
         }
     }
 }

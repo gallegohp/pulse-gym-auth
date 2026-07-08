@@ -78,10 +78,12 @@ public class JwtValidationFilter implements GlobalFilter, Ordered {
         Long userId = jwtService.extractUserId(token);
         String rol = jwtService.extractRol(token);
         String username = jwtService.extractUsername(token);
+        String gmail = jwtService.extractGmail(token);
 
         System.out.println("userId: " + userId);
         System.out.println("rol: " + rol);
         System.out.println("username: " + username);
+        System.out.println("gmail: " + gmail);
 
         ServerHttpRequest mutatedRequest = exchange.getRequest().mutate()
                 .header("X-User-Id", userId != null ? userId.toString() : "")
@@ -89,7 +91,7 @@ public class JwtValidationFilter implements GlobalFilter, Ordered {
                 .header("X-User-Rol", rol != null ? rol : "")
                 .header("X-User-Name", username != null ? username : "")
                 .header("X-User-Rol", rol != null ? rol : "")
-                .header("X-User-Email", username != null ? username : "")
+                .header("X-User-Email", gmail != null ? gmail : "")
                 .build();
 
         ServerWebExchange mutatedExchange = exchange.mutate()
