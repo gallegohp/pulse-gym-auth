@@ -16,6 +16,7 @@ import com.mercadopago.client.preference.PreferenceRequest;
 import com.mercadopago.exceptions.MPApiException;
 import com.mercadopago.resources.preference.Preference;
 import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
+import com.pulse_gym.lb_common.dto.PagoResponseDTO;
 import com.pulse_gym.lb_common.dto.PreferenceResponseDTO;
 import com.pulse_gym.lb_common.dto.RegistrarPagoRequestDTO;
 import com.pulse_gym.lb_common.entity.user.Pago;
@@ -53,6 +54,40 @@ public class PagoService {
          */
         @Value("${MERCADOPAGO_ACCESS_TOKEN}")
         private String mpAccessToken;
+
+        /**
+         * Convierte una entidad Pago a PagoResponseDTO
+         * 
+         * @param pago Entidad de pago a convertir
+         * @return DTO con los datos del pago
+         */
+        private PagoResponseDTO convertirAResponseDTO(Pago pago) {
+                PagoResponseDTO dto = new PagoResponseDTO();
+                dto.setIdPago(pago.getIdPago());
+                dto.setIdSocio(pago.getSocioMembresia().getSocio().getIdUsuario());
+                dto.setNombreSocio(pago.getSocioMembresia().getSocio().getNombre() + " " +
+                                pago.getSocioMembresia().getSocio().getApellido());
+                dto.setEmailSocio(pago.getSocioMembresia().getSocio().getEmail());
+                dto.setIdSocioMembresia(pago.getSocioMembresia().getIdSocioMembresia());
+                dto.setNombreMembresia(pago.getSocioMembresia().getMembresia().getNombre());
+                dto.setMonto(pago.getMonto());
+                dto.setFechaPago(pago.getFechaPago());
+                dto.setMetodoPago(pago.getMetodoPago().name());
+                dto.setNumeroComprobante(pago.getNumeroComprobante());
+
+                if (pago.getAdminRegistro() != null) {
+                        dto.setIdAdminRegistro(pago.getAdminRegistro().getIdUsuario());
+                        dto.setNombreAdminRegistro(pago.getAdminRegistro().getNombre() + " " +
+                                        pago.getAdminRegistro().getApellido());
+                }
+
+                dto.setObservaciones(pago.getObservaciones());
+                dto.setAnulado(pago.getAnulado());
+                dto.setMotivoAnulacion(pago.getMotivoAnulacion());
+                dto.setFechaAnulacion(pago.getFechaAnulacion());
+
+                return dto;
+        }
 
         /**
          * Registra un nuevo pago para una membresía asignada a un socio.
