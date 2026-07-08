@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.pulse_gym.lb_common.dto.FiltroPagosRequestDTO;
 import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
 import com.pulse_gym.lb_common.dto.PagoResponseDTO;
 import com.pulse_gym.lb_common.dto.PreferenceResponseDTO;
@@ -114,6 +115,32 @@ public class PagoController {
             e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
                     "Error al consultar historial de pagos", e);
+        }
+    }
+
+    /**
+     * Filtra pagos aplicando criterios de búsqueda
+     * 
+     * @param filtro  DTO con los filtros a aplicar
+     * @param userRol Rol del usuario autenticado (header)
+     * @return Lista de pagos que coinciden con los filtros
+     * @throws SecurityAuthorizationException Si el usuario no tiene permisos
+     * @throws ResponseStatusException        Si ocurre un error interno
+     */
+    @PostMapping("/filtrar")
+    public ResponseEntity<List<PagoResponseDTO>> filtrarPagos(
+            @RequestBody FiltroPagosRequestDTO filtro,
+            @RequestHeader(value = "X-User-Rol", required = false) String userRol) {
+        try {
+            List<PagoResponseDTO> pagos = pagoService.filtrarPagos(filtro, userRol);
+            return ResponseEntity.ok(pagos);
+        } catch (SecurityAuthorizationException e) {
+            throw e;
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al filtrar pagos", e);
         }
     }
 }
