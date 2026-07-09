@@ -55,6 +55,9 @@ public class PagoService {
         /** Repositorio para operaciones con usuarios */
         private final UsuarioPerfilRepository usuarioRepository;
 
+        /** Servicio para generar comprobantes de pago en PDF */
+        private final PagoPDFService pagoPDFService;
+
         /**
          * Token de acceso para la integración con la API de MercadoPago, configurado
          * desde variables de entorno
@@ -438,4 +441,19 @@ public class PagoService {
                 return convertirAResponseDTO(pago);
         }
 
+        /**
+         * Genera un comprobante de pago en formato PDF
+         * 
+         * @param idPago            ID del pago a consultar
+         * @param userRol           Rol del usuario autenticado
+         * @param userIdAutenticado ID del usuario autenticado
+         * @param userEmail         Email del usuario autenticado
+         * @return Array de bytes del PDF generado
+         */
+        @Transactional(readOnly = true)
+        public byte[] generarComprobantePDF(Long idPago, String userRol, Long userIdAutenticado, String userEmail) {
+                PagoResponseDTO pagoDTO = generarComprobante(idPago, userRol, userIdAutenticado, userEmail);
+
+                return pagoPDFService.generarComprobantePDF(pagoDTO);
+        }
 }
