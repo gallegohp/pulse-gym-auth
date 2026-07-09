@@ -34,6 +34,9 @@ public class JwtValidationFilter implements GlobalFilter, Ordered {
      * autorización)
      */
     private boolean isInternalPath(String path) {
+        if (path.contains("/api/internal/socios-membresias/biometrico")) {
+            return false;
+        }
         return path.contains("/api/internal/");
     }
 
@@ -78,7 +81,7 @@ public class JwtValidationFilter implements GlobalFilter, Ordered {
         Long userId = jwtService.extractUserId(token);
         String rol = jwtService.extractRol(token);
         String username = jwtService.extractUsername(token);
-        String gmail = jwtService.extractGmail(token);
+        String gmail = jwtService.extractUsername(token);
 
         System.out.println("userId: " + userId);
         System.out.println("rol: " + rol);
@@ -89,9 +92,7 @@ public class JwtValidationFilter implements GlobalFilter, Ordered {
                 .header("X-User-Id", userId != null ? userId.toString() : "")
                 .header("X-User-Name", username != null ? username : "")
                 .header("X-User-Rol", rol != null ? rol : "")
-                .header("X-User-Name", username != null ? username : "")
-                .header("X-User-Rol", rol != null ? rol : "")
-                .header("X-User-Email", gmail != null ? gmail : "")
+                .header("X-User-Email", username != null ? username : "")
                 .build();
 
         ServerWebExchange mutatedExchange = exchange.mutate()
