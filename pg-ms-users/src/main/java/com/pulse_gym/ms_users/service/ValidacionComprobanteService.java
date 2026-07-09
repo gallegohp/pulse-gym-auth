@@ -50,10 +50,10 @@ public class ValidacionComprobanteService {
 
             if (pago.getAnulado()) {
                 dto.setValido(false);
-                dto.setMensaje("❌ Este comprobante ha sido ANULADO");
+                dto.setMensaje("Este comprobante ha sido ANULADO");
             } else {
                 dto.setValido(true);
-                dto.setMensaje("✅ COMPROBANTE VÁLIDO");
+                dto.setMensaje("COMPROBANTE VÁLIDO");
             }
 
             return generarHTML(dto);
@@ -211,7 +211,7 @@ public class ValidacionComprobanteService {
                 <body>
                     <div class="container">
                         <div class="header">
-                            <h1>🏋️ <strong>Pulse Gym</strong></h1>
+                            <h1><strong>Pulse Gym</strong></h1>
                             <p>Validación de Comprobante de Pago</p>
                         </div>
 
@@ -263,7 +263,7 @@ public class ValidacionComprobanteService {
 
                             <div class="warning-box">
                                 <div class="warning-text">
-                                    <strong>ℹ️ Importante:</strong> Este comprobante es válido como constancia de pago.
+                                    <strong>ℹImportante:</strong> Este comprobante es válido como constancia de pago.
                                     Si tienes alguna duda, por favor contacta con la recepción de Pulse Gym.
                                 </div>
                             </div>
