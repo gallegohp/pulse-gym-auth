@@ -224,10 +224,14 @@ public class AsistenciaService {
     }
 
     /**
-     * Metodo para registrar la asistencia mediante dato biometrico, validando los datos del token correspondiente
-     * obtiene el perfil del socio, y obtiene su respectiva sede y contruye un DTO de registro similar al normal
+     * Metodo para registrar la asistencia mediante dato biometrico, validando los
+     * datos del token correspondiente
+     * obtiene el perfil del socio, y obtiene su respectiva sede y contruye un DTO
+     * de registro similar al normal
      * 
-     * llama al metodo interno registarEntradaInterna() para su registro, mediante su endpoint
+     * llama al metodo interno registarEntradaInterna() para su registro, mediante
+     * su endpoint
+     * 
      * @param request
      * @return
      */
@@ -245,7 +249,7 @@ public class AsistenciaService {
             throw new RuntimeException("El token biometrico ha expirado");
         }
 
-        UsuarioPerfilResponseDTO usuario = usuarioClient.obtenerUsuarioPorId(request.getIdUsuario());
+        UsuarioPerfilResponseDTO usuario = usuarioClient.obtenerUsuarioPorIdInterno(request.getIdUsuario());
         if (usuario == null) {
             throw new RuntimeException("Usuario no encontrado con id: " + request.getIdUsuario());
         }
@@ -265,7 +269,9 @@ public class AsistenciaService {
     }
 
     /**
-     * Metodo interno utilizado para registar la asistencia sin validar rol (usado por el endpoint biometrico)
+     * Metodo interno utilizado para registar la asistencia sin validar rol (usado
+     * por el endpoint biometrico)
+     * 
      * @param request
      * @return MessegeGlobalDTO
      */
@@ -279,8 +285,8 @@ public class AsistenciaService {
         } catch (Exception e) {
             throw new RuntimeException("tipo acceso no valido. Debe ser WEB o APP");
         }
-
-         UsuarioPerfilResponseDTO usuario = usuarioClient.obtenerUsuarioPorId(request.getIdUsuario());
+        
+        UsuarioPerfilResponseDTO usuario = usuarioClient.obtenerUsuarioPorIdInterno(request.getIdUsuario());
         if (usuario == null) {
             return registrarAccesoDenegado(request, sede, tipoAcceso,
                     "Usuario no encontrado con ID: " + request.getIdUsuario());
@@ -290,7 +296,7 @@ public class AsistenciaService {
         asistencia.setIdUsuario(request.getIdUsuario());
         asistencia.setSede(sede);
         asistencia.setFechaHoraEntrada(LocalDateTime.now());
-        asistencia.setTipoAcceso(tipoAcceso);  
+        asistencia.setTipoAcceso(tipoAcceso);
         asistencia.setEstadoAcceso(EnumEstadoAcceso.PERMITIDO);
         asistencia.setMotivoDenegacion(null);
         asistencia.setDispositivoId(request.getDispositivoId());
@@ -302,9 +308,9 @@ public class AsistenciaService {
         nombreCompleto = nombreCompleto.trim().isEmpty() ? "Socio" : nombreCompleto;
 
         return new MessegeGlobalDTO(String.format(
-            "Acceso biometrico permitido. Bienvenido %s, registro exitoso en sede: %s",
-                    nombreCompleto,
-                    sede.getNombreSede()));
+                "Acceso biometrico permitido. Bienvenido %s, registro exitoso en sede: %s",
+                nombreCompleto,
+                sede.getNombreSede()));
     }
 
 }
