@@ -10,6 +10,8 @@ import com.pulse_gym.lb_common.dto.UsuarioPerfilResponseDTO;
 import com.pulse_gym.ms_users.service.UsuarioPerfilService;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.RequestParam;
+
 
 @RestController
 @RequiredArgsConstructor
@@ -29,4 +31,16 @@ public class UsuarioInternoController {
         UsuarioPerfilResponseDTO usuario = usuarioPerfilService.obtenerUsuarioPorEmailInterno(email);
         return ResponseEntity.ok(usuario);
     }
+
+    /**
+     * Obtener el id sin validacion de roles, ya que es una peticion interna entre microservicios
+     * @param idUsuario
+     * @return
+     */
+    @GetMapping("/{idUsuario}")
+    public ResponseEntity<UsuarioPerfilResponseDTO> obtenerPorId(@PathVariable Long idUsuario) {
+        UsuarioPerfilResponseDTO usuario = usuarioPerfilService.obtenerUsuarioPorIdInterno(idUsuario);
+        return ResponseEntity.ok(usuario);
+    }
+    
 }
