@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.pulse_gym.lb_common.dto.AsignarMembresiaRequestDTO;
+import com.pulse_gym.lb_common.dto.EstadoMembresiaResponseDTO;
 import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
 import com.pulse_gym.lb_common.dto.RenovarMembresiaRequestDTO;
 import com.pulse_gym.lb_common.dto.SocioMembresiaResponseDTO;
@@ -317,4 +318,159 @@ public class SocioMembresiaService {
         socioMembresiaRepository.saveAll(vencidas);
         log.info("Membresías vencidas actualizadas: {}", vencidas.size());
     }
+
+    /**
+     * Consulta el estado de la membresía de un socio para control biométrico
+     * 
+     * @param idSocio ID del socio a consultar
+     * @return DTO con el estado de la membresía
+     */
+    @Transactional(readOnly = true)
+    public EstadoMembresiaResponseDTO consultarEstadoMembresiaBiometrico(Long idSocio) {
+
+        UsuarioPerfil socio = usuarioRepository.findById(idSocio)
+                .orElseThrow(() -> new RuntimeException("Socio no encontrado con ID: " + idSocio));
+
+        SocioMembresia membresiaActiva = socioMembresiaRepository.findMembresiaActivaBySocio(idSocio)
+                .orElse(null);
+
+        EstadoMembresiaResponseDTO.EstadoMembresiaResponseDTOBuilder builder = EstadoMembresiaResponseDTO.builder()
+                .idSocio(socio.getIdUsuario())
+                .nombreSocio(socio.getNombre() + " " + socio.getApellido())
+                .emailSocio(socio.getEmail());
+
+        if (membresiaActiva == null) {
+            return builder
+                    .estado("SIN_MEMBRESIA")
+                    .activa(false)
+                    .vencida(false)
+                    .diasRestantes(0L)
+                    .mensaje("El socio no tiene una membresía activa")
+                    .build();
+        }
+
+        if (membresiaActiva.getEstado() == EnumEstadoSocioMembresia.SUSPENDIDA) {
+            return builder
+                    .idSocioMembresia(membresiaActiva.getIdSocioMembresia())
+                    .idMembresia(membresiaActiva.getMembresia().getIdMembresia())
+                    .nombreMembresia(membresiaActiva.getMembresia().getNombre())
+                    .fechaInicio(membresiaActiva.getFechaInicio())
+                    .fechaVencimiento(membresiaActiva.getFechaVencimiento())
+                    .estado("SUSPENDIDA")
+                    .activa(false)
+                    .vencida(false)
+                    .diasRestantes(membresiaActiva.getDiasRestantes())
+                    .mensaje("La membresía está suspendida")
+                    .build();
+        }
+
+        if (membresiaActiva.isVencida()) {
+            return builder
+                    .idSocioMembresia(membresiaActiva.getIdSocioMembresia())
+                    .idMembresia(membresiaActiva.getMembresia().getIdMembresia())
+                    .nombreMembresia(membresiaActiva.getMembresia().getNombre())
+                    .fechaInicio(membresiaActiva.getFechaInicio())
+                    .fechaVencimiento(membresiaActiva.getFechaVencimiento())
+                    .estado("VENCIDA")
+                    .activa(false)
+                    .vencida(true)
+                    .diasRestantes(0L)
+                    .mensaje("La membresía está vencida")
+                    .build();
+        }
+
+        return builder
+                .idSocioMembresia(membresiaActiva.getIdSocioMembresia())
+                .idMembresia(membresiaActiva.getMembresia().getIdMembresia())
+                .nombreMembresia(membresiaActiva.getMembresia().getNombre())
+                .fechaInicio(membresiaActiva.getFechaInicio())
+                .fechaVencimiento(membresiaActiva.getFechaVencimiento())
+                .estado("ACTIVA")
+                .activa(true)
+                .vencida(false)
+                .diasRestantes(membresiaActiva.getDiasRestantes())
+                .mensaje("Membresía activa - Acceso permitido")
+                .build();
+    }
+
+    /**
+     * Consulta el estado de la membresía de un socio desde la aplicación móvil
+     * 
+     * @param idSocio           ID del socio a consultar
+     * @param userRol           Rol del usuario autenticado
+     * @param userIdAutenticado ID del usuario autenticado
+     * @param userEmail         Email del usuario autenticado
+     * @return DTO con el estado de la membresía
+     * @throws SecurityAuthorizationException Si el usuario no tiene permisos
+     */
+    @Transactional(readOnly = true)
+    public EstadoMembresiaResponseDTO consultarEstadoMembresiaApp(Long idSocio, String userRol,
+            Long userIdAutenticado, String userEmail) {
+
+        if (userRol.equals(EnumRol.socio.name())) {
+            UsuarioPerfil socioAutenticado = usuarioRepository.findByEmail(userEmail)
+                    .orElseThrow(() -> new RuntimeException("Socio autenticado no encontrado"));
+
+            if (!socioAutenticado.getIdUsuario().equals(idSocio)) {
+                throw new SecurityAuthorizationException("Acceso denegado. Solo puede consultar su propio estado");
+            }
+        } else if (!userRol.equals(EnumRol.administrador.name()) && !userRol.equals(EnumRol.recepcionista.name())) {
+            throw new SecurityAuthorizationException("Acceso denegado. Rol no autorizado: " + userRol);
+        }
+
+        return consultarEstadoMembresiaBiometrico(idSocio);
+    }
+
+    /**
+     * Actualiza el estado y fecha de vencimiento de una membresía después de un
+     * pago
+     * 
+     * @param idSocioMembresia ID de la relación socio-membresía
+     * @return Mensaje con el resultado de la operación
+     * @throws RuntimeException Si la membresía asignada no existe
+     */
+    @Transactional
+    public MessegeGlobalDTO actualizarEstadoMembresiaPorPago(Long idSocioMembresia) {
+        SocioMembresia socioMembresia = socioMembresiaRepository.findById(idSocioMembresia)
+                .orElseThrow(() -> new RuntimeException("Membresía asignada no encontrada"));
+
+        if (socioMembresia.getEstado() == EnumEstadoSocioMembresia.VENCIDA ||
+                socioMembresia.getEstado() == EnumEstadoSocioMembresia.SUSPENDIDA) {
+
+            socioMembresia.setEstado(EnumEstadoSocioMembresia.ACTIVA);
+
+            Membresia membresia = socioMembresia.getMembresia();
+            int diasTotales = membresia.getTipoDuracion().calcularDiasTotales(
+                    membresia.getCantidad() != null ? membresia.getCantidad() : 1);
+            LocalDate nuevaFechaVencimiento = LocalDate.now().plusDays(diasTotales);
+            socioMembresia.setFechaVencimiento(nuevaFechaVencimiento);
+
+            socioMembresiaRepository.save(socioMembresia);
+
+            return new MessegeGlobalDTO(String.format(
+                    "Membresía reactivada correctamente. Nueva fecha de vencimiento: %s",
+                    nuevaFechaVencimiento));
+        }
+
+        if (socioMembresia.getEstado() == EnumEstadoSocioMembresia.ACTIVA) {
+            Membresia membresia = socioMembresia.getMembresia();
+            int diasTotales = membresia.getTipoDuracion().calcularDiasTotales(
+                    membresia.getCantidad() != null ? membresia.getCantidad() : 1);
+
+            LocalDate fechaBase = socioMembresia.getFechaVencimiento().isAfter(LocalDate.now())
+                    ? socioMembresia.getFechaVencimiento()
+                    : LocalDate.now();
+            LocalDate nuevaFechaVencimiento = fechaBase.plusDays(diasTotales);
+            socioMembresia.setFechaVencimiento(nuevaFechaVencimiento);
+
+            socioMembresiaRepository.save(socioMembresia);
+
+            return new MessegeGlobalDTO(String.format(
+                    "Membresía renovada correctamente. Nueva fecha de vencimiento: %s",
+                    nuevaFechaVencimiento));
+        }
+
+        return new MessegeGlobalDTO("No se requirió actualización del estado de la membresía");
+    }
+
 }
