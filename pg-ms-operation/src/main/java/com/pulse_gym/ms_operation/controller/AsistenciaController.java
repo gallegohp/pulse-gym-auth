@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.pulse_gym.lb_common.dto.AsistenciaResponseDTO;
 import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
+import com.pulse_gym.lb_common.dto.RegistroAsistenciaBiometricaDTO;
 import com.pulse_gym.lb_common.dto.RegistroAsistenciaDTO;
 import com.pulse_gym.ms_operation.services.AsistenciaService;
 
@@ -39,17 +40,17 @@ public class AsistenciaController {
      * 
      */
     @PostMapping("/entrada")
-    public ResponseEntity<Map<String, Object>> registrarEntrada(@Valid @RequestBody RegistroAsistenciaDTO request, 
-                                                                @RequestHeader(value = "X-User-Rol", required = false) String userRol) {
+    public ResponseEntity<Map<String, Object>> registrarEntrada(@Valid @RequestBody RegistroAsistenciaDTO request,
+            @RequestHeader(value = "X-User-Rol", required = false) String userRol) {
         try {
             MessegeGlobalDTO response = asistenciaService.registrarEntrada(request, userRol);
-            
+
             Map<String, Object> respuesta = new HashMap<>();
             respuesta.put("success", true);
             respuesta.put("message", response.getMessage());
-            
+
             return ResponseEntity.ok(respuesta);
-            
+
         } catch (Exception e) {
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("success", false);
@@ -62,25 +63,24 @@ public class AsistenciaController {
      * Consultar historial de asistencias de un socio.
      * 
      * @param idUsuario ID del socio
-     * @param userRol Rol del socio
+     * @param userRol   Rol del socio
      * @return ResponseEntity<Map<String, Object>> con el resultado de la operación
      */
-     
+
     @GetMapping("/historial/usuario/{idUsuario}")
     public ResponseEntity<Map<String, Object>> consultarHistorialUsuario(@PathVariable Long idUsuario,
-                                                                        @RequestHeader(value = "X-User-Rol", required = false) String userRol
-    ) {
+            @RequestHeader(value = "X-User-Rol", required = false) String userRol) {
         try {
             List<AsistenciaResponseDTO> historial = asistenciaService.consultarHistorialUsuario(idUsuario, userRol);
-            
+
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("message", "Historial de asistencias encontrado");
             response.put("count", historial.size());
             response.put("data", historial);
-            
+
             return ResponseEntity.ok(response);
-            
+
         } catch (Exception e) {
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("success", false);
@@ -92,25 +92,24 @@ public class AsistenciaController {
     /**
      * Consultar asistencias por sede.
      * 
-     * @param idSede ID de la sede 
+     * @param idSede  ID de la sede
      * @param userRol Rol del socio
      * @return ResponseEntity<Map<String, Object>> con el resultado de la operación
      */
     @GetMapping("/sede/{idSede}")
-    public ResponseEntity<Map<String, Object>> consultarAsistenciasPorSede(@PathVariable Long idSede, 
-                                                                          @RequestHeader(value = "X-User-Rol", required = false) String userRol) 
-    {
+    public ResponseEntity<Map<String, Object>> consultarAsistenciasPorSede(@PathVariable Long idSede,
+            @RequestHeader(value = "X-User-Rol", required = false) String userRol) {
         try {
             List<AsistenciaResponseDTO> asistencias = asistenciaService.consultarAsistenciasPorSede(idSede, userRol);
-            
+
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("message", "Asistencias encontradas para la sede");
             response.put("count", asistencias.size());
             response.put("data", asistencias);
-            
+
             return ResponseEntity.ok(response);
-            
+
         } catch (Exception e) {
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("success", false);
@@ -121,22 +120,24 @@ public class AsistenciaController {
 
     /**
      * Consultar asistencias del día actual.
+     * 
      * @param userRol Rol del usuario
      * @return ResponseEntity<Map<String, Object>> con el resultado de la operación
      */
     @GetMapping("/hoy")
-    public ResponseEntity<Map<String, Object>> consultarAsistenciasDelDia(@RequestHeader(value = "X-User-Rol", required = false) String userRol) {
+    public ResponseEntity<Map<String, Object>> consultarAsistenciasDelDia(
+            @RequestHeader(value = "X-User-Rol", required = false) String userRol) {
         try {
             List<AsistenciaResponseDTO> asistencias = asistenciaService.consultarAsistenciasDelDia(userRol);
-            
+
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("message", "Asistencias registradas hoy");
             response.put("count", asistencias.size());
             response.put("data", asistencias);
-            
+
             return ResponseEntity.ok(response);
-            
+
         } catch (Exception e) {
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("success", false);
@@ -144,4 +145,26 @@ public class AsistenciaController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
+
+    @PostMapping("/entrada-biometrica")
+    public ResponseEntity<Map<String, Object>> registrarEntradaBiometrica(
+            @Valid @RequestBody RegistroAsistenciaBiometricaDTO request) {
+        try {
+            MessegeGlobalDTO response = asistenciaService.registrarEntradaBiometrica(request);
+
+            Map<String, Object> respuesta = new HashMap<>();
+            respuesta.put("success", true);
+            respuesta.put("message", response.getMessage());
+
+            return ResponseEntity.status(HttpStatus.OK).body(respuesta);
+
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", e.getMessage());
+            
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        }
+    }
+
 }
