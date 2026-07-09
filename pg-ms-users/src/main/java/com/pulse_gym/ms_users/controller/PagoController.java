@@ -203,4 +203,42 @@ public class PagoController {
         }
     }
 
+    /**
+     * Genera y descarga un comprobante de pago en formato PDF
+     * 
+     * @param idPago            ID del pago a consultar
+     * @param userRol           Rol del usuario autenticado (header)
+     * @param userIdAutenticado ID del usuario autenticado (header)
+     * @param userEmail         Email del usuario autenticado (header)
+     * @return Archivo PDF del comprobante
+     */
+    @GetMapping(value = "/comprobante/{idPago}/pdf", produces = "application/pdf")
+    public ResponseEntity<byte[]> generarComprobantePDF(
+            @PathVariable Long idPago,
+            @RequestHeader(value = "X-User-Rol", required = false) String userRol,
+            @RequestHeader(value = "X-User-Id", required = false) Long userIdAutenticado,
+            @RequestHeader(value = "X-User-Email", required = false) String userEmail) {
+        try {
+            byte[] pdfBytes = pagoService.generarComprobantePDF(
+                    idPago, userRol, userIdAutenticado, userEmail);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            headers.setContentDispositionFormData("attachment", "comprobante-pago-" + idPago + ".pdf");
+            headers.setContentLength(pdfBytes.length);
+
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(pdfBytes);
+
+        } catch (SecurityAuthorizationException e) {
+            throw e;
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Error al generar el comprobante PDF", e);
+        }
+    }
 }
