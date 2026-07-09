@@ -392,4 +392,32 @@ public class SocioMembresiaService {
                 .mensaje("Membresía activa - Acceso permitido")
                 .build();
     }
+
+    /**
+     * Consulta el estado de la membresía de un socio desde la aplicación móvil
+     * 
+     * @param idSocio           ID del socio a consultar
+     * @param userRol           Rol del usuario autenticado
+     * @param userIdAutenticado ID del usuario autenticado
+     * @param userEmail         Email del usuario autenticado
+     * @return DTO con el estado de la membresía
+     * @throws SecurityAuthorizationException Si el usuario no tiene permisos
+     */
+    @Transactional(readOnly = true)
+    public EstadoMembresiaResponseDTO consultarEstadoMembresiaApp(Long idSocio, String userRol,
+            Long userIdAutenticado, String userEmail) {
+
+        if (userRol.equals(EnumRol.socio.name())) {
+            UsuarioPerfil socioAutenticado = usuarioRepository.findByEmail(userEmail)
+                    .orElseThrow(() -> new RuntimeException("Socio autenticado no encontrado"));
+
+            if (!socioAutenticado.getIdUsuario().equals(idSocio)) {
+                throw new SecurityAuthorizationException("Acceso denegado. Solo puede consultar su propio estado");
+            }
+        } else if (!userRol.equals(EnumRol.administrador.name()) && !userRol.equals(EnumRol.recepcionista.name())) {
+            throw new SecurityAuthorizationException("Acceso denegado. Rol no autorizado: " + userRol);
+        }
+
+        return consultarEstadoMembresiaBiometrico(idSocio);
+    }
 }
