@@ -2,7 +2,9 @@ package com.pulse_gym.ms_users.controller;
 
 import java.util.List;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -171,4 +173,35 @@ public class PagoController {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al anular pago", e);
         }
     }
+
+    /**
+     * 
+     * @param idPago
+     * @param userRol
+     * @param userIdAutenticado
+     * @param userEmail
+     * @return
+     */
+    @GetMapping("/comprobante/{idPago}")
+    public ResponseEntity<PagoResponseDTO> generarComprobante(
+            @PathVariable Long idPago,
+            @RequestHeader(value = "X-User-Rol", required = false) String userRol,
+            @RequestHeader(value = "X-User-Id", required = false) Long userIdAutenticado,
+            @RequestHeader(value = "X-User-Email", required = false) String userEmail) {
+        try {
+            PagoResponseDTO comprobante = pagoService.generarComprobante(
+                    idPago, userRol, userIdAutenticado, userEmail);
+            return ResponseEntity.ok(comprobante);
+        } catch (SecurityAuthorizationException e) {
+            throw e;
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al generar comprobante", e);
+        }
+    }
+
+    
+
 }
