@@ -17,11 +17,14 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.pulse_gym.lb_common.dto.AsignarMembresiaRequestDTO;
+import com.pulse_gym.lb_common.dto.EstadoMembresiaResponseDTO;
 import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
 import com.pulse_gym.lb_common.dto.RenovarMembresiaRequestDTO;
 import com.pulse_gym.lb_common.dto.SocioMembresiaResponseDTO;
 import com.pulse_gym.lb_common.dto.SuspenderMembresiaRequestDTO;
+import com.pulse_gym.lb_common.entity.user.UsuarioPerfil;
 import com.pulse_gym.lb_common.exception.SecurityAuthorizationException;
+import com.pulse_gym.ms_users.repository.UsuarioPerfilRepository;
 import com.pulse_gym.ms_users.service.SocioMembresiaService;
 
 import jakarta.validation.Valid;
@@ -34,6 +37,8 @@ public class SocioMembresiaController {
 
     /** El servicio de socio membresia */
     private final SocioMembresiaService socioMembresiaService;
+
+    private final UsuarioPerfilRepository usuarioPerfilRepository;
 
     /**
      * Endpoint para asignar una membresía a un socio. Recibe un DTO con los datos
@@ -203,6 +208,39 @@ public class SocioMembresiaController {
         } catch (Exception e) {
             e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al obtener membresía activa", e);
+        }
+    }
+
+    /**
+     * RF14.1: Consultar estado de membresía desde app
+     * 
+     * @param userRol           Rol del usuario autenticado
+     * @param userEmail         Email del usuario autenticado
+     * @param userIdAutenticado ID del usuario autenticado
+     * @return Estado de la membresía del socio autenticado
+     */
+    @GetMapping("/estado/mi-membresia")
+    public ResponseEntity<EstadoMembresiaResponseDTO> consultarMiEstadoMembresia(
+            @RequestHeader(value = "X-User-Rol", required = false) String userRol,
+            @RequestHeader(value = "X-User-Email", required = false) String userEmail,
+            @RequestHeader(value = "X-User-Id", required = false) Long userIdAutenticado) {
+
+        try {
+            UsuarioPerfil socio = usuarioPerfilRepository.findByEmail(userEmail)
+                    .orElseThrow(() -> new RuntimeException("Socio no encontrado"));
+
+            EstadoMembresiaResponseDTO estado = socioMembresiaService.consultarEstadoMembresiaApp(
+                    socio.getIdUsuario(), userRol, userIdAutenticado, userEmail);
+            return ResponseEntity.ok(estado);
+
+        } catch (SecurityAuthorizationException e) {
+            throw e;
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Error al consultar estado de membresía", e);
         }
     }
 
