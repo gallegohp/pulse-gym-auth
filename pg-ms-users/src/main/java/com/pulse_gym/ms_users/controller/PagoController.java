@@ -175,12 +175,13 @@ public class PagoController {
     }
 
     /**
+     * Genera el comprobante de un pago
      * 
-     * @param idPago
-     * @param userRol
-     * @param userIdAutenticado
-     * @param userEmail
-     * @return
+     * @param idPago            ID del pago a consultar
+     * @param userRol           Rol del usuario autenticado (header)
+     * @param userIdAutenticado ID del usuario autenticado (header)
+     * @param userEmail         Email del usuario autenticado (header)
+     * @return DTO con los datos del pago
      */
     @GetMapping("/comprobante/{idPago}")
     public ResponseEntity<PagoResponseDTO> generarComprobante(
@@ -201,7 +202,5 @@ public class PagoController {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al generar comprobante", e);
         }
     }
-
-    
 
 }

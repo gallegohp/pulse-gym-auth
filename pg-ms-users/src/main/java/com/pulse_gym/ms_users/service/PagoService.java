@@ -404,12 +404,13 @@ public class PagoService {
         }
 
         /**
+         * Genera el comprobante de un pago
          * 
-         * @param idPago
-         * @param userRol
-         * @param userIdAutenticado
-         * @param userEmail
-         * @return
+         * @param idPago            ID del pago a consultar
+         * @param userRol           Rol del usuario autenticado
+         * @param userIdAutenticado ID del usuario autenticado
+         * @param userEmail         Email del usuario autenticado
+         * @return DTO con los datos del pago
          */
         @Transactional(readOnly = true)
         public PagoResponseDTO generarComprobante(Long idPago, String userRol, Long userIdAutenticado,
