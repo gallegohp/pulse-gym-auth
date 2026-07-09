@@ -212,7 +212,7 @@ public class SocioMembresiaController {
     }
 
     /**
-     * RF14.1: Consultar estado de membresía desde app
+     * Consultar estado de membresía desde app
      * 
      * @param userRol           Rol del usuario autenticado
      * @param userEmail         Email del usuario autenticado
@@ -244,4 +244,35 @@ public class SocioMembresiaController {
         }
     }
 
+    /**
+     * RF14.1: Consultar estado de membresía de un socio (Admin/Recepcionista)
+     * 
+     * @param idSocio           ID del socio a consultar
+     * @param userRol           Rol del usuario autenticado
+     * @param userIdAutenticado ID del usuario autenticado
+     * @param userEmail         Email del usuario autenticado
+     * @return Estado de la membresía del socio
+     */
+    @GetMapping("/estado/socio/{idSocio}")
+    public ResponseEntity<EstadoMembresiaResponseDTO> consultarEstadoMembresia(
+            @PathVariable Long idSocio,
+            @RequestHeader(value = "X-User-Rol", required = false) String userRol,
+            @RequestHeader(value = "X-User-Id", required = false) Long userIdAutenticado,
+            @RequestHeader(value = "X-User-Email", required = false) String userEmail) {
+
+        try {
+            EstadoMembresiaResponseDTO estado = socioMembresiaService.consultarEstadoMembresiaApp(
+                    idSocio, userRol, userIdAutenticado, userEmail);
+            return ResponseEntity.ok(estado);
+
+        } catch (SecurityAuthorizationException e) {
+            throw e;
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Error al consultar estado de membresía", e);
+        }
+    }
 }
