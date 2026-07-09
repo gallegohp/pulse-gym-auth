@@ -283,7 +283,7 @@ public class AsistenciaService {
         try {
             tipoAcceso = EnumTipoAcceso.valueOf(request.getTipoAcceso().toUpperCase());
         } catch (Exception e) {
-            throw new RuntimeException("tipo acceso no valido. Debe ser WEB o APP");
+            throw new RuntimeException("tipo acceso no valido. Debe ser WEB, APP o BIOMETRICO");
         }
         
         UsuarioPerfilResponseDTO usuario = usuarioClient.obtenerUsuarioPorIdInterno(request.getIdUsuario());
