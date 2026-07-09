@@ -402,4 +402,39 @@ public class PagoService {
                                 pago.getIdPago(),
                                 requestDTO.getMotivo()));
         }
+
+        /**
+         * 
+         * @param idPago
+         * @param userRol
+         * @param userIdAutenticado
+         * @param userEmail
+         * @return
+         */
+        @Transactional(readOnly = true)
+        public PagoResponseDTO generarComprobante(Long idPago, String userRol, Long userIdAutenticado,
+                        String userEmail) {
+
+                Pago pago = pagoRepository.findById(idPago)
+                                .orElseThrow(() -> new RuntimeException("Pago no encontrado con ID: " + idPago));
+
+                if (userRol.equals(EnumRol.socio.name())) {
+                        UsuarioPerfil socioAutenticado = usuarioRepository.findByEmail(userEmail)
+                                        .orElseThrow(() -> new RuntimeException(
+                                                        "Socio autenticado no encontrado con email: " + userEmail));
+
+                        UsuarioPerfil socioPago = pago.getSocioMembresia().getSocio();
+
+                        if (!socioAutenticado.getEmail().equals(socioPago.getEmail())) {
+                                throw new SecurityAuthorizationException(
+                                                "Acceso denegado. Solo puede ver sus propios comprobantes");
+                        }
+                } else if (!userRol.equals(EnumRol.administrador.name())
+                                && !userRol.equals(EnumRol.recepcionista.name())) {
+                        throw new SecurityAuthorizationException("Acceso denegado. Rol no autorizado: " + userRol);
+                }
+
+                return convertirAResponseDTO(pago);
+        }
+
 }
