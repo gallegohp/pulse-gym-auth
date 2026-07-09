@@ -420,4 +420,57 @@ public class SocioMembresiaService {
 
         return consultarEstadoMembresiaBiometrico(idSocio);
     }
+
+    /**
+     * Actualiza el estado y fecha de vencimiento de una membresía después de un
+     * pago
+     * 
+     * @param idSocioMembresia ID de la relación socio-membresía
+     * @return Mensaje con el resultado de la operación
+     * @throws RuntimeException Si la membresía asignada no existe
+     */
+    @Transactional
+    public MessegeGlobalDTO actualizarEstadoMembresiaPorPago(Long idSocioMembresia) {
+        SocioMembresia socioMembresia = socioMembresiaRepository.findById(idSocioMembresia)
+                .orElseThrow(() -> new RuntimeException("Membresía asignada no encontrada"));
+
+        if (socioMembresia.getEstado() == EnumEstadoSocioMembresia.VENCIDA ||
+                socioMembresia.getEstado() == EnumEstadoSocioMembresia.SUSPENDIDA) {
+
+            socioMembresia.setEstado(EnumEstadoSocioMembresia.ACTIVA);
+
+            Membresia membresia = socioMembresia.getMembresia();
+            int diasTotales = membresia.getTipoDuracion().calcularDiasTotales(
+                    membresia.getCantidad() != null ? membresia.getCantidad() : 1);
+            LocalDate nuevaFechaVencimiento = LocalDate.now().plusDays(diasTotales);
+            socioMembresia.setFechaVencimiento(nuevaFechaVencimiento);
+
+            socioMembresiaRepository.save(socioMembresia);
+
+            return new MessegeGlobalDTO(String.format(
+                    "Membresía reactivada correctamente. Nueva fecha de vencimiento: %s",
+                    nuevaFechaVencimiento));
+        }
+
+        if (socioMembresia.getEstado() == EnumEstadoSocioMembresia.ACTIVA) {
+            Membresia membresia = socioMembresia.getMembresia();
+            int diasTotales = membresia.getTipoDuracion().calcularDiasTotales(
+                    membresia.getCantidad() != null ? membresia.getCantidad() : 1);
+
+            LocalDate fechaBase = socioMembresia.getFechaVencimiento().isAfter(LocalDate.now())
+                    ? socioMembresia.getFechaVencimiento()
+                    : LocalDate.now();
+            LocalDate nuevaFechaVencimiento = fechaBase.plusDays(diasTotales);
+            socioMembresia.setFechaVencimiento(nuevaFechaVencimiento);
+
+            socioMembresiaRepository.save(socioMembresia);
+
+            return new MessegeGlobalDTO(String.format(
+                    "Membresía renovada correctamente. Nueva fecha de vencimiento: %s",
+                    nuevaFechaVencimiento));
+        }
+
+        return new MessegeGlobalDTO("No se requirió actualización del estado de la membresía");
+    }
+
 }

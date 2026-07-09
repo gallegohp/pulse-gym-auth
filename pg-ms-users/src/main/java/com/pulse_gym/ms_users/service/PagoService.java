@@ -58,6 +58,9 @@ public class PagoService {
         /** Servicio para generar comprobantes de pago en PDF */
         private final PagoPDFService pagoPDFService;
 
+        /** Servicio para gestión de membresías de socios */
+        private final SocioMembresiaService socioMembresiaService;
+
         /**
          * Token de acceso para la integración con la API de MercadoPago, configurado
          * desde variables de entorno
@@ -158,6 +161,12 @@ public class PagoService {
                 pago.setEstado(EnumEstadoPago.APROBADO);
 
                 pagoRepository.save(pago);
+
+                try {
+                        socioMembresiaService.actualizarEstadoMembresiaPorPago(socioMembresia.getIdSocioMembresia());
+                } catch (Exception e) {
+                        log.warn("Error al actualizar estado de membresía: {}", e.getMessage());
+                }
 
                 return new MessegeGlobalDTO(String.format(
                                 "Pago registrado correctamente. Socio: %s, Monto: $%,.0f, Método: %s, Comprobante: %s",
