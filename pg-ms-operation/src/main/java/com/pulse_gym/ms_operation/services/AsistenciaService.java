@@ -281,7 +281,7 @@ public class AsistenciaService {
 
         EnumTipoAcceso tipoAcceso;
         try {
-            tipoAcceso = EnumTipoAcceso.valueOf(request.getTipoAcceso().toLowerCase());
+            tipoAcceso = EnumTipoAcceso.valueOf(request.getTipoAcceso().toUpperCase());
         } catch (Exception e) {
             throw new RuntimeException("tipo acceso no valido. Debe ser WEB o APP");
         }
