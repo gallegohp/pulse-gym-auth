@@ -48,6 +48,8 @@ services:
       SPRING_DATASOURCE_PASSWORD: 123
     networks:
       - pulsegym
+    env_file:
+      - .env
 
   pg-ms-auth:
     build:
