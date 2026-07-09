@@ -456,4 +456,15 @@ public class PagoService {
 
                 return pagoPDFService.generarComprobantePDF(pagoDTO);
         }
+
+        /**
+         * 
+         * @param idPago
+         * @return
+         */
+        @Transactional(readOnly = true)
+        public Pago obtenerPagoPorId(Long idPago) {
+                return pagoRepository.findById(idPago)
+                                .orElseThrow(() -> new RuntimeException("Pago no encontrado con ID: " + idPago));
+        }
 }

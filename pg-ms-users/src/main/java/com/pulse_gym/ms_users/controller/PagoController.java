@@ -241,4 +241,6 @@ public class PagoController {
                     "Error al generar el comprobante PDF", e);
         }
     }
+
+    
 }
