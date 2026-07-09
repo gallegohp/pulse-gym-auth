@@ -10,6 +10,11 @@ public enum EnumTipoAcceso {
     /**
      * Indica que el acceso se realiza mediante aplicación móvil
      */
-    APP;
+    APP,
+
+    /**
+     * Indica que el acceso se realiza mediante informacion biometrica
+     */
+    BIOMETRICO;
 
 }
