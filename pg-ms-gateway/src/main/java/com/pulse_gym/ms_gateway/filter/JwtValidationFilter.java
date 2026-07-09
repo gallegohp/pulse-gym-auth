@@ -1,6 +1,7 @@
 package com.pulse_gym.ms_gateway.filter;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -29,13 +30,21 @@ public class JwtValidationFilter implements GlobalFilter, Ordered {
     /** Servicio de Jwt */
     private final JwtService jwtService;
 
+    /** Lista de rutas internas permitidas para acceso biométrico */
+    private static final List<String> ALLOWED_INTERNAL_PATHS = Arrays.asList(
+            "/api/internal/socios-membresias/biometrico");
+
     /**
-     * Verifica si la ruta solicitada es interna (requiere autenticación pero no
-     * autorización)
+     * Verifica si la ruta corresponde a una API interna
+     * 
+     * @param path Ruta a verificar
+     * @return true si es una ruta interna, false si es una ruta permitida
      */
     private boolean isInternalPath(String path) {
-        if (path.contains("/api/internal/socios-membresias/biometrico")) {
-            return false;
+        for (String allowedPath : ALLOWED_INTERNAL_PATHS) {
+            if (path.contains(allowedPath)) {
+                return false;
+            }
         }
         return path.contains("/api/internal/");
     }
