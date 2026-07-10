@@ -17,4 +17,12 @@ public interface UsuarioClient {
      */
     @GetMapping("/api/internal/usuarios/email/{email}")
     UsuarioPerfilResponseDTO obtenerUsuarioPorEmail(@PathVariable("email") String email);
+
+    /**
+     * Creamos un nuevo endpoint el cual no pasa por el gateway (comunicacion directa)
+     * @param idUsuario
+     * @return
+     */
+    @GetMapping("/api/internal/usuarios/{idUsuario}")
+    UsuarioPerfilResponseDTO obtenerUsuarioPorIdInterno(@PathVariable("idUsuario") Long idUsuario);
 }

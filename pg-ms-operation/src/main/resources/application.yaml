@@ -45,3 +45,8 @@ security:
 logging:
   level:
     com.pulse_gym: DEBUG
+
+biometric:
+  jwt:
+    secret-key: ${BIOMETRIC_JWT_SECRET:biometricSecretKeyForDemo}
+    token-expiration: 300000   # 5 minutos en milisegundos
