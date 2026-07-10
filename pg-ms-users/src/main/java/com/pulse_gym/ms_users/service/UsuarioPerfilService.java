@@ -536,4 +536,18 @@ public class UsuarioPerfilService {
         return cambiarEstadoUsuario(idUsuario, EnumEstadoUsuario.ACTIVO, userRol);
     }
 
+    /**
+     * Servicio para obtener usuario sin validacion de roles para comunicacion entre microservicios
+     * @param idUsuario
+     * @return
+     */
+    @Transactional(readOnly = true)
+    public UsuarioPerfilResponseDTO obtenerUsuarioPorIdInterno(Long idUsuario) {
+        UsuarioPerfil usuario = usuarioRepository.findById(idUsuario)
+            .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + idUsuario));
+        UsuarioPerfilResponseDTO dto = convertirADTO(usuario);
+        enrichWithRol(dto, usuario);
+        return dto;
+    }
+
 }

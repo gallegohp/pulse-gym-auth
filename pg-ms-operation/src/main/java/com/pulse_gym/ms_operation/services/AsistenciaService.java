@@ -3,6 +3,7 @@ package com.pulse_gym.ms_operation.services;
 import com.pulse_gym.lb_common.client.UsuarioClient;
 import com.pulse_gym.lb_common.dto.AsistenciaResponseDTO;
 import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
+import com.pulse_gym.lb_common.dto.RegistroAsistenciaBiometricaDTO;
 import com.pulse_gym.lb_common.dto.RegistroAsistenciaDTO;
 import com.pulse_gym.lb_common.dto.UsuarioPerfilResponseDTO;
 import com.pulse_gym.lb_common.entity.operation.Asistencia;
@@ -27,7 +28,8 @@ import java.util.stream.Collectors;
 public class AsistenciaService {
 
     /**
-     * Inyeccion de AsistenciaRepository para manejar la lógica de negocio relacionada con
+     * Inyeccion de AsistenciaRepository para manejar la lógica de negocio
+     * relacionada con
      * las asistencias, como el registro y la obtención de asistencias.
      */
     private final AsistenciaRepository asistenciaRepository;
@@ -35,14 +37,19 @@ public class AsistenciaService {
     /**
      * Inyeccion de SedeRepository para manejar la lógica de negocio relacionada con
      * las sedes, como el registro y la obtención de sedes.
-     */ 
+     */
     private final SedeRepository sedeRepository;
 
     /**
      * Inyeccion de UsuarioClient para manejar la lógica de negocio relacionada con
      * los usuarios, como el registro y la obtención de usuarios.
      */
-    private final UsuarioClient usuarioClient;  
+    private final UsuarioClient usuarioClient;
+
+    /**
+     * Servicio para validar y leer los tokens JWT, relacionados con el biometrio
+     */
+    private final BiometricJwtService biometricJwtService;
 
     /**
      * Registra una nueva asistencia en la base de datos.
@@ -51,8 +58,9 @@ public class AsistenciaService {
      * 
      * @param request
      * @param userRol Rol del usuario que hace la petición (desde header X-User-Rol)
-     * @return MessegeGlobalDTO con un mensaje de éxito si la asistencia se registró correctamente
-     */ 
+     * @return MessegeGlobalDTO con un mensaje de éxito si la asistencia se registró
+     *         correctamente
+     */
     @Transactional
     public MessegeGlobalDTO registrarEntrada(RegistroAsistenciaDTO request, String userRol) {
 
@@ -97,12 +105,15 @@ public class AsistenciaService {
 
     /**
      * Obtiene los registros de asistencias de un usuario.
+     * 
      * @param idUsuario
-     * @param userRol Rol del usuario que hace la petición (desde header X-User-Rol)
-     * @return List<AsistenciaResponseDTO> con los registros de asistencias encontrados     
+     * @param userRol   Rol del usuario que hace la petición (desde header
+     *                  X-User-Rol)
+     * @return List<AsistenciaResponseDTO> con los registros de asistencias
+     *         encontrados
      */
     public List<AsistenciaResponseDTO> consultarHistorialUsuario(Long idUsuario, String userRol) {
-        
+
         ValidacionDeRoles.validarCualquierRol(userRol);
 
         List<Asistencia> asistencias = asistenciaRepository.findByIdUsuarioOrderByFechaHoraEntradaDesc(idUsuario);
@@ -119,14 +130,16 @@ public class AsistenciaService {
     /**
      * Obtiene los registros de asistencias de una sede.
      * 
-     * Se valida que la peticion solo la puede hacer un entrenador, recepcionista o admin
+     * Se valida que la peticion solo la puede hacer un entrenador, recepcionista o
+     * admin
      * 
      * @param idSede
      * @param userRol Rol del usuario
-     * @return List<AsistenciaResponseDTO> con los registros de asistencias encontrados   
+     * @return List<AsistenciaResponseDTO> con los registros de asistencias
+     *         encontrados
      */
     public List<AsistenciaResponseDTO> consultarAsistenciasPorSede(Long idSede, String userRol) {
-        
+
         ValidacionDeRoles.validarAdminOEntrenadorORecepcionista(userRol);
 
         Sede sede = sedeRepository.findById(idSede)
@@ -146,9 +159,12 @@ public class AsistenciaService {
     /**
      * Obtiene los registros de asistencias del día actual.
      * 
-     * Se valida que la peticion solo la puede hacer un entrenador, recepcionista o admin
+     * Se valida que la peticion solo la puede hacer un entrenador, recepcionista o
+     * admin
+     * 
      * @param userRol Rol del usuario
-     * @return List<AsistenciaResponseDTO> con los registros de asistencias encontrados
+     * @return List<AsistenciaResponseDTO> con los registros de asistencias
+     *         encontrados
      */
     public List<AsistenciaResponseDTO> consultarAsistenciasDelDia(String userRol) {
 
@@ -166,13 +182,16 @@ public class AsistenciaService {
 
     /**
      * Registra un acceso denegado en la base de datos.
+     * 
      * @param request
      * @param sede
      * @param tipoAcceso
      * @param motivo
-     * @return MessegeGlobalDTO con un mensaje de éxito si el acceso se registró correctamente
+     * @return MessegeGlobalDTO con un mensaje de éxito si el acceso se registró
+     *         correctamente
      */
-    private MessegeGlobalDTO registrarAccesoDenegado(RegistroAsistenciaDTO request, Sede sede, EnumTipoAcceso tipoAcceso, String motivo) {
+    private MessegeGlobalDTO registrarAccesoDenegado(RegistroAsistenciaDTO request, Sede sede,
+            EnumTipoAcceso tipoAcceso, String motivo) {
         Asistencia asistencia = new Asistencia();
         asistencia.setIdUsuario(request.getIdUsuario());
         asistencia.setSede(sede);
@@ -188,9 +207,10 @@ public class AsistenciaService {
 
     /**
      * Convierte un objeto Asistencia a un objeto AsistenciaResponseDTO.
+     * 
      * @param asistencia
      * @return AsistenciaResponseDTO con los datos del asistencia
-     */ 
+     */
     private AsistenciaResponseDTO convertirAResponseDTO(Asistencia asistencia) {
         AsistenciaResponseDTO dto = new AsistenciaResponseDTO();
         dto.setIdAsistencia(asistencia.getIdAsistencia());
@@ -202,4 +222,95 @@ public class AsistenciaService {
         dto.setMotivoDenegacion(asistencia.getMotivoDenegacion());
         return dto;
     }
+
+    /**
+     * Metodo para registrar la asistencia mediante dato biometrico, validando los
+     * datos del token correspondiente
+     * obtiene el perfil del socio, y obtiene su respectiva sede y contruye un DTO
+     * de registro similar al normal
+     * 
+     * llama al metodo interno registarEntradaInterna() para su registro, mediante
+     * su endpoint
+     * 
+     * @param request
+     * @return
+     */
+    public MessegeGlobalDTO registrarEntradaBiometrica(RegistroAsistenciaBiometricaDTO request) {
+        if (!biometricJwtService.validateToken(request.getToken())) {
+            throw new RuntimeException("Token biometrico invalido");
+        }
+
+        Long userIdFromToken = biometricJwtService.extractUserId(request.getToken());
+        if (!userIdFromToken.equals(request.getIdUsuario())) {
+            throw new RuntimeException("El token no corresponde al usuario");
+        }
+
+        if (biometricJwtService.isTokenExpired(request.getToken())) {
+            throw new RuntimeException("El token biometrico ha expirado");
+        }
+
+        UsuarioPerfilResponseDTO usuario = usuarioClient.obtenerUsuarioPorIdInterno(request.getIdUsuario());
+        if (usuario == null) {
+            throw new RuntimeException("Usuario no encontrado con id: " + request.getIdUsuario());
+        }
+
+        Long idSede = usuario.getIdSede() != null ? usuario.getIdSede().longValue() : null;
+        if (idSede == null) {
+            throw new RuntimeException("El socio no tiene una sede asignada. Contacte con administracion");
+        }
+
+        RegistroAsistenciaDTO registroDTO = new RegistroAsistenciaDTO();
+        registroDTO.setIdUsuario(request.getIdUsuario());
+        registroDTO.setIdSede(idSede);
+        registroDTO.setTipoAcceso("BIOMETRICO");
+        registroDTO.setDispositivoId("biometric");
+
+        return registarEntradaInterna(registroDTO);
+    }
+
+    /**
+     * Metodo interno utilizado para registar la asistencia sin validar rol (usado
+     * por el endpoint biometrico)
+     * 
+     * @param request
+     * @return MessegeGlobalDTO
+     */
+    private MessegeGlobalDTO registarEntradaInterna(RegistroAsistenciaDTO request) {
+        Sede sede = sedeRepository.findById(request.getIdSede())
+                .orElseThrow(() -> new RuntimeException("Sede no encontrada con ID: " + request.getIdSede()));
+
+        EnumTipoAcceso tipoAcceso;
+        try {
+            tipoAcceso = EnumTipoAcceso.valueOf(request.getTipoAcceso().toUpperCase());
+        } catch (Exception e) {
+            throw new RuntimeException("tipo acceso no valido. Debe ser WEB, APP o BIOMETRICO");
+        }
+        
+        UsuarioPerfilResponseDTO usuario = usuarioClient.obtenerUsuarioPorIdInterno(request.getIdUsuario());
+        if (usuario == null) {
+            return registrarAccesoDenegado(request, sede, tipoAcceso,
+                    "Usuario no encontrado con ID: " + request.getIdUsuario());
+        }
+
+        Asistencia asistencia = new Asistencia();
+        asistencia.setIdUsuario(request.getIdUsuario());
+        asistencia.setSede(sede);
+        asistencia.setFechaHoraEntrada(LocalDateTime.now());
+        asistencia.setTipoAcceso(tipoAcceso);
+        asistencia.setEstadoAcceso(EnumEstadoAcceso.PERMITIDO);
+        asistencia.setMotivoDenegacion(null);
+        asistencia.setDispositivoId(request.getDispositivoId());
+
+        asistenciaRepository.save(asistencia);
+
+        String nombreCompleto = (usuario.getNombre() != null ? usuario.getNombre() : "") +
+                " " + (usuario.getApellido() != null ? usuario.getApellido() : "");
+        nombreCompleto = nombreCompleto.trim().isEmpty() ? "Socio" : nombreCompleto;
+
+        return new MessegeGlobalDTO(String.format(
+                "Acceso biometrico permitido. Bienvenido %s, registro exitoso en sede: %s",
+                nombreCompleto,
+                sede.getNombreSede()));
+    }
+
 }
