@@ -25,3 +25,5 @@ Thumbs.db
 #variables de entorno
 .env
 simular_asistencia.py
+
+PulseGymBiometric/
