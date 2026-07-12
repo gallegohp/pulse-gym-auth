@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -121,6 +122,32 @@ public class EjercicioController {
         } catch (Exception e) {
             e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al obtener el ejercicio", e);
+        }
+    }
+
+    /**
+     * Actualiza un ejercicio existente
+     * 
+     * @param id      ID del ejercicio a actualizar
+     * @param request DTO con los datos a actualizar
+     * @param userRol Rol del usuario autenticado (header)
+     * @return Mensaje de confirmación
+     */
+    @PutMapping("/{id}")
+    public ResponseEntity<MessegeGlobalDTO> actualizarEjercicio(
+            @PathVariable Long id,
+            @Valid @RequestBody EjercicioRequestDTO request,
+            @RequestHeader(value = "X-User-Rol", required = false) String userRol) {
+        try {
+            MessegeGlobalDTO response = ejercicioService.actualizarEjercicio(id, request, userRol);
+            return ResponseEntity.ok(response);
+        } catch (SecurityAuthorizationException e) {
+            throw e;
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al actualizar el ejercicio", e);
         }
     }
 }
