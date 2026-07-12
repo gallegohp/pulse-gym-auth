@@ -15,7 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 public class EquipoValidationService {
-    
+
     /** Cliente Feign para consultar equipos desde pg-ms-operation */
     private final EquipoClient equipoClient;
 
@@ -38,7 +38,6 @@ public class EquipoValidationService {
                 return false;
             }
 
-            // Verificar que al menos uno esté OPERATIVO
             boolean existeOperativo = equipos.stream()
                     .anyMatch(e -> e.getEstado() != null &&
                             e.getEstado().name().equals("OPERATIVO"));
@@ -54,6 +53,19 @@ public class EquipoValidationService {
         } catch (Exception e) {
             log.error("Error al validar equipo '{}': {}", nombreEquipo, e.getMessage());
             return false;
+        }
+    }
+
+    /**
+     * Valida que un equipo exista y lanza excepción si no existe
+     * 
+     * @param nombreEquipo Nombre del equipo a validar
+     */
+    public void validarEquipoExistenteOrThrow(String nombreEquipo) {
+        if (!validarEquipoExistente(nombreEquipo)) {
+            throw new RuntimeException(
+                    "El equipo '" + nombreEquipo + "' no existe en el inventario o no está operativo. " +
+                            "Por favor, asegúrate de que el equipo esté registrado en el sistema de operaciones.");
         }
     }
 }
