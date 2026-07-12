@@ -40,4 +40,4 @@ security:
 
 microservicio:
   operacion:
-    url: http://pg-ms-operation:8082
+    url: ${OPERACION_SERVICE_URL:http://pg-ms-operation:8082}
