@@ -63,7 +63,7 @@ public class EjercicioService {
      */
     @Transactional
     public MessegeGlobalDTO crearEjercicio(EjercicioRequestDTO request, String userRol) {
-        ValidacionDeRoles.validarAdminOEntrenador(userRol);
+        ValidacionDeRoles.validarAdminOEntrenadorORecepcionista(userRol);
 
         if (!GRUPOS_MUSCULARES.contains(request.getGrupoMuscular().toUpperCase())) {
             throw new RuntimeException("Grupo muscular no válido. Valores permitidos: " + GRUPOS_MUSCULARES);
