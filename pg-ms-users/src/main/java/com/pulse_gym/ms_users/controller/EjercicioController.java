@@ -34,7 +34,8 @@ public class EjercicioController {
     @PostMapping
     public ResponseEntity<MessegeGlobalDTO> crearEjercicio(
             @Valid @RequestBody EjercicioRequestDTO request,
-            @RequestHeader(value = "X-User-Rol", required = false) String userRol) {
+            @RequestHeader(value = "X-User-Rol", required = false) String userRol,
+            @RequestHeader(value = "Authorization", required = false) String authorization) {
         try {
             MessegeGlobalDTO response = ejercicioService.crearEjercicio(request, userRol);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
