@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import com.pulse_gym.lb_common.client.EquipoClient;
 import com.pulse_gym.lb_common.dto.ConsultaEquipoRequestDTO;
+import com.pulse_gym.lb_common.dto.EquipoResponseWrapperDTO;
 import com.pulse_gym.lb_common.entity.operation.Equipo;
 
 import lombok.RequiredArgsConstructor;
@@ -16,7 +17,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class EquipoValidationService {
 
-    /** Cliente Feign para consultar equipos desde pg-ms-operation */
     private final EquipoClient equipoClient;
 
     /**
@@ -25,19 +25,26 @@ public class EquipoValidationService {
      * @param nombreEquipo Nombre del equipo a validar
      * @return true si el equipo existe y está operativo, false en caso contrario
      */
-
     public boolean validarEquipoExistente(String nombreEquipo) {
         try {
             ConsultaEquipoRequestDTO request = new ConsultaEquipoRequestDTO();
             request.setNombre(nombreEquipo);
 
-            List<Equipo> equipos = equipoClient.consultarEquipos(request);
+            EquipoResponseWrapperDTO response = equipoClient.consultarEquipos(request);
 
-            if (equipos == null || equipos.isEmpty()) {
+            if (response == null || !Boolean.TRUE.equals(response.getSuccess()) || response.getData() == null) {
+                log.warn("Equipo no encontrado o error en la consulta: {}", nombreEquipo);
+                return false;
+            }
+
+            List<Equipo> equipos = response.getData();
+
+            if (equipos.isEmpty()) {
                 log.warn("Equipo no encontrado: {}", nombreEquipo);
                 return false;
             }
 
+            // Verificar que al menos uno esté OPERATIVO
             boolean existeOperativo = equipos.stream()
                     .anyMatch(e -> e.getEstado() != null &&
                             e.getEstado().name().equals("OPERATIVO"));
@@ -51,7 +58,7 @@ public class EquipoValidationService {
             return true;
 
         } catch (Exception e) {
-            log.error("Error al validar equipo '{}': {}", nombreEquipo, e.getMessage());
+            log.error("Error al validar equipo '{}': {}", nombreEquipo, e.getMessage(), e);
             return false;
         }
     }
@@ -60,6 +67,7 @@ public class EquipoValidationService {
      * Valida que un equipo exista y lanza excepción si no existe
      * 
      * @param nombreEquipo Nombre del equipo a validar
+     * @throws RuntimeException Si el equipo no existe o no está operativo
      */
     public void validarEquipoExistenteOrThrow(String nombreEquipo) {
         if (!validarEquipoExistente(nombreEquipo)) {
