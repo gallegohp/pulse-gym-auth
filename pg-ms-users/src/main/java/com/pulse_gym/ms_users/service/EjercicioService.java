@@ -1,9 +1,13 @@
 package com.pulse_gym.ms_users.service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import com.pulse_gym.lb_common.dto.EjercicioRequestDTO;
 import com.pulse_gym.lb_common.dto.EjercicioResponseDTO;
@@ -12,6 +16,7 @@ import com.pulse_gym.lb_common.entity.user.Ejercicio;
 import com.pulse_gym.lb_common.services.ValidacionDeRoles;
 import com.pulse_gym.ms_users.repository.EjercicioRepository;
 
+import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -90,4 +95,67 @@ public class EjercicioService {
 
         return new MessegeGlobalDTO("Ejercicio '" + ejercicio.getNombre() + "' creado correctamente");
     }
+
+    /**
+     * Consulta ejercicios aplicando filtros de búsqueda
+     * 
+     * @param nombre          Nombre del ejercicio (búsqueda parcial)
+     * @param grupoMuscular   Grupo muscular del ejercicio
+     * @param equipoNecesario Equipo necesario (búsqueda parcial)
+     * @param dificultadMin   Dificultad mínima
+     * @param dificultadMax   Dificultad máxima
+     * @param userRol         Rol del usuario autenticado
+     * @return Lista de ejercicios que coinciden con los filtros
+     * @throws RuntimeException Si no se encuentran ejercicios
+     */
+    public List<EjercicioResponseDTO> consultarEjercicios(
+            String nombre,
+            String grupoMuscular,
+            String equipoNecesario,
+            Integer dificultadMin,
+            Integer dificultadMax,
+            String userRol) {
+
+        ValidacionDeRoles.validarCualquierRol(userRol);
+
+        Specification<Ejercicio> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            if (StringUtils.hasText(nombre)) {
+                predicates.add(cb.like(cb.lower(root.get("nombre")), "%" + nombre.toLowerCase() + "%"));
+            }
+
+            if (StringUtils.hasText(grupoMuscular)) {
+                predicates.add(cb.equal(root.get("grupoMuscular"), grupoMuscular.toUpperCase()));
+            }
+
+            if (StringUtils.hasText(equipoNecesario)) {
+                predicates
+                        .add(cb.like(cb.lower(root.get("equipoNecesario")), "%" + equipoNecesario.toLowerCase() + "%"));
+            }
+
+            if (dificultadMin != null) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("dificultad"), dificultadMin));
+            }
+
+            if (dificultadMax != null) {
+                predicates.add(cb.lessThanOrEqualTo(root.get("dificultad"), dificultadMax));
+            }
+
+            predicates.add(cb.isTrue(root.get("activo")));
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+
+        List<Ejercicio> ejercicios = ejercicioRepository.findAll(spec);
+
+        if (ejercicios.isEmpty()) {
+            throw new RuntimeException("No se encontraron ejercicios con los filtros especificados");
+        }
+
+        return ejercicios.stream()
+                .map(this::convertirAResponseDTO)
+                .collect(Collectors.toList());
+    }
+
 }
