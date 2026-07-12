@@ -178,4 +178,67 @@ public class EjercicioService {
 
         return convertirAResponseDTO(ejercicio);
     }
+
+    /**
+     * Actualiza un ejercicio existente
+     * 
+     * @param id      ID del ejercicio a actualizar
+     * @param request DTO con los datos a actualizar
+     * @param userRol Rol del usuario autenticado
+     * @return Mensaje de confirmación
+     * @throws RuntimeException Si el ejercicio no existe, el grupo muscular no es
+     *                          válido,
+     *                          ya existe un ejercicio con ese nombre o el equipo no
+     *                          existe
+     */
+    @Transactional
+    public MessegeGlobalDTO actualizarEjercicio(Long id, EjercicioRequestDTO request, String userRol) {
+        ValidacionDeRoles.validarAdminOEntrenador(userRol);
+
+        Ejercicio ejercicio = ejercicioRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Ejercicio no encontrado con ID: " + id));
+
+        if (StringUtils.hasText(request.getGrupoMuscular())) {
+            if (!GRUPOS_MUSCULARES.contains(request.getGrupoMuscular().toUpperCase())) {
+                throw new RuntimeException("Grupo muscular no válido. Valores permitidos: " + GRUPOS_MUSCULARES);
+            }
+            ejercicio.setGrupoMuscular(request.getGrupoMuscular().toUpperCase());
+        }
+
+        if (StringUtils.hasText(request.getNombre()) && !request.getNombre().equals(ejercicio.getNombre())) {
+            if (ejercicioRepository.existsByNombreAndActivoTrue(request.getNombre())) {
+                throw new RuntimeException("Ya existe un ejercicio activo con el nombre: " + request.getNombre());
+            }
+            ejercicio.setNombre(request.getNombre());
+        }
+
+        if (StringUtils.hasText(request.getEquipoNecesario()) &&
+                !request.getEquipoNecesario().equals(ejercicio.getEquipoNecesario())) {
+            equipoValidationService.validarEquipoExistenteOrThrow(request.getEquipoNecesario());
+            ejercicio.setEquipoNecesario(request.getEquipoNecesario());
+        }
+
+        if (request.getExplicacionTecnica() != null) {
+            ejercicio.setExplicacionTecnica(request.getExplicacionTecnica());
+        }
+        if (request.getUrlImagen() != null) {
+            ejercicio.setUrlImagen(request.getUrlImagen());
+        }
+        if (request.getDificultad() != null) {
+            ejercicio.setDificultad(request.getDificultad());
+        }
+        if (request.getCaloriasPorMinuto() != null) {
+            ejercicio.setCaloriasPorMinuto(request.getCaloriasPorMinuto());
+        }
+        if (request.getUrlVideo() != null) {
+            ejercicio.setUrlVideo(request.getUrlVideo());
+        }
+        if (request.getActivo() != null) {
+            ejercicio.setActivo(request.getActivo());
+        }
+
+        ejercicioRepository.save(ejercicio);
+
+        return new MessegeGlobalDTO("Ejercicio '" + ejercicio.getNombre() + "' actualizado correctamente");
+    }
 }
