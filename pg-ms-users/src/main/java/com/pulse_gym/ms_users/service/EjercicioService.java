@@ -158,4 +158,24 @@ public class EjercicioService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Obtiene un ejercicio por su ID
+     * 
+     * @param id      ID del ejercicio a consultar
+     * @param userRol Rol del usuario autenticado
+     * @return DTO del ejercicio
+     * @throws RuntimeException Si el ejercicio no existe o no está activo
+     */
+    public EjercicioResponseDTO obtenerEjercicioPorId(Long id, String userRol) {
+        ValidacionDeRoles.validarCualquierRol(userRol);
+
+        Ejercicio ejercicio = ejercicioRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Ejercicio no encontrado con ID: " + id));
+
+        if (!ejercicio.getActivo()) {
+            throw new RuntimeException("El ejercicio no está activo");
+        }
+
+        return convertirAResponseDTO(ejercicio);
+    }
 }
