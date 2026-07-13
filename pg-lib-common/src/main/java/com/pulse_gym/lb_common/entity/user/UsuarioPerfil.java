@@ -165,6 +165,9 @@ public class UsuarioPerfil {
     @Column(name = "id_sede")
     private Integer idSede;
 
+    @Column(name = "biometric_device_id", length = 100)
+    private String biometricDeviceId;
+
     /**
      * Método callback de JPA que se ejecuta automáticamente antes de persistir el
      * registro,
