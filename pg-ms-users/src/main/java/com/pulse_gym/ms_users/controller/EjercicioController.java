@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -149,6 +150,30 @@ public class EjercicioController {
         } catch (Exception e) {
             e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al actualizar el ejercicio", e);
+        }
+    }
+
+    /**
+     * Desactiva un ejercicio (eliminación lógica)
+     * 
+     * @param id      ID del ejercicio a desactivar
+     * @param userRol Rol del usuario autenticado (header)
+     * @return Mensaje de confirmación
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<MessegeGlobalDTO> eliminarEjercicio(
+            @PathVariable Long id,
+            @RequestHeader(value = "X-User-Rol", required = false) String userRol) {
+        try {
+            MessegeGlobalDTO response = ejercicioService.eliminarEjercicio(id, userRol);
+            return ResponseEntity.ok(response);
+        } catch (SecurityAuthorizationException e) {
+            throw e;
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al eliminar el ejercicio", e);
         }
     }
 }
