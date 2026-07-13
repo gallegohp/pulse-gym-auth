@@ -11,6 +11,7 @@ import org.springframework.util.StringUtils;
 
 import com.pulse_gym.lb_common.dto.EjercicioRequestDTO;
 import com.pulse_gym.lb_common.dto.EjercicioResponseDTO;
+import com.pulse_gym.lb_common.dto.EjercicioUpdateDTO;
 import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
 import com.pulse_gym.lb_common.entity.user.Ejercicio;
 import com.pulse_gym.lb_common.services.ValidacionDeRoles;
@@ -192,7 +193,7 @@ public class EjercicioService {
      *                          existe
      */
     @Transactional
-    public MessegeGlobalDTO actualizarEjercicio(Long id, EjercicioRequestDTO request, String userRol) {
+    public MessegeGlobalDTO actualizarEjercicio(Long id, EjercicioUpdateDTO request, String userRol) {
         ValidacionDeRoles.validarAdminOEntrenador(userRol);
 
         Ejercicio ejercicio = ejercicioRepository.findById(id)
