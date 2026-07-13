@@ -6,14 +6,15 @@ spring:
     name: pg-ms-users
 
   datasource:
-    url: jdbc:mysql://db-mysql:3310/users_db?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
-    username: pulsegym
-    password: 123
+    url: jdbc:postgresql://aws-0-us-east-1.pooler.supabase.com:5432/postgres?currentSchema=users_schema&ssl=true&sslmode=require
+    username: postgres.dsnqzletdqoyljapyoba
+    password: ${SUPABASE_PASSWORD}
   jpa:
-    database-platform: org.hibernate.dialect.MySQLDialect
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: update
     show-sql: true
+  
   cloud:
     consul:
       host: consul
