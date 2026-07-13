@@ -279,4 +279,20 @@ public class EjercicioService {
         return GRUPOS_MUSCULARES;
     }
 
+    /**
+     * 
+     * @param userRol
+     * @return
+     */
+    public List<String> obtenerEquiposNecesarios(String userRol) {
+        ValidacionDeRoles.validarCualquierRol(userRol);
+
+        return ejercicioRepository.findByActivoTrue()
+                .stream()
+                .map(Ejercicio::getEquipoNecesario)
+                .filter(StringUtils::hasText)
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
+    }
 }
