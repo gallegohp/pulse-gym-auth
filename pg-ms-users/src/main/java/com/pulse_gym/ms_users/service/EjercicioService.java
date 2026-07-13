@@ -194,7 +194,7 @@ public class EjercicioService {
      */
     @Transactional
     public MessegeGlobalDTO actualizarEjercicio(Long id, EjercicioUpdateDTO request, String userRol) {
-        ValidacionDeRoles.validarAdminOEntrenador(userRol);
+        ValidacionDeRoles.validarAdminOEntrenadorORecepcionista(userRol);
 
         Ejercicio ejercicio = ejercicioRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Ejercicio no encontrado con ID: " + id));
@@ -253,7 +253,7 @@ public class EjercicioService {
      */
     @Transactional
     public MessegeGlobalDTO eliminarEjercicio(Long id, String userRol) {
-        ValidacionDeRoles.validarAdmin(userRol);
+        ValidacionDeRoles.validarAdminOEntrenadorORecepcionista(userRol);
 
         Ejercicio ejercicio = ejercicioRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Ejercicio no encontrado con ID: " + id));
@@ -266,6 +266,17 @@ public class EjercicioService {
         ejercicioRepository.save(ejercicio);
 
         return new MessegeGlobalDTO("Ejercicio '" + ejercicio.getNombre() + "' desactivado correctamente");
+    }
+
+    /**
+     * Obtiene la lista de grupos musculares válidos
+     * 
+     * @param userRol Rol del usuario autenticado
+     * @return Lista de grupos musculares
+     */
+    public List<String> obtenerGruposMusculares(String userRol) {
+        ValidacionDeRoles.validarCualquierRol(userRol);
+        return GRUPOS_MUSCULARES;
     }
 
 }
