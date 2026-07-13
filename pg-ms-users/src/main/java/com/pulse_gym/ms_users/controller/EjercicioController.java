@@ -201,4 +201,29 @@ public class EjercicioController {
                     "Error al obtener grupos musculares", e);
         }
     }
+
+    /**
+     * Obtiene la lista de equipos necesarios disponibles
+     * 
+     * @param userRol Rol del usuario autenticado (header)
+     * @return Mapa con la lista de equipos
+     */
+    @GetMapping("/equipos")
+    public ResponseEntity<Map<String, Object>> obtenerEquiposNecesarios(
+            @RequestHeader(value = "X-User-Rol", required = false) String userRol) {
+        try {
+            List<String> equipos = ejercicioService.obtenerEquiposNecesarios(userRol);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("data", equipos);
+            return ResponseEntity.ok(response);
+        } catch (SecurityAuthorizationException e) {
+            throw e;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Error al obtener equipos necesarios", e);
+        }
+    }
 }
