@@ -5,11 +5,11 @@ spring:
   application:
     name: pg-ms-auth
   datasource:
-    url: jdbc:mysql://db-mysql:3310/auth_db?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
-    username: pulsegym
-    password: 123
+    url: jdbc:postgresql://aws-0-us-east-1.pooler.supabase.com:5432/postgres?currentSchema=auth_schema&ssl=true&sslmode=require
+    username: postgres.dsnqzltdqoyljapyoba
+    password: ${SUPABASE_PASSWORD}
   jpa:
-    database-platform: org.hibernate.dialect.MySQLDialect
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: update
     show-sql: true
@@ -52,9 +52,7 @@ security:
     secret-key: ${JWT_SECRET}
     token-expiration: 3600000
     reset-token-expiration-minutes: 10
-    # frontend-url: http://localhost:3000
 
-# Configuración de microservicios
 microservicio:
   notificaciones:
     url: ${NOTIFICACIONES_SERVICE_URL:http://pg-ms-notifications:8083}
