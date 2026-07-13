@@ -176,4 +176,29 @@ public class EjercicioController {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al eliminar el ejercicio", e);
         }
     }
+
+    /**
+     * Obtiene la lista de grupos musculares válidos
+     * 
+     * @param userRol Rol del usuario autenticado (header)
+     * @return Mapa con la lista de grupos musculares
+     */
+    @GetMapping("/grupos-musculares")
+    public ResponseEntity<Map<String, Object>> obtenerGruposMusculares(
+            @RequestHeader(value = "X-User-Rol", required = false) String userRol) {
+        try {
+            List<String> grupos = ejercicioService.obtenerGruposMusculares(userRol);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("data", grupos);
+            return ResponseEntity.ok(response);
+        } catch (SecurityAuthorizationException e) {
+            throw e;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Error al obtener grupos musculares", e);
+        }
+    }
 }
