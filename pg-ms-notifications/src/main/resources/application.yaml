@@ -6,16 +6,16 @@ spring:
     name: pg-ms-notifications
 
   datasource:
-    url: jdbc:mysql://db-mysql:3306/notifications_db?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
-    username: pulsegym
-    password: 123
-    
-  jpa: 
-    database-platform: org.hibernate.dialect.MySQLDialect
+    url: jdbc:postgresql://aws-0-us-east-1.pooler.supabase.com:5432/postgres?currentSchema=notifications_schema&ssl=true&sslmode=require
+    username: postgres.dsnqzltdqoyljapyoba
+    password: ${SUPABASE_PASSWORD}
+  
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: update
     show-sql: true
-    
+  
   cloud:
     consul:
       host: consul
@@ -26,7 +26,6 @@ spring:
         prefer-ip-address: false
         instance-id: ${spring.application.name}
   
-  # Configuración de envío de emails
   mail:
     host: ${MAIL_HOST:smtp.gmail.com}
     port: ${MAIL_PORT:587}
@@ -63,7 +62,6 @@ logging:
     com.pulse_gym: DEBUG
     org.springframework.mail: INFO
 
-# Configuración personalizada de notificaciones
 notificaciones:
   email:
     enabled: ${MAIL_ENABLED:true}
@@ -75,7 +73,6 @@ notificaciones:
       auth-token: ${TWILIO_AUTH_TOKEN:}
       from-number: ${TWILIO_FROM_NUMBER:}
 
-# Configuración de microservicios
 microservicio:
   usuarios:
     url: ${USUARIOS_SERVICE_URL:http://pg-ms-users:8081}

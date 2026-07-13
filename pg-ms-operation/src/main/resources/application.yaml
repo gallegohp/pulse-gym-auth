@@ -6,14 +6,16 @@ spring:
     name: pg-ms-operation
     
   datasource:
-    url: jdbc:mysql://db-mysql:3310/operations_db?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
-    username: pulsegym
-    password: 123
-  jpa: 
-    database-platform: org.hibernate.dialect.MySQLDialect
+    url: jdbc:postgresql://aws-0-us-east-1.pooler.supabase.com:5432/postgres?currentSchema=operations_schema&ssl=true&sslmode=require
+    username: postgres.dsnqzltdqoyljapyoba
+    password: ${SUPABASE_PASSWORD}
+  
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: update
     show-sql: true
+  
   cloud:
     consul:
       host: consul
@@ -49,4 +51,4 @@ logging:
 biometric:
   jwt:
     secret-key: ${BIOMETRIC_JWT_SECRET:biometricSecretKeyForDemo}
-    token-expiration: 300000   # 5 minutos en milisegundos
+    token-expiration: 300000
