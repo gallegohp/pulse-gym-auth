@@ -554,22 +554,56 @@ public class UsuarioPerfilService {
         return dto;
     }
 
+    @Transactional
     public MessegeGlobalDTO registrarHuella(Long idUsuario, RegistroHuellaRequestDTO request, String userRol,
             Long userIdAutenticado) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'registrarHuella'");
+
+        if (userRol.equals(EnumRol.socio.name()) && !userIdAutenticado.equals(idUsuario)) {
+            throw new SecurityAuthorizationException("Acceso denegado. Solo puede registrar su propia huella");
+        }
+        ValidacionDeRoles.validarAdminORecepcionistaOSocio(userRol);
+
+        UsuarioPerfil usuario = usuarioRepository.findById(idUsuario)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID:" + idUsuario));
+
+        EnumRol rol = authServiceClient.obtenerRolPorEmail(usuario.getEmail());
+        if (rol != EnumRol.socio) {
+            throw new RuntimeException("Solo los socios pueden registrar huella");
+        }
+        usuario.setBiometricDeviceId(request.getDeviceId());
+        usuarioRepository.save(usuario);
+        return new MessegeGlobalDTO("Huella registrada correctamente");
     }
 
+    @Transactional
     public MessegeGlobalDTO reemplazarHuella(Long idUsuario, RegistroHuellaRequestDTO request, String userRol,
             Long userIdAutenticado) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'reemplazarHuella'");
+        if (userRol.equals(EnumRol.socio.name()) && !userIdAutenticado.equals(idUsuario)) {
+            throw new SecurityAuthorizationException("Acceso denegado. Solo puede reemplazar su propia huella");
+        }
+        ValidacionDeRoles.validarAdminORecepcionistaOSocio(userRol);
+
+        UsuarioPerfil usuario = usuarioRepository.findById(idUsuario)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        usuario.setBiometricDeviceId(request.getDeviceId());
+        usuarioRepository.save(usuario);
+        return new MessegeGlobalDTO("Huella reemplazada correctamente");
     }
 
-    public MessegeGlobalDTO eliminarHuella(Long idUsuario, String userRol,
-            Long userIdAutenticado) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'eliminarHuella'");
+    @Transactional
+    public MessegeGlobalDTO eliminarHuella(Long idUsuario, String userRol, Long userIdAutenticado) {
+        if (userRol.equals(EnumRol.socio.name()) && !userIdAutenticado.equals(idUsuario)) {
+            throw new SecurityAuthorizationException("Acceso denegado. Solo puede eliminar su propia huella");
+        }
+        ValidacionDeRoles.validarAdminORecepcionistaOSocio(userRol);
+
+        UsuarioPerfil usuario = usuarioRepository.findById(idUsuario)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        usuario.setBiometricDeviceId(null);
+        usuarioRepository.save(usuario);
+        return new MessegeGlobalDTO("Huella eliminada correctamente");
     }
 
 }
