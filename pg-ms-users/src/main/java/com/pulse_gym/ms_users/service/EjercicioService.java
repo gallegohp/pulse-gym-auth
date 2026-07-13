@@ -279,11 +279,11 @@ public class EjercicioService {
         return GRUPOS_MUSCULARES;
     }
 
-    /**
-     * 
-     * @param userRol
-     * @return
-     */
+/**
+ * Obtiene la lista de equipos necesarios utilizados en ejercicios activos
+ * @param userRol Rol del usuario autenticado
+ * @return Lista de equipos ordenada y sin duplicados
+ */
     public List<String> obtenerEquiposNecesarios(String userRol) {
         ValidacionDeRoles.validarCualquierRol(userRol);
 
