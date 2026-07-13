@@ -37,3 +37,7 @@ security:
   jwt:
     secret-key: ${JWT_SECRET}
     token-expiration: 3600000
+
+microservicio:
+  operacion:
+    url: ${OPERACION_SERVICE_URL:http://pg-ms-operation:8082}
