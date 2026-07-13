@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -13,11 +14,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.pulse_gym.lb_common.dto.CompletarPerfilRequestDTO;
 import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
+import com.pulse_gym.lb_common.dto.RegistroHuellaRequestDTO;
 import com.pulse_gym.lb_common.dto.UsuarioPerfilRequestDTO;
 import com.pulse_gym.lb_common.dto.UsuarioPerfilResponseDTO;
 import com.pulse_gym.lb_common.enums.EnumEstadoUsuario;
@@ -260,4 +263,55 @@ public class UsuarioPerfilController {
                     "Error al cambiar el estado del usuario", e);
         }
     }
+
+    /**
+     * 
+     * @param idUsuario
+     * @param request
+     * @param userRol
+     * @param userIdAutenticado
+     * @return
+     */
+    @PostMapping("/{idUsuario}/huella/registrar")
+    public ResponseEntity<MessegeGlobalDTO> registrarHuella(
+            @PathVariable Long idUsuario,
+            @Valid @RequestBody RegistroHuellaRequestDTO request,
+            @RequestHeader(value = "X-User-Rol", required = false) String userRol,
+            @RequestHeader(value = "X-User-Id", required = false) Long userIdAutenticado) {
+        try {
+            MessegeGlobalDTO response = usuarioService.registrarHuella(idUsuario, request, userRol, userIdAutenticado);
+            return ResponseEntity.status(HttpStatus.OK).body(response);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+    }
+
+    @PutMapping("/{idUsuario}/huella/reemplazar")
+    public ResponseEntity<MessegeGlobalDTO> reemplazarHuella(
+            @PathVariable Long idUsuario,
+            @Valid @RequestBody RegistroHuellaRequestDTO request,
+            @RequestHeader(value = "X-User-Rol", required = false) String userRol,
+            @RequestHeader(value = "X-User-Id", required = false) Long userIdAutenticado) {
+        try {
+            MessegeGlobalDTO response = usuarioService.reemplazarHuella(idUsuario, request, userRol, userIdAutenticado);
+            return ResponseEntity.status(HttpStatus.OK).body(response);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/{idUsuario}/huella/eliminar")
+    public ResponseEntity<MessegeGlobalDTO> eliminarHuella(
+            @PathVariable Long idUsuario,
+            @Valid @RequestBody RegistroHuellaRequestDTO request,
+            @RequestHeader(value = "X-User-Rol", required = false) String userRol,
+            @RequestHeader(value = "X-User-Id", required = false) Long userIdAutenticado) {
+        try {
+            MessegeGlobalDTO response = usuarioService.eliminarHuella(idUsuario, userRol, userIdAutenticado);
+            return ResponseEntity.status(HttpStatus.OK).body(response);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+    }
+
 }
