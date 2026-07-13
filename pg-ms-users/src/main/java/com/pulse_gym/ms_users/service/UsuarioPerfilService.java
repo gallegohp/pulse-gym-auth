@@ -14,6 +14,7 @@ import com.pulse_gym.lb_common.dto.AuthUserDTO;
 import com.pulse_gym.lb_common.dto.CompletarPerfilRequestDTO;
 import com.pulse_gym.lb_common.dto.EnvioEventoNotificacionDTO;
 import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
+import com.pulse_gym.lb_common.dto.RegistroHuellaRequestDTO;
 import com.pulse_gym.lb_common.dto.UsuarioPerfilRequestDTO;
 import com.pulse_gym.lb_common.dto.UsuarioPerfilResponseDTO;
 import com.pulse_gym.lb_common.entity.user.UsuarioPerfil;
@@ -24,6 +25,7 @@ import com.pulse_gym.lb_common.exception.SecurityAuthorizationException;
 import com.pulse_gym.lb_common.services.ValidacionDeRoles;
 import com.pulse_gym.ms_users.repository.UsuarioPerfilRepository;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -149,8 +151,7 @@ public class UsuarioPerfilService {
             eventoDTO.setEvento(EnumEventoAsociado.WELCOME);
             eventoDTO.setVariablesAdicionales(java.util.Map.of(
                     "nombre", usuario.getNombre(),
-                    "apellido", usuario.getApellido() != null ? usuario.getApellido() : ""
-            ));
+                    "apellido", usuario.getApellido() != null ? usuario.getApellido() : ""));
             notificacionClient.enviarPorEvento(eventoDTO);
         } catch (Exception e) {
             // No fallar el registro si falla el envío de notificación
@@ -215,7 +216,8 @@ public class UsuarioPerfilService {
      * @return DTO con los datos del usuario
      */
     /**
-     * Obtiene el perfil de usuario por email sin validacion de rol para integracion interna
+     * Obtiene el perfil de usuario por email sin validacion de rol para integracion
+     * interna
      *
      * @param email Email del usuario
      * @return DTO con los datos del perfil
@@ -537,17 +539,37 @@ public class UsuarioPerfilService {
     }
 
     /**
-     * Servicio para obtener usuario sin validacion de roles para comunicacion entre microservicios
+     * Servicio para obtener usuario sin validacion de roles para comunicacion entre
+     * microservicios
+     * 
      * @param idUsuario
      * @return
      */
     @Transactional(readOnly = true)
     public UsuarioPerfilResponseDTO obtenerUsuarioPorIdInterno(Long idUsuario) {
         UsuarioPerfil usuario = usuarioRepository.findById(idUsuario)
-            .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + idUsuario));
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + idUsuario));
         UsuarioPerfilResponseDTO dto = convertirADTO(usuario);
         enrichWithRol(dto, usuario);
         return dto;
+    }
+
+    public MessegeGlobalDTO registrarHuella(Long idUsuario, RegistroHuellaRequestDTO request, String userRol,
+            Long userIdAutenticado) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'registrarHuella'");
+    }
+
+    public MessegeGlobalDTO reemplazarHuella(Long idUsuario, RegistroHuellaRequestDTO request, String userRol,
+            Long userIdAutenticado) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'reemplazarHuella'");
+    }
+
+    public MessegeGlobalDTO eliminarHuella(Long idUsuario, String userRol,
+            Long userIdAutenticado) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'eliminarHuella'");
     }
 
 }
