@@ -6,7 +6,7 @@ spring:
     name: pg-ms-auth
   datasource:
     url: jdbc:postgresql://aws-0-us-east-1.pooler.supabase.com:5432/postgres?currentSchema=auth_schema&ssl=true&sslmode=require
-    username: postgres.dsnqzltdqoyljapyoba
+    username: postgres
     password: ${SUPABASE_PASSWORD}
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
