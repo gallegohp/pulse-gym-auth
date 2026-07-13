@@ -242,4 +242,30 @@ public class EjercicioService {
 
         return new MessegeGlobalDTO("Ejercicio '" + ejercicio.getNombre() + "' actualizado correctamente");
     }
+
+    /**
+     * Desactiva un ejercicio (eliminación lógica)
+     * 
+     * @param id      ID del ejercicio a desactivar
+     * @param userRol Rol del usuario autenticado
+     * @return Mensaje de confirmación
+     * @throws RuntimeException Si el ejercicio no existe o ya está desactivado
+     */
+    @Transactional
+    public MessegeGlobalDTO eliminarEjercicio(Long id, String userRol) {
+        ValidacionDeRoles.validarAdmin(userRol);
+
+        Ejercicio ejercicio = ejercicioRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Ejercicio no encontrado con ID: " + id));
+
+        if (!ejercicio.getActivo()) {
+            throw new RuntimeException("El ejercicio ya está desactivado");
+        }
+
+        ejercicio.setActivo(false);
+        ejercicioRepository.save(ejercicio);
+
+        return new MessegeGlobalDTO("Ejercicio '" + ejercicio.getNombre() + "' desactivado correctamente");
+    }
+
 }
