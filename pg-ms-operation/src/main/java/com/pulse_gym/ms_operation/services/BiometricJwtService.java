@@ -98,4 +98,11 @@ public class BiometricJwtService {
     public boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());
     }
+
+    public String extractDeviceId(String token) {
+    return extractClaims(token, claims -> {
+        Object deviceId = claims.get("deviceId");
+        return deviceId != null ? deviceId.toString() : null;
+    });
+}
 }

@@ -72,6 +72,7 @@ public class UsuarioPerfilService {
         dto.setFechaRegistro(usuario.getFechaRegistro());
         dto.setIdSede(usuario.getIdSede());
         dto.setEstado(usuario.getEstado());
+        dto.setBiometricDeviceId(usuario.getBiometricDeviceId());
         return dto;
     }
 
