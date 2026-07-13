@@ -124,4 +124,10 @@ public class UsuarioPerfilResponseDTO {
      * Identificador de la sede física a la cual se encuentra vinculado el usuario
      */
     private Integer idSede;
+
+    /**
+     * Id biometrico del usuario
+     */
+    private String biometricDeviceId;
+
 }
