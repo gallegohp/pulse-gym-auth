@@ -19,6 +19,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.pulse_gym.lb_common.dto.EjercicioRequestDTO;
 import com.pulse_gym.lb_common.dto.EjercicioResponseDTO;
+import com.pulse_gym.lb_common.dto.EjercicioUpdateDTO;
 import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
 import com.pulse_gym.lb_common.exception.SecurityAuthorizationException;
 import com.pulse_gym.ms_users.service.EjercicioService;
@@ -136,7 +137,7 @@ public class EjercicioController {
     @PutMapping("/{id}")
     public ResponseEntity<MessegeGlobalDTO> actualizarEjercicio(
             @PathVariable Long id,
-            @Valid @RequestBody EjercicioRequestDTO request,
+            @Valid @RequestBody EjercicioUpdateDTO request,
             @RequestHeader(value = "X-User-Rol", required = false) String userRol) {
         try {
             MessegeGlobalDTO response = ejercicioService.actualizarEjercicio(id, request, userRol);
