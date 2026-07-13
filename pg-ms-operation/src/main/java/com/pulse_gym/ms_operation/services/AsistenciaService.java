@@ -239,14 +239,15 @@ public class AsistenciaService {
         if (!biometricJwtService.validateToken(request.getToken())) {
             throw new RuntimeException("Token biometrico invalido");
         }
-
-        Long userIdFromToken = biometricJwtService.extractUserId(request.getToken());
-        if (!userIdFromToken.equals(request.getIdUsuario())) {
-            throw new RuntimeException("El token no corresponde al usuario");
-        }
-
         if (biometricJwtService.isTokenExpired(request.getToken())) {
             throw new RuntimeException("El token biometrico ha expirado");
+        }
+
+        Long userIdFromToken = biometricJwtService.extractUserId(request.getToken());
+        String deviceIdFromToken = biometricJwtService.extractDeviceId(request.getToken()); // nuevo método
+
+        if (!userIdFromToken.equals(request.getIdUsuario())) {
+            throw new RuntimeException("El token no corresponde al usuario");
         }
 
         UsuarioPerfilResponseDTO usuario = usuarioClient.obtenerUsuarioPorIdInterno(request.getIdUsuario());
@@ -254,9 +255,16 @@ public class AsistenciaService {
             throw new RuntimeException("Usuario no encontrado con id: " + request.getIdUsuario());
         }
 
+        if (usuario.getBiometricDeviceId() == null) {
+            throw new RuntimeException("El usuario no tiene una huella registrada. Contacte con administración.");
+        }
+        if (!usuario.getBiometricDeviceId().equals(deviceIdFromToken)) {
+            throw new RuntimeException("El dispositivo no está autorizado para este usuario");
+        }
+
         Long idSede = usuario.getIdSede() != null ? usuario.getIdSede().longValue() : null;
         if (idSede == null) {
-            throw new RuntimeException("El socio no tiene una sede asignada. Contacte con administracion");
+            throw new RuntimeException("El socio no tiene una sede asignada");
         }
 
         RegistroAsistenciaDTO registroDTO = new RegistroAsistenciaDTO();
@@ -265,7 +273,7 @@ public class AsistenciaService {
         registroDTO.setTipoAcceso("BIOMETRICO");
         registroDTO.setDispositivoId("biometric");
 
-        return registarEntradaInterna(registroDTO);
+        return registrarEntradaInterna(registroDTO);
     }
 
     /**
@@ -275,7 +283,7 @@ public class AsistenciaService {
      * @param request
      * @return MessegeGlobalDTO
      */
-    private MessegeGlobalDTO registarEntradaInterna(RegistroAsistenciaDTO request) {
+    private MessegeGlobalDTO registrarEntradaInterna(RegistroAsistenciaDTO request) {
         Sede sede = sedeRepository.findById(request.getIdSede())
                 .orElseThrow(() -> new RuntimeException("Sede no encontrada con ID: " + request.getIdSede()));
 
@@ -285,7 +293,7 @@ public class AsistenciaService {
         } catch (Exception e) {
             throw new RuntimeException("tipo acceso no valido. Debe ser WEB, APP o BIOMETRICO");
         }
-        
+
         UsuarioPerfilResponseDTO usuario = usuarioClient.obtenerUsuarioPorIdInterno(request.getIdUsuario());
         if (usuario == null) {
             return registrarAccesoDenegado(request, sede, tipoAcceso,
