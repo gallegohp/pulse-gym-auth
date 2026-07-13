@@ -98,7 +98,7 @@ public class UsuarioPerfil {
     /**
      * Cantidad de años de experiencia laboral del usuario en su campo
      */
-    @Column(name = "años_experiencia", nullable = false)
+    @Column(name = "anos_experiencia", nullable = false)
     private Short anosExperiencia;
 
     /**
