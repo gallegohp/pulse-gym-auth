@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pulse_gym.lb_common.client.AiClient;
+import com.pulse_gym.lb_common.entity.user.SocioMembresia;
 import com.pulse_gym.ms_users.repository.DetalleRutinaRepository;
 import com.pulse_gym.ms_users.repository.EjercicioRepository;
 import com.pulse_gym.ms_users.repository.HistorialFisicoRepository;
@@ -60,5 +61,26 @@ public class RutinaIAService {
         if (fechaNacimiento == null)
             return 0;
         return Period.between(fechaNacimiento, LocalDate.now()).getYears();
+    }
+
+    /**
+     * Valida que el socio tenga una membresía activa
+     * 
+     * @param idSocio ID del socio a validar
+     */
+    public void validarMembresiaActiva(Long idSocio) {
+        log.info("Validando membresía activa para socio ID: {}", idSocio);
+
+        SocioMembresia membresiaActiva = socioMembresiaRepository.findMembresiaActivaBySocio(idSocio)
+                .orElseThrow(() -> new RuntimeException(
+                        "El socio no tiene una membresía activa. No puede generar rutinas."));
+
+        if (!membresiaActiva.isActiva()) {
+            throw new RuntimeException(
+                    "La membresía del socio está inactiva o vencida. Estado actual: " + membresiaActiva.getEstado());
+        }
+
+        log.info("Membresía activa confirmada para socio ID: {}, vence el: {}",
+                idSocio, membresiaActiva.getFechaVencimiento());
     }
 }
