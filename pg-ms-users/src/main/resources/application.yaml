@@ -42,3 +42,6 @@ security:
 microservicio:
   operacion:
     url: ${OPERACION_SERVICE_URL:http://pg-ms-operation:8082}
+    
+  ai:
+    url: ${AI_SERVICE_URL:http://pg-ms-ai:8086}
