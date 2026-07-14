@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pulse_gym.lb_common.client.AiClient;
+import com.pulse_gym.lb_common.dto.EstadoMembresiaResponseDTO;
 import com.pulse_gym.lb_common.entity.user.SocioMembresia;
 import com.pulse_gym.ms_users.repository.DetalleRutinaRepository;
 import com.pulse_gym.ms_users.repository.EjercicioRepository;
@@ -82,5 +83,41 @@ public class RutinaIAService {
 
         log.info("Membresía activa confirmada para socio ID: {}, vence el: {}",
                 idSocio, membresiaActiva.getFechaVencimiento());
+    }
+
+    /**
+     * Obtiene el estado de la membresía de un socio
+     * 
+     * @param idSocio ID del socio a consultar
+     * @return DTO con el estado de la membresía
+     */
+    public EstadoMembresiaResponseDTO obtenerEstadoMembresia(Long idSocio) {
+        SocioMembresia membresiaActiva = socioMembresiaRepository.findMembresiaActivaBySocio(idSocio)
+                .orElse(null);
+
+        if (membresiaActiva == null) {
+            return EstadoMembresiaResponseDTO.builder()
+                    .idSocio(idSocio)
+                    .estado("SIN_MEMBRESIA")
+                    .activa(false)
+                    .vencida(false)
+                    .diasRestantes(0L)
+                    .mensaje("El socio no tiene membresía activa")
+                    .build();
+        }
+
+        return EstadoMembresiaResponseDTO.builder()
+                .idSocio(idSocio)
+                .idSocioMembresia(membresiaActiva.getIdSocioMembresia())
+                .idMembresia(membresiaActiva.getMembresia().getIdMembresia())
+                .nombreMembresia(membresiaActiva.getMembresia().getNombre())
+                .fechaInicio(membresiaActiva.getFechaInicio())
+                .fechaVencimiento(membresiaActiva.getFechaVencimiento())
+                .estado(membresiaActiva.getEstado().name())
+                .activa(membresiaActiva.isActiva())
+                .vencida(membresiaActiva.isVencida())
+                .diasRestantes(membresiaActiva.getDiasRestantes())
+                .mensaje(membresiaActiva.isActiva() ? "Membresía activa" : "Membresía inactiva")
+                .build();
     }
 }
