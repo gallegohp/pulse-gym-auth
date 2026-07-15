@@ -17,6 +17,8 @@ import com.pulse_gym.lb_common.entity.user.DetalleRutina;
 import com.pulse_gym.lb_common.entity.user.Ejercicio;
 import com.pulse_gym.lb_common.entity.user.RutinaIA;
 import com.pulse_gym.lb_common.entity.user.UsuarioPerfil;
+import com.pulse_gym.lb_common.enums.EnumRol;
+import com.pulse_gym.lb_common.exception.SecurityAuthorizationException;
 import com.pulse_gym.ms_users.repository.DetalleRutinaRepository;
 import com.pulse_gym.ms_users.repository.EjercicioRepository;
 import com.pulse_gym.ms_users.repository.HistorialRutinaVersionRepository;
@@ -247,5 +249,26 @@ public class RutinaService {
                         detalle.setGrupoMuscular(ejercicio.getGrupoMuscular());
                     });
         }
+    }
+
+    /**
+     * Obtiene una rutina por su ID con validación de permisos
+     * 
+     * @param idRutina          ID de la rutina a consultar
+     * @param userRol           Rol del usuario autenticado
+     * @param userIdAutenticado ID del usuario autenticado
+     * @return DTO de la rutina
+     */
+    public RutinaGeneracionResponseDTO obtenerRutina(Long idRutina, String userRol, Long userIdAutenticado) {
+        RutinaIA rutina = rutinaRepository.findById(idRutina)
+                .orElseThrow(() -> new RuntimeException("Rutina no encontrada con ID: " + idRutina));
+
+        if (EnumRol.socio.name().equals(userRol)) {
+            if (!rutina.getSocio().getIdUsuario().equals(userIdAutenticado)) {
+                throw new SecurityAuthorizationException("Acceso denegado. Solo puede ver sus propias rutinas");
+            }
+        }
+
+        return convertirAResponseDTO(rutina);
     }
 }
