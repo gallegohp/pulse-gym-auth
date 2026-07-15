@@ -271,4 +271,30 @@ public class RutinaService {
 
         return convertirAResponseDTO(rutina);
     }
+
+    /**
+     * Obtiene todas las rutinas de un socio con validación de permisos
+     * 
+     * @param idSocio           ID del socio
+     * @param userRol           Rol del usuario autenticado
+     * @param userIdAutenticado ID del usuario autenticado
+     * @return Lista de rutinas del socio
+     */
+    public List<RutinaGeneracionResponseDTO> obtenerRutinasSocio(Long idSocio, String userRol, Long userIdAutenticado) {
+        if (EnumRol.socio.name().equals(userRol)) {
+            if (!idSocio.equals(userIdAutenticado)) {
+                throw new SecurityAuthorizationException("Acceso denegado. Solo puede ver sus propias rutinas");
+            }
+        }
+
+        List<RutinaIA> rutinas = rutinaRepository.findBySocio_IdUsuarioOrderByFechaGeneracionDesc(idSocio);
+
+        if (rutinas.isEmpty()) {
+            throw new RuntimeException("El socio no tiene rutinas generadas");
+        }
+
+        return rutinas.stream()
+                .map(this::convertirAResponseDTO)
+                .collect(Collectors.toList());
+    }
 }
