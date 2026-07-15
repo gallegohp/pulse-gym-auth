@@ -18,6 +18,8 @@ import com.pulse_gym.lb_common.entity.user.PerfilMedico;
 import com.pulse_gym.lb_common.entity.user.RutinaIA;
 import com.pulse_gym.lb_common.entity.user.SocioMembresia;
 import com.pulse_gym.lb_common.entity.user.UsuarioPerfil;
+import com.pulse_gym.lb_common.enums.EnumRol;
+import com.pulse_gym.lb_common.exception.SecurityAuthorizationException;
 import com.pulse_gym.ms_users.repository.DetalleRutinaRepository;
 import com.pulse_gym.ms_users.repository.EjercicioRepository;
 import com.pulse_gym.ms_users.repository.HistorialFisicoRepository;
@@ -217,4 +219,32 @@ public class RutinaIAService {
         return ej;
     }
 
+    public void validarRolGeneracion(String userRol, Long idSocio, Long userIdAutenticado) {
+        if (userRol == null) {
+            throw new SecurityAuthorizationException("Usuario no autenticado");
+        }
+
+        if (EnumRol.administrador.name().equals(userRol)) {
+            return;
+        }
+
+        if (EnumRol.entrenador.name().equals(userRol)) {
+            return;
+        }
+
+        if (EnumRol.recepcionista.name().equals(userRol)) {
+            return;
+        }
+
+        if (EnumRol.socio.name().equals(userRol)) {
+            if (!userIdAutenticado.equals(idSocio)) {
+                throw new SecurityAuthorizationException(
+                        "Acceso denegado. Los socios solo pueden generar rutinas para sí mismos");
+            }
+            return;
+        }
+
+        throw new SecurityAuthorizationException(
+                "Acceso denegado. Rol '" + userRol + "' no autorizado para generar rutinas");
+    }
 }
