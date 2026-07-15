@@ -5,10 +5,14 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pulse_gym.lb_common.client.AiClient;
+import com.pulse_gym.lb_common.dto.DetalleRutinaResponseDTO;
 import com.pulse_gym.lb_common.dto.RutinaGeneracionRequestDTO;
 import com.pulse_gym.lb_common.dto.RutinaGeneracionResponseDTO;
+import com.pulse_gym.lb_common.entity.user.DetalleRutina;
+import com.pulse_gym.lb_common.entity.user.Ejercicio;
 import com.pulse_gym.lb_common.entity.user.RutinaIA;
 import com.pulse_gym.lb_common.entity.user.UsuarioPerfil;
 import com.pulse_gym.ms_users.repository.DetalleRutinaRepository;
@@ -103,4 +107,67 @@ public class RutinaService {
         return respuestaIA;
     }
 
+    /**
+     * Guarda la rutina generada por IA en la base de datos
+     * 
+     * @param socio       Socio al que pertenece la rutina
+     * @param respuestaIA Respuesta de la IA con los datos de la rutina
+     * @param request     Preferencias del socio
+     * @return Rutina guardada
+     */
+    private RutinaIA guardarRutina(UsuarioPerfil socio, RutinaGeneracionResponseDTO respuestaIA,
+            RutinaGeneracionRequestDTO request) {
+
+        RutinaIA rutina = new RutinaIA();
+        rutina.setSocio(socio);
+        rutina.setObjetivo(request.getObjetivoEspecifico() != null ? request.getObjetivoEspecifico()
+                : socio.getObjetivoPrincipal());
+        rutina.setNivel(socio.getNivelExperiencia().name());
+        rutina.setCondiciones("Días por semana: " + request.getDiasPorSemana() +
+                ", Duración: " + request.getDuracionSemanas() + " semanas");
+        rutina.setModeloIa("OpenAI-GPT-4");
+        rutina.setVersion(1);
+        rutina.setActiva(true);
+        rutina.setExplicacionIa(respuestaIA.getExplicacionIA());
+
+        try {
+            String rutinaJson = objectMapper.writeValueAsString(respuestaIA);
+            rutina.setRutinaGenerada(rutinaJson);
+        } catch (JsonProcessingException e) {
+            log.warn("Error al serializar rutina a JSON: {}", e.getMessage());
+            rutina.setRutinaGenerada(respuestaIA.toString());
+        }
+
+        rutina = rutinaRepository.save(rutina);
+
+        if (respuestaIA.getDetalles() != null) {
+            for (DetalleRutinaResponseDTO detalleDTO : respuestaIA.getDetalles()) {
+                DetalleRutina detalle = new DetalleRutina();
+                detalle.setRutinaIa(rutina);
+
+                Ejercicio ejercicio = ejercicioRepository.findByNombreAndActivoTrue(detalleDTO.getNombreEjercicio())
+                        .orElse(null);
+
+                if (ejercicio == null) {
+                    log.warn("Ejercicio no encontrado: {}, se omitirá", detalleDTO.getNombreEjercicio());
+                    continue;
+                }
+
+                detalle.setEjercicio(ejercicio);
+                detalle.setSeries(detalleDTO.getSeries() != null ? detalleDTO.getSeries() : 3);
+                detalle.setRepeticionesMin(detalleDTO.getRepeticionesMin());
+                detalle.setRepeticionesMax(detalleDTO.getRepeticionesMax());
+                detalle.setPesoSugerido(detalleDTO.getPesoSugerido());
+                detalle.setDescansoSegundos(detalleDTO.getDescansoSegundos());
+                detalle.setDiaSemana(detalleDTO.getDiaSemana());
+                detalle.setOrden(detalleDTO.getOrden());
+                detalle.setNotas(detalleDTO.getNotas());
+
+                detalleRutinaRepository.save(detalle);
+            }
+        }
+
+        log.info("Rutina guardada con {} detalles", rutina.getDetalles().size());
+        return rutina;
+    }
 }
