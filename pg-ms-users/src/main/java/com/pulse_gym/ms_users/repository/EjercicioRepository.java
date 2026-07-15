@@ -1,6 +1,7 @@
 package com.pulse_gym.ms_users.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -82,4 +83,12 @@ public interface EjercicioRepository extends JpaRepository<Ejercicio, Long>, Jpa
      */
     @Query(value = "SELECT * FROM ejercicio WHERE activo = true AND grupo_muscular = 'CARDIO' ORDER BY RANDOM() LIMIT :limit", nativeQuery = true)
     List<Ejercicio> findRandomCardioEjercicios(@Param("limit") int limit);
+
+    /**
+     * Busca un ejercicio activo por su nombre
+     * 
+     * @param nombre Nombre del ejercicio
+     * @return Ejercicio si existe y está activo
+     */
+    Optional<Ejercicio> findByNombreAndActivoTrue(String nombre);
 }
