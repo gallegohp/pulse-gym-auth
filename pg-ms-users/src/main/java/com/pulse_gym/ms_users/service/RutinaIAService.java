@@ -219,6 +219,14 @@ public class RutinaIAService {
         return ej;
     }
 
+    /**
+     * Valida que el usuario tenga permisos para generar rutinas
+     * 
+     * @param userRol           Rol del usuario autenticado
+     * @param idSocio           ID del socio para el que se genera la rutina
+     * @param userIdAutenticado ID del usuario autenticado
+     * @throws SecurityAuthorizationException Si el usuario no tiene permisos
+     */
     public void validarRolGeneracion(String userRol, Long idSocio, Long userIdAutenticado) {
         if (userRol == null) {
             throw new SecurityAuthorizationException("Usuario no autenticado");
