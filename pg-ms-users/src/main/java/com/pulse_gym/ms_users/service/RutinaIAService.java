@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pulse_gym.lb_common.client.AiClient;
 import com.pulse_gym.lb_common.dto.EstadoMembresiaResponseDTO;
+import com.pulse_gym.lb_common.dto.RutinaGeneracionRequestDTO;
 import com.pulse_gym.lb_common.entity.user.Ejercicio;
 import com.pulse_gym.lb_common.entity.user.HistorialFisico;
 import com.pulse_gym.lb_common.entity.user.PerfilMedico;
@@ -254,5 +255,28 @@ public class RutinaIAService {
 
         throw new SecurityAuthorizationException(
                 "Acceso denegado. Rol '" + userRol + "' no autorizado para generar rutinas");
+    }
+
+    /**
+     * Construye el contexto con los datos del socio y preferencias para la IA
+     * 
+     * @param idSocio ID del socio
+     * @param request Preferencias del socio para la rutina
+     * @return Mapa con el contexto completo para la IA
+     */
+    public Map<String, Object> construirContextoIA(Long idSocio, RutinaGeneracionRequestDTO request) {
+        Map<String, Object> contexto = recopilarDatosSocio(idSocio);
+
+        if (request != null) {
+            contexto.put("diasPorSemana", request.getDiasPorSemana() != null ? request.getDiasPorSemana() : 3);
+            contexto.put("duracionSemanas", request.getDuracionSemanas() != null ? request.getDuracionSemanas() : 4);
+            contexto.put("preferenciasEquipamiento", request.getPreferenciasEquipamiento());
+            contexto.put("evitarEjercicios", request.getEvitarEjercicios());
+            contexto.put("preferenciasGruposMusculares", request.getPreferenciasGruposMusculares());
+            contexto.put("objetivoEspecifico", request.getObjetivoEspecifico());
+            contexto.put("incluirCardio", request.getIncluirCardio() != null ? request.getIncluirCardio() : true);
+        }
+
+        return contexto;
     }
 }
