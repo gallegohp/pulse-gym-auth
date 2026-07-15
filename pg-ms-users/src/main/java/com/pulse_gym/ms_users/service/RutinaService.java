@@ -1,5 +1,6 @@
 package com.pulse_gym.ms_users.service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -21,9 +22,7 @@ import com.pulse_gym.lb_common.enums.EnumRol;
 import com.pulse_gym.lb_common.exception.SecurityAuthorizationException;
 import com.pulse_gym.ms_users.repository.DetalleRutinaRepository;
 import com.pulse_gym.ms_users.repository.EjercicioRepository;
-import com.pulse_gym.ms_users.repository.HistorialRutinaVersionRepository;
 import com.pulse_gym.ms_users.repository.RutinaRepository;
-import com.pulse_gym.ms_users.repository.SocioMembresiaRepository;
 import com.pulse_gym.ms_users.repository.UsuarioPerfilRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -41,7 +40,6 @@ public class RutinaService {
     private final DetalleRutinaRepository detalleRutinaRepository;
 
     /** Repositorio de historial de versiones de rutina */
-    private final HistorialRutinaVersionRepository historialRutinaVersionRepository;
 
     /** Repositorio de usuarios */
     private final UsuarioPerfilRepository usuarioRepository;
@@ -50,7 +48,6 @@ public class RutinaService {
     private final EjercicioRepository ejercicioRepository;
 
     /** Repositorio de membresías de socios */
-    private final SocioMembresiaRepository socioMembresiaRepository;
 
     /** Servicio de generación de rutinas con IA */
     private final RutinaIAService rutinaIAService;
@@ -133,7 +130,6 @@ public class RutinaService {
         log.info("Iniciando generación de rutina IA para socio ID: {}", request.getIdSocio());
 
         rutinaIAService.validarRolGeneracion(userRol, request.getIdSocio(), userIdAutenticado);
-
         rutinaIAService.validarMembresiaActiva(request.getIdSocio());
 
         UsuarioPerfil socio = usuarioRepository.findById(request.getIdSocio())
@@ -143,15 +139,43 @@ public class RutinaService {
 
         RutinaGeneracionResponseDTO respuestaIA = null;
         try {
-            respuestaIA = aiClient.generarRutina(request);
+            String respuestaJson = aiClient.generarRutinaConContexto(contexto);
+
+            log.info("JSON recibido de Python (primeros 300 chars): {}",
+                    respuestaJson.length() > 300 ? respuestaJson.substring(0, 300) + "..." : respuestaJson);
+            com.fasterxml.jackson.core.type.TypeReference<RutinaGeneracionResponseDTO> typeRef = new com.fasterxml.jackson.core.type.TypeReference<RutinaGeneracionResponseDTO>() {
+            };
+            respuestaIA = objectMapper.readValue(respuestaJson, typeRef);
+
+            if (respuestaIA.getDetalles() != null) {
+                log.info("✅ Detalles recibidos: {}", respuestaIA.getDetalles().size());
+            } else {
+                log.warn("⚠️ No se recibieron detalles. Intentando parsear manualmente...");
+
+                // Intentar parsear como Map para debug
+                Map<String, Object> jsonMap = objectMapper.readValue(respuestaJson, Map.class);
+                log.info("📥 Claves del JSON: {}", jsonMap.keySet());
+
+                if (jsonMap.containsKey("detalles")) {
+                    log.info("📥 'detalles' está presente en el JSON");
+                    Object detallesObj = jsonMap.get("detalles");
+                    log.info("📥 detalles es de tipo: {}", detallesObj.getClass().getName());
+                }
+            }
+
             log.info("Respuesta de IA recibida correctamente");
         } catch (Exception e) {
-            log.error("Error al llamar al servicio de IA: {}", e.getMessage());
+            log.error("❌ Error al llamar al servicio de IA: {}", e.getMessage());
             throw new RuntimeException("Error al generar rutina con IA: " + e.getMessage());
         }
 
-        RutinaIA rutina = guardarRutina(socio, respuestaIA, request);
+        // Crear rutina vacía si no hay detalles
+        if (respuestaIA.getDetalles() == null) {
+            log.warn("⚠️ No hay detalles en la respuesta. Se creará rutina sin ejercicios.");
+            respuestaIA.setDetalles(new ArrayList<>());
+        }
 
+        RutinaIA rutina = guardarRutina(socio, respuestaIA, request);
         enriquecerConImagenes(respuestaIA);
 
         respuestaIA.setIdRutina(rutina.getIdRutinaIa());
@@ -183,7 +207,7 @@ public class RutinaService {
         rutina.setNivel(socio.getNivelExperiencia().name());
         rutina.setCondiciones("Días por semana: " + request.getDiasPorSemana() +
                 ", Duración: " + request.getDuracionSemanas() + " semanas");
-        rutina.setModeloIa("OpenAI-GPT-4");
+        rutina.setModeloIa("Gemini-2.5-Flash");
         rutina.setVersion(1);
         rutina.setActiva(true);
         rutina.setExplicacionIa(respuestaIA.getExplicacionIA());
@@ -196,9 +220,13 @@ public class RutinaService {
             rutina.setRutinaGenerada(respuestaIA.toString());
         }
 
+        // ✅ Guardar la rutina PRIMERO
         rutina = rutinaRepository.save(rutina);
+        log.info("Rutina guardada con ID: {}", rutina.getIdRutinaIa());
 
+        // ✅ Ahora guardar los detalles y agregarlos a la rutina
         if (respuestaIA.getDetalles() != null) {
+            int detallesGuardados = 0;
             for (DetalleRutinaResponseDTO detalleDTO : respuestaIA.getDetalles()) {
                 DetalleRutina detalle = new DetalleRutina();
                 detalle.setRutinaIa(rutina);
@@ -222,10 +250,14 @@ public class RutinaService {
                 detalle.setNotas(detalleDTO.getNotas());
 
                 detalleRutinaRepository.save(detalle);
+                // ✅ Agregar el detalle a la rutina (relación bidireccional)
+                rutina.addDetalle(detalle);
+                detallesGuardados++;
             }
+            log.info("✅ {} detalles guardados correctamente", detallesGuardados);
         }
 
-        log.info("Rutina guardada con {} detalles", rutina.getDetalles().size());
+        log.info("Rutina guardada con {} detalles totales", rutina.getDetalles().size());
         return rutina;
     }
 

@@ -13,10 +13,17 @@ class GeminiService:
         self.api_key = settings.GEMINI_API_KEY
         self.model_name = settings.MODEL_NAME
         
+        if self.model_name and not self.model_name.startswith("models/"):
+            self.model_name = f"models/{self.model_name}"
+        
         if self.api_key:
             genai.configure(api_key=self.api_key)
-            self.model = genai.GenerativeModel(self.model_name)
-            logger.info(f"Gemini configurado con modelo: {self.model_name}")
+            try:
+                self.model = genai.GenerativeModel(self.model_name)
+                logger.info(f"Gemini configurado con modelo: {self.model_name}")
+            except Exception as e:
+                logger.error(f"Error al configurar modelo: {e}")
+                self.model = None
         else:
             logger.warning("GEMINI_API_KEY no configurada. Usando MODO SIMULACIÓN.")
             self.model = None
@@ -29,7 +36,9 @@ class GeminiService:
         try:
             prompt = build_prompt(contexto)
             logger.info(f"Enviando prompt a Gemini (tamaño: {len(prompt)} caracteres)")
-            
+            logger.info(f"Datos del socio: {contexto.get('nombre')} ({contexto.get('edad')} años)")
+            logger.info(f"Ejercicios disponibles: {len(contexto.get('ejerciciosDisponibles', []))}")
+    
             generation_config = {
                 "temperature": settings.TEMPERATURE,
                 "max_output_tokens": settings.MAX_OUTPUT_TOKENS,
@@ -39,18 +48,51 @@ class GeminiService:
             
             response = self.model.generate_content(prompt, generation_config=generation_config)
             respuesta_texto = response.text
-            logger.info(f"Respuesta recibida de Gemini (tamaño: {len(respuesta_texto)} caracteres)")
+            logger.info(f"📥 Respuesta recibida de Gemini (tamaño: {len(respuesta_texto)} caracteres)")
+            
+            print(f"\n{'='*60}")
+            print(f"RESPUESTA COMPLETA DE GEMINI:")
+            print(f"{'='*60}")
+            print(respuesta_texto[:1500])
+            if len(respuesta_texto) > 1500:
+                print(f"... (truncado, total: {len(respuesta_texto)} caracteres)")
+            print(f"{'='*60}\n")
             
             resultado = parse_response(respuesta_texto)
             
-            if not resultado.get("dias") or len(resultado.get("dias", [])) == 0:
+            if resultado.get("detalles") and len(resultado.get("detalles", [])) > 0:
+                logger.info(f"Rutina parseada correctamente: {resultado.get('nombre')}")
+                logger.info(f"Detalles generados: {len(resultado.get('detalles', []))}")
+                return resultado
+            else:
+                if resultado.get("dias") and len(resultado.get("dias", [])) > 0:
+                    logger.info("Transformando 'dias' a 'detalles' en gemini_service")
+                    detalles = []
+                    for dia in resultado.get("dias", []):
+                        for ejercicio in dia.get("ejercicios", []):
+                            detalle = {
+                                "diaSemana": dia.get("dia", 1),
+                                "orden": ejercicio.get("orden", len(detalles) + 1),
+                                "nombreEjercicio": ejercicio.get("nombre_ejercicio", ""),
+                                "series": ejercicio.get("series", 3),
+                                "repeticionesMin": ejercicio.get("repeticiones_min"),
+                                "repeticionesMax": ejercicio.get("repeticiones_max"),
+                                "pesoSugerido": ejercicio.get("peso_sugerido"),
+                                "descansoSegundos": ejercicio.get("descanso_segundos", 60),
+                                "notas": ejercicio.get("notas", "")
+                            }
+                            detalles.append(detalle)
+                    
+                    resultado["detalles"] = detalles
+                    del resultado["dias"]
+                    logger.info(f"Transformados {len(detalles)} ejercicios a 'detalles'")
+                    return resultado
+                
                 logger.warning("La respuesta no tiene días de entrenamiento. Usando datos por defecto.")
                 return self._generar_rutina_simulada(contexto)
             
-            return resultado
-            
         except Exception as e:
-            logger.error(f"❌ Error al llamar a Gemini: {str(e)}")
+            logger.error(f"Error al llamar a Gemini: {str(e)}")
             return self._generar_rutina_simulada(contexto)
     
     def _generar_rutina_simulada(self, contexto: Dict[str, Any]) -> Dict[str, Any]:
@@ -88,7 +130,7 @@ class GeminiService:
                     "repeticiones_max": 12 if i < 2 else 15,
                     "peso_sugerido": 0.0,
                     "descanso_segundos": 60,
-                    "notas": f"Ejercicio para {ej['grupo']}. [MODO SIMULACIÓN]"
+                    "notas": f"Ejercicio para {ej['grupo']}. ⚠️ [MODO SIMULACIÓN]"
                 })
             
             dias_rutina.append({
@@ -105,7 +147,7 @@ class GeminiService:
                 "repeticiones_max": 30,
                 "peso_sugerido": 0.0,
                 "descanso_segundos": 0,
-                "notas": "Cardio al final del entrenamiento [MODO SIMULACIÓN]"
+                "notas": "Cardio al final del entrenamiento ⚠️ [MODO SIMULACIÓN]"
             }
             dias_rutina[-1]["ejercicios"].append(cardio_ejercicio)
         
@@ -113,5 +155,5 @@ class GeminiService:
             "nombre": f"Rutina de {objetivo} para {nombre}",
             "descripcion": f"Rutina personalizada de {dias} días para {objetivo}",
             "explicacion_ia": "[MODO SIMULACIÓN] Configura GEMINI_API_KEY en el .env para obtener rutinas reales.",
-            "dias": dias_rutina
+            "detalles": []
         }

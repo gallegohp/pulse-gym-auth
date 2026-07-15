@@ -3,9 +3,13 @@ package com.pulse_gym.lb_common.dto;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.Data;
 
 @Data
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class RutinaGeneracionResponseDTO {
 
     /** ID de la rutina */
@@ -18,6 +22,7 @@ public class RutinaGeneracionResponseDTO {
     private String descripcion;
 
     /** Explicación generada por IA sobre la rutina */
+    @JsonProperty("explicacionIA")
     private String explicacionIA;
 
     /** Versión de la rutina */
@@ -30,5 +35,6 @@ public class RutinaGeneracionResponseDTO {
     private LocalDateTime fechaGeneracion;
 
     /** Lista de detalles (ejercicios) de la rutina */
+    @JsonProperty("detalles")
     private List<DetalleRutinaResponseDTO> detalles;
 }
