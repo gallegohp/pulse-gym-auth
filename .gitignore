@@ -28,4 +28,11 @@ simular_asistencia.py
 
 PulseGymBiometric/
 
-venv
+# Entornos virtuales de Python (Virtual Environments)
+venv/
+.venv/
+env/
+*/venv/
+*/.venv/
+*/env/
+IPYNB_FILES/
