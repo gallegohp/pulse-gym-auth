@@ -1,4 +1,5 @@
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 import logging
 from typing import Dict, Any
 
@@ -11,25 +12,23 @@ logger = logging.getLogger(__name__)
 class GeminiService:
     def __init__(self):
         self.api_key = settings.GEMINI_API_KEY
-        self.model_name = settings.MODEL_NAME
-        
-        if self.model_name and not self.model_name.startswith("models/"):
-            self.model_name = f"models/{self.model_name}"
+        self.model_name = settings.MODEL_NAME or "gemini-2.0-flash"
+        if self.model_name.startswith("models/"):
+            self.model_name = self.model_name.replace("models/", "")
         
         if self.api_key:
-            genai.configure(api_key=self.api_key)
             try:
-                self.model = genai.GenerativeModel(self.model_name)
-                logger.info(f"Gemini configurado con modelo: {self.model_name}")
+                self.client = genai.Client(api_key=self.api_key)
+                logger.info(f"Gemini configurado correctamente con el modelo: {self.model_name}")
             except Exception as e:
-                logger.error(f"Error al configurar modelo: {e}")
-                self.model = None
+                logger.error(f"Error al configurar el cliente de Gemini: {e}")
+                self.client = None
         else:
             logger.warning("GEMINI_API_KEY no configurada. Usando MODO SIMULACIÓN.")
-            self.model = None
+            self.client = None
     
     def generar_rutina(self, contexto: Dict[str, Any]) -> Dict[str, Any]:
-        if not self.api_key or not self.model:
+        if not self.api_key or not self.client:
             logger.info("🔄 Usando MODO SIMULACIÓN para generar rutina")
             return self._generar_rutina_simulada(contexto)
         
@@ -38,15 +37,20 @@ class GeminiService:
             logger.info(f"Enviando prompt a Gemini (tamaño: {len(prompt)} caracteres)")
             logger.info(f"Datos del socio: {contexto.get('nombre')} ({contexto.get('edad')} años)")
             logger.info(f"Ejercicios disponibles: {len(contexto.get('ejerciciosDisponibles', []))}")
-    
-            generation_config = {
-                "temperature": settings.TEMPERATURE,
-                "max_output_tokens": settings.MAX_OUTPUT_TOKENS,
-                "top_p": settings.TOP_P,
-                "top_k": settings.TOP_K,
-            }
             
-            response = self.model.generate_content(prompt, generation_config=generation_config)
+            config = types.GenerateContentConfig(
+                temperature=settings.TEMPERATURE,
+                max_output_tokens=settings.MAX_OUTPUT_TOKENS,
+                top_p=settings.TOP_P,
+                top_k=settings.TOP_K,
+            )
+            
+            response = self.client.models.generate_content(
+                model=self.model_name,
+                contents=prompt,
+                config=config
+            )
+            
             respuesta_texto = response.text
             logger.info(f"📥 Respuesta recibida de Gemini (tamaño: {len(respuesta_texto)} caracteres)")
             
@@ -84,11 +88,12 @@ class GeminiService:
                             detalles.append(detalle)
                     
                     resultado["detalles"] = detalles
-                    del resultado["dias"]
+                    if "dias" in resultado:
+                        del resultado["dias"]
                     logger.info(f"Transformados {len(detalles)} ejercicios a 'detalles'")
                     return resultado
                 
-                logger.warning("La respuesta no tiene días de entrenamiento. Usando datos por defecto.")
+                logger.warning("La respuesta no tiene ejercicios estructurados de forma válida. Usando simulación.")
                 return self._generar_rutina_simulada(contexto)
             
         except Exception as e:
@@ -154,6 +159,6 @@ class GeminiService:
         return {
             "nombre": f"Rutina de {objetivo} para {nombre}",
             "descripcion": f"Rutina personalizada de {dias} días para {objetivo}",
-            "explicacion_ia": "[MODO SIMULACIÓN] Configura GEMINI_API_KEY en el .env para obtener rutinas reales.",
+            "explicacion_ia": "[MODO SIMULACIÓN] Verifica tu conexión o credenciales de la API de Gemini para habilitar el motor real.",
             "detalles": []
         }
