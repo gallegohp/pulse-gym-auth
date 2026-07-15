@@ -170,4 +170,26 @@ public class RutinaService {
         log.info("Rutina guardada con {} detalles", rutina.getDetalles().size());
         return rutina;
     }
+
+    /**
+     * Enriquece los detalles de la rutina con imágenes, videos y grupo muscular
+     * desde la base de datos
+     * 
+     * @param respuesta DTO de respuesta de la IA a enriquecer
+     */
+    private void enriquecerConImagenes(RutinaGeneracionResponseDTO respuesta) {
+        if (respuesta.getDetalles() == null) {
+            return;
+        }
+
+        for (DetalleRutinaResponseDTO detalle : respuesta.getDetalles()) {
+            ejercicioRepository.findByNombreAndActivoTrue(detalle.getNombreEjercicio())
+                    .ifPresent(ejercicio -> {
+                        detalle.setIdEjercicio(ejercicio.getIdEjercicio());
+                        detalle.setUrlImagen(ejercicio.getUrlImagen());
+                        detalle.setUrlVideo(ejercicio.getUrlVideo());
+                        detalle.setGrupoMuscular(ejercicio.getGrupoMuscular());
+                    });
+        }
+    }
 }
