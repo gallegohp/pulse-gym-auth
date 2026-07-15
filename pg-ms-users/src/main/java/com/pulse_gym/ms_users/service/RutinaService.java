@@ -1,6 +1,8 @@
 package com.pulse_gym.ms_users.service;
 
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -56,6 +58,60 @@ public class RutinaService {
 
     /** Mapper para convertir objetos a JSON */
     private final ObjectMapper objectMapper;
+
+    /**
+     * Convierte una entidad RutinaIA a RutinaGeneracionResponseDTO
+     * 
+     * @param rutina Entidad a convertir
+     * @return DTO de la rutina
+     */
+    private RutinaGeneracionResponseDTO convertirAResponseDTO(RutinaIA rutina) {
+        RutinaGeneracionResponseDTO dto = new RutinaGeneracionResponseDTO();
+        dto.setIdRutina(rutina.getIdRutinaIa());
+        dto.setNombre("Rutina " + rutina.getObjetivo());
+        dto.setDescripcion("Rutina personalizada generada por IA");
+        dto.setExplicacionIA(rutina.getExplicacionIa());
+        dto.setVersion(rutina.getVersion());
+        dto.setGeneradaPorIA(rutina.getModeloIa() != null);
+        dto.setFechaGeneracion(rutina.getFechaGeneracion());
+
+        List<DetalleRutina> detalles = detalleRutinaRepository
+                .findByRutinaIa_IdRutinaIaOrderByDiaSemanaAscOrdenAsc(rutina.getIdRutinaIa());
+
+        List<DetalleRutinaResponseDTO> detallesDTO = detalles.stream()
+                .map(this::convertirDetalleAResponseDTO)
+                .collect(Collectors.toList());
+
+        dto.setDetalles(detallesDTO);
+
+        return dto;
+    }
+
+    /**
+     * Convierte una entidad DetalleRutina a DetalleRutinaResponseDTO
+     * 
+     * @param detalle Entidad a convertir
+     * @return DTO del detalle
+     */
+    private DetalleRutinaResponseDTO convertirDetalleAResponseDTO(DetalleRutina detalle) {
+        DetalleRutinaResponseDTO dto = new DetalleRutinaResponseDTO();
+        dto.setIdDetalle(detalle.getIdDetalleRutina());
+        dto.setIdEjercicio(detalle.getEjercicio().getIdEjercicio());
+        dto.setNombreEjercicio(detalle.getEjercicio().getNombre());
+        dto.setGrupoMuscular(detalle.getEjercicio().getGrupoMuscular());
+        dto.setUrlImagen(detalle.getEjercicio().getUrlImagen());
+        dto.setUrlVideo(detalle.getEjercicio().getUrlVideo());
+        dto.setDiaSemana(detalle.getDiaSemana());
+        dto.setOrden(detalle.getOrden());
+        dto.setSeries(detalle.getSeries());
+        dto.setRepeticionesMin(detalle.getRepeticionesMin());
+        dto.setRepeticionesMax(detalle.getRepeticionesMax());
+        dto.setPesoSugerido(detalle.getPesoSugerido());
+        dto.setDescansoSegundos(detalle.getDescansoSegundos());
+        dto.setNotas(detalle.getNotas());
+        dto.setModificadoPor(detalle.getModificadoPor());
+        return dto;
+    }
 
     /**
      * Genera una rutina de entrenamiento usando IA
