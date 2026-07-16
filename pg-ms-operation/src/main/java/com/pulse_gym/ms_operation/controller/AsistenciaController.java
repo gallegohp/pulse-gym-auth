@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.pulse_gym.lb_common.client.SocioMembresiaClient;
 import com.pulse_gym.lb_common.dto.AsistenciaResponseDTO;
 import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
 import com.pulse_gym.lb_common.dto.RegistroAsistenciaBiometricaDTO;
@@ -27,6 +28,8 @@ public class AsistenciaController {
      * relacionadas con las asistencias
      */
     private final AsistenciaService asistenciaService;
+
+    private final SocioMembresiaClient socioMembresiaClient;
 
     /**
      * Registrar entrada de socio (desde WEB o APP)
