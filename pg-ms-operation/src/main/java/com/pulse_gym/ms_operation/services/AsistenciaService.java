@@ -1,7 +1,9 @@
 package com.pulse_gym.ms_operation.services;
 
+import com.pulse_gym.lb_common.client.SocioMembresiaClient;
 import com.pulse_gym.lb_common.client.UsuarioClient;
 import com.pulse_gym.lb_common.dto.AsistenciaResponseDTO;
+import com.pulse_gym.lb_common.dto.EstadoMembresiaResponseDTO;
 import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
 import com.pulse_gym.lb_common.dto.RegistroAsistenciaBiometricaDTO;
 import com.pulse_gym.lb_common.dto.RegistroAsistenciaDTO;
@@ -50,6 +52,11 @@ public class AsistenciaService {
      * Servicio para validar y leer los tokens JWT, relacionados con el biometrio
      */
     private final BiometricJwtService biometricJwtService;
+
+    /**
+     * Cliente para validar conexion con el ms de usuarios y consultar membresias
+     */
+    private final SocioMembresiaClient socioMembresiaClient;
 
     /**
      * Registra una nueva asistencia en la base de datos.
@@ -236,6 +243,7 @@ public class AsistenciaService {
      * @return
      */
     public MessegeGlobalDTO registrarEntradaBiometrica(RegistroAsistenciaBiometricaDTO request) {
+        // 1. Validar el token biométrico
         if (!biometricJwtService.validateToken(request.getToken())) {
             throw new RuntimeException("Token biometrico invalido");
         }
@@ -244,12 +252,13 @@ public class AsistenciaService {
         }
 
         Long userIdFromToken = biometricJwtService.extractUserId(request.getToken());
-        String deviceIdFromToken = biometricJwtService.extractDeviceId(request.getToken()); // nuevo método
+        String deviceIdFromToken = biometricJwtService.extractDeviceId(request.getToken());
 
         if (!userIdFromToken.equals(request.getIdUsuario())) {
             throw new RuntimeException("El token no corresponde al usuario");
         }
 
+        // 2. Obtener perfil del usuario (validar que exista y tenga huella registrada)
         UsuarioPerfilResponseDTO usuario = usuarioClient.obtenerUsuarioPorIdInterno(request.getIdUsuario());
         if (usuario == null) {
             throw new RuntimeException("Usuario no encontrado con id: " + request.getIdUsuario());
@@ -262,6 +271,21 @@ public class AsistenciaService {
             throw new RuntimeException("El dispositivo no está autorizado para este usuario");
         }
 
+        // 3. Validar membresía activa (NUEVO)
+        EstadoMembresiaResponseDTO estadoMembresia = socioMembresiaClient
+                .consultarEstadoBiometrico(request.getIdUsuario());
+        if (estadoMembresia == null) {
+            throw new RuntimeException("No se pudo verificar el estado de la membresía");
+        }
+
+        // Si la membresía no está activa, denegar acceso con el mensaje correspondiente
+        if (!estadoMembresia.isActiva()) {
+            String mensaje = estadoMembresia.getMensaje() != null ? estadoMembresia.getMensaje()
+                    : "Membresía no activa";
+            throw new RuntimeException("Acceso denegado: " + mensaje);
+        }
+
+        // 4. Si todo es válido, registrar la entrada
         Long idSede = usuario.getIdSede() != null ? usuario.getIdSede().longValue() : null;
         if (idSede == null) {
             throw new RuntimeException("El socio no tiene una sede asignada");
