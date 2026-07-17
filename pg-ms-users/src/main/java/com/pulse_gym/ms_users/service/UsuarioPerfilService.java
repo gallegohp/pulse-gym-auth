@@ -1,5 +1,7 @@
 package com.pulse_gym.ms_users.service;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,9 +29,11 @@ import com.pulse_gym.ms_users.repository.UsuarioPerfilRepository;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UsuarioPerfilService {
 
     /** Cliente para interactuar con el servicio de autenticación */
@@ -81,6 +85,60 @@ public class UsuarioPerfilService {
         if (rol != null) {
             dto.setRol(rol);
         }
+    }
+
+    /**
+     * Genera un hash SHA-256 del deviceId para almacenar de forma segura.
+     * 
+     * @param deviceId Identificador del dispositivo biométrico (plano)
+     * @return Hash SHA-256 en formato hexadecimal, o null si deviceId es null/vacío
+     */
+    private String generarHashDeviceId(String deviceId) {
+        if (deviceId == null || deviceId.trim().isEmpty()) {
+            return null;
+        }
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(deviceId.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : hash) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) hexString.append('0');
+                hexString.append(hex);
+            }
+            return hexString.toString();
+        } catch (NoSuchAlgorithmException e) {
+            log.error("Error al generar hash SHA-256: {}", e.getMessage());
+            throw new RuntimeException("Error interno al procesar la huella", e);
+        }
+    }
+
+    /**
+     * Valida la calidad de la huella digital (simulación).
+     * 
+     * @param deviceId Identificador del dispositivo biométrico
+     * @return true si la calidad es aceptable, false en caso contrario
+     */
+    private boolean validarCalidadHuella(String deviceId) {
+        // Simulación: consideramos que una huella es de buena calidad si:
+        // 1. No es nula ni vacía
+        // 2. Tiene una longitud mínima de 10 caracteres (para evitar IDs muy cortos)
+        // 3. Contiene al menos un número (para simular que tiene información variada)
+        if (deviceId == null || deviceId.trim().isEmpty()) {
+            log.warn("Calidad de huella rechazada: deviceId nulo o vacío");
+            return false;
+        }
+        if (deviceId.length() < 10) {
+            log.warn("Calidad de huella rechazada: deviceId demasiado corto ({})", deviceId.length());
+            return false;
+        }
+        boolean tieneNumero = deviceId.matches(".*\\d.*");
+        if (!tieneNumero) {
+            log.warn("Calidad de huella rechazada: deviceId no contiene números");
+            return false;
+        }
+        log.info("Calidad de huella aceptada para deviceId: {}", deviceId);
+        return true;
     }
 
     /**
@@ -555,6 +613,18 @@ public class UsuarioPerfilService {
         return dto;
     }
 
+    /**
+     * Registra una nueva huella digital para un socio.
+     * Valida la calidad de la huella y almacena el hash del deviceId.
+     * 
+     * @param idUsuario         ID del usuario (socio)
+     * @param request           DTO con el deviceId
+     * @param userRol           Rol del usuario autenticado
+     * @param userIdAutenticado ID del usuario autenticado (para validar que solo se registre su propia huella)
+     * @return Mensaje de confirmación
+     * @throws SecurityAuthorizationException Si el usuario no tiene permisos
+     * @throws RuntimeException Si la huella no es válida o el usuario no es socio
+     */
     @Transactional
     public MessegeGlobalDTO registrarHuella(Long idUsuario, RegistroHuellaRequestDTO request, String userRol,
             Long userIdAutenticado) {
@@ -571,11 +641,37 @@ public class UsuarioPerfilService {
         if (rol != EnumRol.socio) {
             throw new RuntimeException("Solo los socios pueden registrar huella");
         }
-        usuario.setBiometricDeviceId(request.getDeviceId());
+
+        // Validar calidad de la huella
+        if (!validarCalidadHuella(request.getDeviceId())) {
+            log.warn("Intento de registro de huella con calidad insuficiente para usuario ID: {}", idUsuario);
+            throw new RuntimeException("La calidad de la huella no es suficiente. Intente nuevamente con una captura más clara.");
+        }
+
+        // Generar hash del deviceId
+        String hashDeviceId = generarHashDeviceId(request.getDeviceId());
+        if (hashDeviceId == null) {
+            throw new RuntimeException("Error al procesar la huella. Intente nuevamente.");
+        }
+
+        // Guardar el hash en lugar del deviceId plano
+        usuario.setBiometricDeviceId(hashDeviceId);
         usuarioRepository.save(usuario);
+
+        log.info("Huella registrada correctamente para usuario ID: {} (hash: {})", idUsuario, hashDeviceId.substring(0, 10) + "...");
         return new MessegeGlobalDTO("Huella registrada correctamente");
     }
 
+    /**
+     * Reemplaza una huella digital existente por una nueva.
+     * Valida la calidad y genera un nuevo hash.
+     * 
+     * @param idUsuario         ID del usuario (socio)
+     * @param request           DTO con el nuevo deviceId
+     * @param userRol           Rol del usuario autenticado
+     * @param userIdAutenticado ID del usuario autenticado
+     * @return Mensaje de confirmación
+     */
     @Transactional
     public MessegeGlobalDTO reemplazarHuella(Long idUsuario, RegistroHuellaRequestDTO request, String userRol,
             Long userIdAutenticado) {
@@ -587,11 +683,31 @@ public class UsuarioPerfilService {
         UsuarioPerfil usuario = usuarioRepository.findById(idUsuario)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-        usuario.setBiometricDeviceId(request.getDeviceId());
+        if (!validarCalidadHuella(request.getDeviceId())) {
+            log.warn("Intento de reemplazo de huella con calidad insuficiente para usuario ID: {}", idUsuario);
+            throw new RuntimeException("La calidad de la huella no es suficiente. Intente nuevamente con una captura más clara.");
+        }
+
+        String hashDeviceId = generarHashDeviceId(request.getDeviceId());
+        if (hashDeviceId == null) {
+            throw new RuntimeException("Error al procesar la huella. Intente nuevamente.");
+        }
+
+        usuario.setBiometricDeviceId(hashDeviceId);
         usuarioRepository.save(usuario);
+
+        log.info("Huella reemplazada correctamente para usuario ID: {}", idUsuario);
         return new MessegeGlobalDTO("Huella reemplazada correctamente");
     }
 
+    /**
+     * Elimina la huella digital de un socio.
+     * 
+     * @param idUsuario         ID del usuario (socio)
+     * @param userRol           Rol del usuario autenticado
+     * @param userIdAutenticado ID del usuario autenticado
+     * @return Mensaje de confirmación
+     */
     @Transactional
     public MessegeGlobalDTO eliminarHuella(Long idUsuario, String userRol, Long userIdAutenticado) {
         if (userRol.equals(EnumRol.socio.name()) && !userIdAutenticado.equals(idUsuario)) {
@@ -604,7 +720,8 @@ public class UsuarioPerfilService {
 
         usuario.setBiometricDeviceId(null);
         usuarioRepository.save(usuario);
+
+        log.info("Huella eliminada correctamente para usuario ID: {}", idUsuario);
         return new MessegeGlobalDTO("Huella eliminada correctamente");
     }
-
 }
