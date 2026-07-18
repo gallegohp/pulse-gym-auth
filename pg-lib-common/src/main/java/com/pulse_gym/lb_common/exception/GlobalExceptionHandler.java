@@ -12,8 +12,11 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
 
+import io.jsonwebtoken.JwtException;
+import lombok.extern.slf4j.Slf4j;
 
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
 
     /**
@@ -43,41 +46,71 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Maneja las excepciones de negocio que vienen de los service y controller
+     * Maneja las excepciones de negocio que vienen de los service y controller.
+     * Inspecciona el mensaje para determinar el código HTTP adecuado.
      * 
      * @param ex excepcion con el mensaje del error
-     * @return mensaje de error con estado (400)
+     * @return mensaje de error con el código HTTP apropiado
      */
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<MessegeGlobalDTO> handleRuntimeException(RuntimeException ex) {
+        log.warn("Excepción de negocio: {}", ex.getMessage());
         MessegeGlobalDTO response = new MessegeGlobalDTO(ex.getMessage());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        String msg = ex.getMessage();
+        
+        if (msg != null) {
+            String lowerMsg = msg.toLowerCase();
+            // Token / autenticación
+            if (lowerMsg.contains("token") || lowerMsg.contains("jwt") || 
+                lowerMsg.contains("expirado") || lowerMsg.contains("no corresponde")) {
+                status = HttpStatus.UNAUTHORIZED;
+            }
+            // Huella / biometría
+            else if (lowerMsg.contains("huella") && lowerMsg.contains("no reconocida")) {
+                status = HttpStatus.UNAUTHORIZED;
+            }
+            // Membresía
+            else if (lowerMsg.contains("membresía") && (lowerMsg.contains("vencida") || lowerMsg.contains("inactiva"))) {
+                status = HttpStatus.FORBIDDEN;
+            }
+            // No encontrado
+            else if (lowerMsg.contains("no encontrado") || lowerMsg.contains("no existe")) {
+                status = HttpStatus.NOT_FOUND;
+            }
+            // Conflictos (ej. ya existe)
+            else if (lowerMsg.contains("ya existe") || lowerMsg.contains("duplicado")) {
+                status = HttpStatus.CONFLICT;
+            }
+        }
+        
+        return ResponseEntity.status(status).body(response);
     }
 
-    // /**
-    // * Maneja los errores sobre JWT, token expirado o invalido o malformado
-    // *
-    // * @param ex excepcion con el detalle del fallo en la validación del token
-    // * @return mensaje de error con estado (401)
-    // */
-    // @ExceptionHandler(io.jsonwebtoken.JwtException.class)
-    // public ResponseEntity<MessageResponseDTO>
-    // handleJwtException(io.jsonwebtoken.JwtException ex) {
-    // MessageResponseDTO response = new MessageResponseDTO("Token inválido: " +
-    // ex.getMessage());
-    // return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
-    // }
+    /**
+     * Maneja los errores sobre JWT, token expirado o inválido o malformado
+     *
+     * @param ex excepcion con el detalle del fallo en la validación del token
+     * @return mensaje de error con estado (401)
+     */
+    @ExceptionHandler(JwtException.class)
+    public ResponseEntity<MessegeGlobalDTO> handleJwtException(JwtException ex) {
+        log.warn("Error de JWT: {}", ex.getMessage());
+        MessegeGlobalDTO response = new MessegeGlobalDTO("Token inválido: " + ex.getMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+    }
 
     /**
      * Maneja errores de autorización (Roles no permitidos)
      *
-     * @param ex
+     * @param ex excepción de seguridad
      * @return un estado 403 FORBIDDEN
      */
     @ExceptionHandler(SecurityAuthorizationException.class)
     public ResponseEntity<MessegeGlobalDTO> handleSecurityException(SecurityAuthorizationException ex) {
+        log.warn("Error de autorización: {}", ex.getMessage());
         MessegeGlobalDTO response = new MessegeGlobalDTO(ex.getMessage());
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
     }
-
 }

@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
 import com.pulse_gym.lb_common.dto.RestablecerContrasena;
+import com.pulse_gym.lb_common.dto.SolicitudTokenBiometricoDTO;
 import com.pulse_gym.lb_common.entity.auth.User;
 import com.pulse_gym.lb_common.dto.AuthUserDTO;
 import com.pulse_gym.lb_common.dto.ContrasenaOlvidada;
@@ -20,6 +21,7 @@ import com.pulse_gym.ms_auth.dto.LoginRequestDTO;
 import com.pulse_gym.ms_auth.dto.RegisterRequestDTO;
 import com.pulse_gym.ms_auth.repository.UserAuthRepository;
 import com.pulse_gym.ms_auth.services.AuthService;
+import com.pulse_gym.ms_auth.services.BiometricTokenService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -30,17 +32,12 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/auth")
 public class AuthController {
 
-    /**
-     * Inyeccion de AuthService para manejar la lógica de autenticación
-     */
     private final AuthService authService;
-
     private final UserAuthRepository userAuthRepository;
+    private final BiometricTokenService biometricTokenService;
+
     /**
      * Registro de usuario
-     * 
-     * @param requestDTO
-     * @return ResponseEntity<RegisterResponseDTO>
      */
     @PostMapping("/register")
     public ResponseEntity<MessegeGlobalDTO> register(@RequestBody RegisterRequestDTO requestDTO) {
@@ -55,9 +52,6 @@ public class AuthController {
 
     /**
      * Inicio de sesion del usuario
-     * 
-     * @param request
-     * @return HttpGlobalResponse<JwtDTO>
      */
     @PostMapping("/login")
     public ResponseEntity<HttpGlobalResponse<JwtDTO>> login(@RequestBody LoginRequestDTO request) {
@@ -72,9 +66,6 @@ public class AuthController {
 
     /**
      * Refresco del jwt
-     * 
-     * @param request
-     * @return JwtDTO
      */
     @GetMapping("/refresh")
     public ResponseEntity<JwtDTO> refreshToken(HttpServletRequest request) {
@@ -84,7 +75,6 @@ public class AuthController {
         }
 
         String token = authHeader.replaceFirst("Bearer ", "");
-
         JwtDTO response = new JwtDTO();
 
         try {
@@ -98,9 +88,6 @@ public class AuthController {
 
     /**
      * Endpoint para solicitar recuperación de contraseña
-     * 
-     * @param requestDTO Contiene el username del usuario
-     * @return Mensaje de confirmación
      */
     @PostMapping("/forgot-password")
     public ResponseEntity<MessegeGlobalDTO> forgotPassword(@Valid @RequestBody ContrasenaOlvidada requestDTO) {
@@ -116,9 +103,6 @@ public class AuthController {
 
     /**
      * Endpoint para restablecer la contraseña con token
-     * 
-     * @param requestDTO Contiene token y nueva contraseña
-     * @return Mensaje de éxito o error
      */
     @PostMapping("/reset-password")
     public ResponseEntity<MessegeGlobalDTO> resetPassword(@Valid @RequestBody RestablecerContrasena requestDTO) {
@@ -133,6 +117,9 @@ public class AuthController {
         }
     }
 
+    /**
+     * Endpoint interno para obtener usuario por email (usado por otros microservicios)
+     */
     @GetMapping("/api/internal/users/email/{email}")
     public ResponseEntity<AuthUserDTO> getUserByEmail(@PathVariable String email) {
         User user = userAuthRepository.findByEmail(email)
@@ -147,9 +134,8 @@ public class AuthController {
         return ResponseEntity.ok(dto);
     }
 
-     /**
-     * Endpoint para obtener usuario por ID
-     * Este endpoint es usado por otros microservicios (ej: notificaciones)
+    /**
+     * Endpoint interno para obtener usuario por ID (usado por otros microservicios)
      */
     @GetMapping("/api/internal/users/{id}")
     public ResponseEntity<AuthUserDTO> getUserById(@PathVariable Long id) {
@@ -163,5 +149,44 @@ public class AuthController {
         dto.setRol(user.getRol());
         dto.setEstado(user.getEstado());
         return ResponseEntity.ok(dto);
+    }
+
+    /**
+     * Genera un token biométrico JWT para un socio.
+     * Valida que el usuario exista y tenga rol SOCIO.
+     * 
+     * @param request DTO con userId y deviceId
+     * @return Token JWT biométrico firmado
+     */
+    @PostMapping("/biometric/token")
+    public ResponseEntity<JwtDTO> generateBiometricToken(@Valid @RequestBody SolicitudTokenBiometricoDTO request) {
+        try {
+            // Verificar que el usuario existe
+            User user = userAuthRepository.findById(request.getUserId())
+                    .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+            // Verificar que sea socio
+            if (user.getRol() == null || !user.getRol().name().equalsIgnoreCase("socio")) {
+                throw new RuntimeException("Solo los socios pueden generar tokens biométricos");
+            }
+
+            // Generar token
+            String token = biometricTokenService.generateToken(request.getUserId(), request.getDeviceId());
+
+            JwtDTO response = new JwtDTO();
+            response.setJwt(token);
+            return ResponseEntity.status(HttpStatus.OK).body(response);
+
+        } catch (RuntimeException e) {
+            // Devolver error 400 con mensaje claro
+            JwtDTO errorDto = new JwtDTO();
+            errorDto.setJwt(e.getMessage());
+            return new ResponseEntity<JwtDTO>(errorDto, HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            e.printStackTrace();
+            JwtDTO errorDto = new JwtDTO();
+            errorDto.setJwt("Error interno al generar el token");
+            return new ResponseEntity<JwtDTO>(errorDto, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }

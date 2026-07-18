@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import com.pulse_gym.lb_common.dto.UsuarioPerfilResponseDTO;
 
-@FeignClient(name = "pg-ms-users", url = "${microservicio.usuarios.url:http://pg-ms-users:8081}")
+@FeignClient(name = "pg-ms-users", url = "${microservicio.usuarios.url:http://pg-ms-users:8081}", contextId = "clienteGeneral")
 public interface UsuarioClient {
     
     @GetMapping("/api/v1/usuarios/{idUsuario}")

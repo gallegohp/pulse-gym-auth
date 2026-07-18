@@ -38,6 +38,7 @@ spring:
           writetimeout: 5000
     protocol: smtp
     default-encoding: UTF-8
+
 management:
   endpoints:
     web:
@@ -56,6 +57,10 @@ security:
 microservicio:
   notificaciones:
     url: ${NOTIFICACIONES_SERVICE_URL:http://pg-ms-notifications:8083}
+biometric:
+  jwt:
+    secret-key: ${BIOMETRIC_JWT_SECRET}
+    token-expiration: 300000
 
 logging:
   level:
