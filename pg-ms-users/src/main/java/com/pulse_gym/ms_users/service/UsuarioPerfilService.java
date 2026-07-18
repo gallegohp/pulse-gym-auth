@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.pulse_gym.lb_common.client.AuthClient;
 import com.pulse_gym.lb_common.client.AuthServiceClient;
 import com.pulse_gym.lb_common.client.NotificacionClient;
 import com.pulse_gym.lb_common.dto.AuthUserDTO;
@@ -36,6 +37,9 @@ public class UsuarioPerfilService {
 
     /** Cliente para interactuar con el servicio de autenticación */
     private final AuthServiceClient authServiceClient;
+
+    /** Cliente para interactuar con el servicio de autenticación (Feign) */
+    private final AuthClient authClient;
 
     /** Cliente de notificaciones */
     private final NotificacionClient notificacionClient;
@@ -631,7 +635,7 @@ public class UsuarioPerfilService {
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID:" + idUsuario));
 
         if (userRol.equals(EnumRol.socio.name())) {
-            AuthUserDTO authUser = authServiceClient.obtenerUsuarioPorId(userIdAutenticado);
+            AuthUserDTO authUser = authClient.obtenerUsuarioPorId(userIdAutenticado);
             if (authUser == null) {
                 throw new SecurityAuthorizationException("Usuario autenticado no encontrado");
             }

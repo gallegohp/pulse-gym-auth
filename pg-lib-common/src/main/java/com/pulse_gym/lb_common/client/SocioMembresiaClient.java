@@ -16,6 +16,6 @@ public interface SocioMembresiaClient {
      * @param idSocio Id del socio
      * @return dto con el estado de la membresia
      */
-    @GetMapping
+    @GetMapping("/api/internal/socios-membresias/biometrico/{idSocio}")
     EstadoMembresiaResponseDTO consultarEstadoBiometrico(@PathVariable("idSocio") Long idSocio);
 }
