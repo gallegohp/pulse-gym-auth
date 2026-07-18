@@ -41,7 +41,7 @@ public class AuthController {
      * Registro de usuario
      */
     @PostMapping("/register")
-    public ResponseEntity<MessegeGlobalDTO> register(@RequestBody RegisterRequestDTO requestDTO) {
+    public ResponseEntity<MessegeGlobalDTO> register(@Valid @RequestBody RegisterRequestDTO requestDTO) {
         try {
             MessegeGlobalDTO messegeGlobalDTO = authService.register(requestDTO);
             return ResponseEntity.status(HttpStatus.ACCEPTED).body(messegeGlobalDTO);

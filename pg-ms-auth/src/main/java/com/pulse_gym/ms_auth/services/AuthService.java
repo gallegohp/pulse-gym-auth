@@ -99,6 +99,10 @@ public class AuthService {
             logger.warn("=== PASO 2: Email ya existe: {} ===", requestDTO.getEmail());
             return new MessegeGlobalDTO("El correo ya esta en uso");
         }
+        
+        if (userAuthRepository.findByUsername(requestDTO.getUsername()).isPresent()) {
+            return new MessegeGlobalDTO("El nombre de usuario ya está en uso");
+        }
 
         logger.info("=== PASO 3: Creando usuario ===");
         User user = new User();
