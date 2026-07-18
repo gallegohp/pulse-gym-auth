@@ -5,10 +5,8 @@ import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestTemplate;
 
 import com.pulse_gym.lb_common.client.AuthServiceClient;
 import com.pulse_gym.lb_common.client.NotificacionClient;
@@ -629,32 +627,33 @@ public class UsuarioPerfilService {
     public MessegeGlobalDTO registrarHuella(Long idUsuario, RegistroHuellaRequestDTO request, String userRol,
             Long userIdAutenticado) {
 
-        if (userRol.equals(EnumRol.socio.name()) && !userIdAutenticado.equals(idUsuario)) {
-            throw new SecurityAuthorizationException("Acceso denegado. Solo puede registrar su propia huella");
-        }
-        ValidacionDeRoles.validarAdminORecepcionistaOSocio(userRol);
-
         UsuarioPerfil usuario = usuarioRepository.findById(idUsuario)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID:" + idUsuario));
 
-        EnumRol rol = authServiceClient.obtenerRolPorEmail(usuario.getEmail());
-        if (rol != EnumRol.socio) {
-            throw new RuntimeException("Solo los socios pueden registrar huella");
+        if (userRol.equals(EnumRol.socio.name())) {
+            AuthUserDTO authUser = authServiceClient.obtenerUsuarioPorId(userIdAutenticado);
+            if (authUser == null) {
+                throw new SecurityAuthorizationException("Usuario autenticado no encontrado");
+            }
+            if (!authUser.getEmail().equals(usuario.getEmail())) {
+                throw new SecurityAuthorizationException("Acceso denegado. Solo puede registrar su propia huella");
+            }
+        } else {
+            ValidacionDeRoles.validarAdminORecepcionistaOSocio(userRol);
         }
 
-        // Validar calidad de la huella
         if (!validarCalidadHuella(request.getDeviceId())) {
             log.warn("Intento de registro de huella con calidad insuficiente para usuario ID: {}", idUsuario);
             throw new RuntimeException("La calidad de la huella no es suficiente. Intente nuevamente con una captura más clara.");
         }
 
-        // Generar hash del deviceId
+        // 4. Generar hash del deviceId
         String hashDeviceId = generarHashDeviceId(request.getDeviceId());
         if (hashDeviceId == null) {
             throw new RuntimeException("Error al procesar la huella. Intente nuevamente.");
         }
 
-        // Guardar el hash en lugar del deviceId plano
+        // 5. Guardar el hash en lugar del deviceId plano
         usuario.setBiometricDeviceId(hashDeviceId);
         usuarioRepository.save(usuario);
 
@@ -675,13 +674,22 @@ public class UsuarioPerfilService {
     @Transactional
     public MessegeGlobalDTO reemplazarHuella(Long idUsuario, RegistroHuellaRequestDTO request, String userRol,
             Long userIdAutenticado) {
-        if (userRol.equals(EnumRol.socio.name()) && !userIdAutenticado.equals(idUsuario)) {
-            throw new SecurityAuthorizationException("Acceso denegado. Solo puede reemplazar su propia huella");
-        }
-        ValidacionDeRoles.validarAdminORecepcionistaOSocio(userRol);
 
         UsuarioPerfil usuario = usuarioRepository.findById(idUsuario)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        // Validar permisos
+        if (userRol.equals(EnumRol.socio.name())) {
+            AuthUserDTO authUser = authServiceClient.obtenerUsuarioPorId(userIdAutenticado);
+            if (authUser == null) {
+                throw new SecurityAuthorizationException("Usuario autenticado no encontrado");
+            }
+            if (!authUser.getEmail().equals(usuario.getEmail())) {
+                throw new SecurityAuthorizationException("Acceso denegado. Solo puede reemplazar su propia huella");
+            }
+        } else {
+            ValidacionDeRoles.validarAdminORecepcionistaOSocio(userRol);
+        }
 
         if (!validarCalidadHuella(request.getDeviceId())) {
             log.warn("Intento de reemplazo de huella con calidad insuficiente para usuario ID: {}", idUsuario);
@@ -710,13 +718,22 @@ public class UsuarioPerfilService {
      */
     @Transactional
     public MessegeGlobalDTO eliminarHuella(Long idUsuario, String userRol, Long userIdAutenticado) {
-        if (userRol.equals(EnumRol.socio.name()) && !userIdAutenticado.equals(idUsuario)) {
-            throw new SecurityAuthorizationException("Acceso denegado. Solo puede eliminar su propia huella");
-        }
-        ValidacionDeRoles.validarAdminORecepcionistaOSocio(userRol);
 
         UsuarioPerfil usuario = usuarioRepository.findById(idUsuario)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        // Validar permisos
+        if (userRol.equals(EnumRol.socio.name())) {
+            AuthUserDTO authUser = authServiceClient.obtenerUsuarioPorId(userIdAutenticado);
+            if (authUser == null) {
+                throw new SecurityAuthorizationException("Usuario autenticado no encontrado");
+            }
+            if (!authUser.getEmail().equals(usuario.getEmail())) {
+                throw new SecurityAuthorizationException("Acceso denegado. Solo puede eliminar su propia huella");
+            }
+        } else {
+            ValidacionDeRoles.validarAdminORecepcionistaOSocio(userRol);
+        }
 
         usuario.setBiometricDeviceId(null);
         usuarioRepository.save(usuario);
