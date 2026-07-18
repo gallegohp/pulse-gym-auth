@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.pulse_gym.lb_common.client.AuthServiceClient;
 import com.pulse_gym.lb_common.client.NotificacionClient;
 import com.pulse_gym.lb_common.client.UsuarioClient;
+import com.pulse_gym.lb_common.dto.ChangePasswordRequestDTO;
 import com.pulse_gym.lb_common.dto.ContrasenaOlvidada;
 import com.pulse_gym.lb_common.dto.EnvioEventoNotificacionDTO;
 import com.pulse_gym.lb_common.dto.HttpGlobalResponse;
@@ -99,7 +100,7 @@ public class AuthService {
             logger.warn("=== PASO 2: Email ya existe: {} ===", requestDTO.getEmail());
             return new MessegeGlobalDTO("El correo ya esta en uso");
         }
-        
+
         if (userAuthRepository.findByUsername(requestDTO.getUsername()).isPresent()) {
             return new MessegeGlobalDTO("El nombre de usuario ya está en uso");
         }
@@ -430,5 +431,54 @@ public class AuthService {
         logger.info("[HUELLA] Autenticación biométrica exitosa para usuario: {}", userId);
 
         return response;
+    }
+
+    /**
+     * Cambia la contraseña de un usuario autenticado.
+     * Valida la contraseña actual, aplica políticas de seguridad,
+     * encripta la nueva y actualiza la base de datos.
+     * 
+     * @param userId     ID del usuario autenticado
+     * @param requestDTO DTO con contraseña actual, nueva y confirmación
+     * @return Mensaje de éxito
+     * @throws RuntimeException si alguna validación falla
+     */
+    @Transactional
+    public MessegeGlobalDTO changePassword(Long userId, ChangePasswordRequestDTO requestDTO) {
+        logger.info("[PASSWORD] Inicio de cambio de contraseña para usuario ID: {}", userId);
+
+        // 1. Buscar usuario
+        User user = userAuthRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        // 2. Validar contraseña actual
+        if (!passwordEncoder.matches(requestDTO.getCurrentPassword(), user.getPassword())) {
+            logger.warn("[PASSWORD] Contraseña actual incorrecta para usuario ID: {}", userId);
+            throw new RuntimeException("La contraseña actual es incorrecta");
+        }
+
+        // 3. Validar que nueva contraseña coincida con confirmación
+        if (!requestDTO.getNewPassword().equals(requestDTO.getConfirmPassword())) {
+            logger.warn("[PASSWORD] Las contraseñas no coinciden para usuario ID: {}", userId);
+            throw new RuntimeException("La nueva contraseña y la confirmación no coinciden");
+        }
+
+        // 4. Validar que la nueva contraseña no sea igual a la actual
+        if (passwordEncoder.matches(requestDTO.getNewPassword(), user.getPassword())) {
+            logger.warn("[PASSWORD] La nueva contraseña es igual a la actual para usuario ID: {}", userId);
+            throw new RuntimeException("La nueva contraseña no puede ser igual a la actual");
+        }
+
+        // 5. Encriptar nueva contraseña con BCrypt
+        String encodedPassword = passwordEncoder.encode(requestDTO.getNewPassword());
+
+        // 6. Actualizar en BD
+        user.setPassword(encodedPassword);
+        userAuthRepository.save(user);
+
+        // 7. Log estructurado
+        logger.info("[PASSWORD] Contraseña actualizada exitosamente para usuario ID: {}", userId);
+
+        return new MessegeGlobalDTO("Contraseña actualizada exitosamente");
     }
 }
