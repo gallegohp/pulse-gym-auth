@@ -14,6 +14,7 @@ import com.pulse_gym.lb_common.dto.RestablecerContrasena;
 import com.pulse_gym.lb_common.dto.SolicitudTokenBiometricoDTO;
 import com.pulse_gym.lb_common.entity.auth.User;
 import com.pulse_gym.lb_common.dto.AuthUserDTO;
+import com.pulse_gym.lb_common.dto.BiometricLoginRequestDTO;
 import com.pulse_gym.lb_common.dto.ContrasenaOlvidada;
 import com.pulse_gym.lb_common.dto.HttpGlobalResponse;
 import com.pulse_gym.lb_common.dto.JwtDTO;
@@ -118,7 +119,8 @@ public class AuthController {
     }
 
     /**
-     * Endpoint interno para obtener usuario por email (usado por otros microservicios)
+     * Endpoint interno para obtener usuario por email (usado por otros
+     * microservicios)
      */
     @GetMapping("/api/internal/users/email/{email}")
     public ResponseEntity<AuthUserDTO> getUserByEmail(@PathVariable String email) {
@@ -187,6 +189,30 @@ public class AuthController {
             JwtDTO errorDto = new JwtDTO();
             errorDto.setJwt("Error interno al generar el token");
             return new ResponseEntity<JwtDTO>(errorDto, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * Autenticación biométrica (login con huella)
+     * POST /auth/biometric/login
+     * 
+     * @param tokenRequest DTO con el token biométrico
+     * @return Token JWT de acceso normal (para la aplicación)
+     */
+    @PostMapping("/biometric/login")
+    public ResponseEntity<HttpGlobalResponse<JwtDTO>> loginBiometrico(
+            @RequestBody BiometricLoginRequestDTO tokenRequest) {
+        try {
+            HttpGlobalResponse<JwtDTO> response = authService.loginBiometrico(tokenRequest.getToken());
+            HttpStatus status = response.getMessege().contains("exitosa")
+                    ? HttpStatus.OK
+                    : HttpStatus.UNAUTHORIZED;
+            return ResponseEntity.status(status).body(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            HttpGlobalResponse<JwtDTO> errorResponse = new HttpGlobalResponse<>();
+            errorResponse.setMessege("Error interno al procesar la autenticación biométrica");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
 }
