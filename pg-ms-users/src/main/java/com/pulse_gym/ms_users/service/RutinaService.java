@@ -148,30 +148,29 @@ public class RutinaService {
             respuestaIA = objectMapper.readValue(respuestaJson, typeRef);
 
             if (respuestaIA.getDetalles() != null) {
-                log.info("✅ Detalles recibidos: {}", respuestaIA.getDetalles().size());
+                log.info("Detalles recibidos: {}", respuestaIA.getDetalles().size());
             } else {
-                log.warn("⚠️ No se recibieron detalles. Intentando parsear manualmente...");
+                log.warn("No se recibieron detalles. Intentando parsear manualmente...");
 
                 // Intentar parsear como Map para debug
                 Map<String, Object> jsonMap = objectMapper.readValue(respuestaJson, Map.class);
-                log.info("📥 Claves del JSON: {}", jsonMap.keySet());
+                log.info("Claves del JSON: {}", jsonMap.keySet());
 
                 if (jsonMap.containsKey("detalles")) {
-                    log.info("📥 'detalles' está presente en el JSON");
+                    log.info("'detalles' está presente en el JSON");
                     Object detallesObj = jsonMap.get("detalles");
-                    log.info("📥 detalles es de tipo: {}", detallesObj.getClass().getName());
+                    log.info("detalles es de tipo: {}", detallesObj.getClass().getName());
                 }
             }
 
             log.info("Respuesta de IA recibida correctamente");
         } catch (Exception e) {
-            log.error("❌ Error al llamar al servicio de IA: {}", e.getMessage());
+            log.error("Error al llamar al servicio de IA: {}", e.getMessage());
             throw new RuntimeException("Error al generar rutina con IA: " + e.getMessage());
         }
 
-        // Crear rutina vacía si no hay detalles
         if (respuestaIA.getDetalles() == null) {
-            log.warn("⚠️ No hay detalles en la respuesta. Se creará rutina sin ejercicios.");
+            log.warn("No hay detalles en la respuesta. Se creará rutina sin ejercicios.");
             respuestaIA.setDetalles(new ArrayList<>());
         }
 
@@ -207,7 +206,7 @@ public class RutinaService {
         rutina.setNivel(socio.getNivelExperiencia().name());
         rutina.setCondiciones("Días por semana: " + request.getDiasPorSemana() +
                 ", Duración: " + request.getDuracionSemanas() + " semanas");
-        rutina.setModeloIa("Gemini-2.5-Flash");
+        rutina.setModeloIa("llama-3.3-70b-versatile");
         rutina.setVersion(1);
         rutina.setActiva(true);
         rutina.setExplicacionIa(respuestaIA.getExplicacionIA());
@@ -220,11 +219,9 @@ public class RutinaService {
             rutina.setRutinaGenerada(respuestaIA.toString());
         }
 
-        // ✅ Guardar la rutina PRIMERO
         rutina = rutinaRepository.save(rutina);
         log.info("Rutina guardada con ID: {}", rutina.getIdRutinaIa());
 
-        // ✅ Ahora guardar los detalles y agregarlos a la rutina
         if (respuestaIA.getDetalles() != null) {
             int detallesGuardados = 0;
             for (DetalleRutinaResponseDTO detalleDTO : respuestaIA.getDetalles()) {
@@ -250,11 +247,10 @@ public class RutinaService {
                 detalle.setNotas(detalleDTO.getNotas());
 
                 detalleRutinaRepository.save(detalle);
-                // ✅ Agregar el detalle a la rutina (relación bidireccional)
                 rutina.addDetalle(detalle);
                 detallesGuardados++;
             }
-            log.info("✅ {} detalles guardados correctamente", detallesGuardados);
+            log.info("{} detalles guardados correctamente", detallesGuardados);
         }
 
         log.info("Rutina guardada con {} detalles totales", rutina.getDetalles().size());
