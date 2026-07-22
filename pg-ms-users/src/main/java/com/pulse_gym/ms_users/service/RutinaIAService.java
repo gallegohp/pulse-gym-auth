@@ -228,7 +228,7 @@ public class RutinaIAService {
      * @param userIdAutenticado ID del usuario autenticado
      * @throws SecurityAuthorizationException Si el usuario no tiene permisos
      */
-    public void validarRolGeneracion(String userRol, Long idSocio, Long userIdAutenticado) {
+    public void validarRolGeneracion(String userRol, Long idSocio, Long userIdAutenticado, String userEmail) {
         if (userRol == null) {
             throw new SecurityAuthorizationException("Usuario no autenticado");
         }
@@ -246,9 +246,14 @@ public class RutinaIAService {
         }
 
         if (EnumRol.socio.name().equals(userRol)) {
-            if (!userIdAutenticado.equals(idSocio)) {
+            UsuarioPerfil socio = usuarioRepository.findByEmail(userEmail)
+                    .orElseThrow(() -> new RuntimeException("Socio no encontrado con email: " + userEmail));
+
+            if (!socio.getIdUsuario().equals(idSocio)) {
                 throw new SecurityAuthorizationException(
-                        "Acceso denegado. Los socios solo pueden generar rutinas para sí mismos");
+                        String.format("Acceso denegado. Los socios solo pueden generar rutinas para sí mismos. " +
+                                "Tu ID en usuario_perfil: %d, ID solicitado: %d",
+                                socio.getIdUsuario(), idSocio));
             }
             return;
         }

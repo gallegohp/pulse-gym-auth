@@ -125,15 +125,25 @@ public class RutinaService {
     public RutinaGeneracionResponseDTO generarRutinaIA(
             RutinaGeneracionRequestDTO request,
             String userRol,
-            Long userIdAutenticado) {
+            Long userIdAutenticado,
+            String userEmail) {
 
         log.info("Iniciando generación de rutina IA para socio ID: {}", request.getIdSocio());
 
-        rutinaIAService.validarRolGeneracion(userRol, request.getIdSocio(), userIdAutenticado);
-        rutinaIAService.validarMembresiaActiva(request.getIdSocio());
+        UsuarioPerfil socio;
+        if ("socio".equals(userRol)) {
+            socio = usuarioRepository.findByEmail(userEmail)
+                    .orElseThrow(() -> new RuntimeException("Socio no encontrado con email: " + userEmail));
 
-        UsuarioPerfil socio = usuarioRepository.findById(request.getIdSocio())
-                .orElseThrow(() -> new RuntimeException("Socio no encontrado con ID: " + request.getIdSocio()));
+            request.setIdSocio(socio.getIdUsuario());
+            log.info("Socio autenticado por email: {}, ID en usuario_perfil: {}", userEmail, socio.getIdUsuario());
+        } else {
+            socio = usuarioRepository.findById(request.getIdSocio())
+                    .orElseThrow(() -> new RuntimeException("Socio no encontrado con ID: " + request.getIdSocio()));
+        }
+
+        rutinaIAService.validarRolGeneracion(userRol, request.getIdSocio(), userIdAutenticado, userEmail);
+        rutinaIAService.validarMembresiaActiva(request.getIdSocio());
 
         Map<String, Object> contexto = rutinaIAService.construirContextoIA(request.getIdSocio(), request);
 
@@ -152,7 +162,6 @@ public class RutinaService {
             } else {
                 log.warn("No se recibieron detalles. Intentando parsear manualmente...");
 
-                // Intentar parsear como Map para debug
                 Map<String, Object> jsonMap = objectMapper.readValue(respuestaJson, Map.class);
                 log.info("Claves del JSON: {}", jsonMap.keySet());
 
@@ -279,21 +288,47 @@ public class RutinaService {
         }
     }
 
+    public List<RutinaGeneracionResponseDTO> obtenerMisRutinas(
+            Long userIdAutenticado, String userRol, String userEmail) {
+
+        Long idSocio;
+
+        if (EnumRol.socio.name().equals(userRol)) {
+            UsuarioPerfil socio = usuarioRepository.findByEmail(userEmail)
+                    .orElseThrow(() -> new RuntimeException("Socio no encontrado con email: " + userEmail));
+            idSocio = socio.getIdUsuario();
+            log.info("Socio autenticado por email: {}, ID en usuario_perfil: {}", userEmail, idSocio);
+        } else {
+            idSocio = userIdAutenticado;
+        }
+
+        return obtenerRutinasSocio(idSocio, userRol, userIdAutenticado, userEmail);
+    }
+
     /**
      * Obtiene una rutina por su ID con validación de permisos
      * 
      * @param idRutina          ID de la rutina a consultar
      * @param userRol           Rol del usuario autenticado
-     * @param userIdAutenticado ID del usuario autenticado
+     * @param userIdAutenticado ID del usuario autenticado (de auth)
+     * @param userEmail         Email del usuario autenticado
      * @return DTO de la rutina
      */
-    public RutinaGeneracionResponseDTO obtenerRutina(Long idRutina, String userRol, Long userIdAutenticado) {
+    public RutinaGeneracionResponseDTO obtenerRutina(Long idRutina, String userRol,
+            Long userIdAutenticado, String userEmail) {
+
         RutinaIA rutina = rutinaRepository.findById(idRutina)
                 .orElseThrow(() -> new RuntimeException("Rutina no encontrada con ID: " + idRutina));
 
         if (EnumRol.socio.name().equals(userRol)) {
-            if (!rutina.getSocio().getIdUsuario().equals(userIdAutenticado)) {
-                throw new SecurityAuthorizationException("Acceso denegado. Solo puede ver sus propias rutinas");
+            UsuarioPerfil socio = usuarioRepository.findByEmail(userEmail)
+                    .orElseThrow(() -> new RuntimeException("Socio no encontrado con email: " + userEmail));
+
+            if (!rutina.getSocio().getIdUsuario().equals(socio.getIdUsuario())) {
+                throw new SecurityAuthorizationException(
+                        String.format("Acceso denegado. Solo puede ver sus propias rutinas. " +
+                                "Tu ID en usuario_perfil: %d, ID de la rutina: %d",
+                                socio.getIdUsuario(), rutina.getSocio().getIdUsuario()));
             }
         }
 
@@ -303,15 +338,24 @@ public class RutinaService {
     /**
      * Obtiene todas las rutinas de un socio con validación de permisos
      * 
-     * @param idSocio           ID del socio
+     * @param idSocio           ID del socio (de usuario_perfil)
      * @param userRol           Rol del usuario autenticado
-     * @param userIdAutenticado ID del usuario autenticado
+     * @param userIdAutenticado ID del usuario autenticado (de auth)
+     * @param userEmail         Email del usuario autenticado
      * @return Lista de rutinas del socio
      */
-    public List<RutinaGeneracionResponseDTO> obtenerRutinasSocio(Long idSocio, String userRol, Long userIdAutenticado) {
+    public List<RutinaGeneracionResponseDTO> obtenerRutinasSocio(Long idSocio, String userRol,
+            Long userIdAutenticado, String userEmail) {
+
         if (EnumRol.socio.name().equals(userRol)) {
-            if (!idSocio.equals(userIdAutenticado)) {
-                throw new SecurityAuthorizationException("Acceso denegado. Solo puede ver sus propias rutinas");
+            UsuarioPerfil socio = usuarioRepository.findByEmail(userEmail)
+                    .orElseThrow(() -> new RuntimeException("Socio no encontrado con email: " + userEmail));
+
+            if (!idSocio.equals(socio.getIdUsuario())) {
+                throw new SecurityAuthorizationException(
+                        String.format("Acceso denegado. Solo puede ver sus propias rutinas. " +
+                                "Tu ID en usuario_perfil: %d, ID solicitado: %d",
+                                socio.getIdUsuario(), idSocio));
             }
         }
 

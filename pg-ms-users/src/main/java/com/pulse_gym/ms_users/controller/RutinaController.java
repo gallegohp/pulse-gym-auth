@@ -45,11 +45,12 @@ public class RutinaController {
     public ResponseEntity<RutinaGeneracionResponseDTO> generarRutina(
             @Valid @RequestBody RutinaGeneracionRequestDTO request,
             @RequestHeader(value = "X-User-Rol", required = false) String userRol,
-            @RequestHeader(value = "X-User-Id", required = false) Long userIdAutenticado) {
+            @RequestHeader(value = "X-User-Id", required = false) Long userIdAutenticado,
+            @RequestHeader(value = "X-User-Email", required = false) String userEmail) {
 
         try {
             RutinaGeneracionResponseDTO response = rutinaService.generarRutinaIA(
-                    request, userRol, userIdAutenticado);
+                    request, userRol, userIdAutenticado, userEmail);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
 
         } catch (SecurityAuthorizationException e) {
@@ -66,18 +67,20 @@ public class RutinaController {
     /**
      * Obtiene las rutinas del usuario autenticado
      * 
-     * @param userIdAutenticado ID del usuario autenticado (header)
+     * @param userIdAutenticado ID del usuario autenticado (de auth - header)
      * @param userRol           Rol del usuario autenticado (header)
+     * @param userEmail         Email del usuario autenticado (header)
      * @return Lista de rutinas del usuario
      */
     @GetMapping("/mis-rutinas")
     public ResponseEntity<List<RutinaGeneracionResponseDTO>> obtenerMisRutinas(
             @RequestHeader(value = "X-User-Id", required = false) Long userIdAutenticado,
-            @RequestHeader(value = "X-User-Rol", required = false) String userRol) {
+            @RequestHeader(value = "X-User-Rol", required = false) String userRol,
+            @RequestHeader(value = "X-User-Email", required = false) String userEmail) {
 
         try {
-            List<RutinaGeneracionResponseDTO> rutinas = rutinaService.obtenerRutinasSocio(
-                    userIdAutenticado, userRol, userIdAutenticado);
+            List<RutinaGeneracionResponseDTO> rutinas = rutinaService.obtenerMisRutinas(
+                    userIdAutenticado, userRol, userEmail);
             return ResponseEntity.ok(rutinas);
 
         } catch (SecurityAuthorizationException e) {
@@ -94,20 +97,22 @@ public class RutinaController {
     /**
      * Obtiene las rutinas de un socio específico
      * 
-     * @param idSocio           ID del socio a consultar
+     * @param idSocio           ID del socio a consultar (de usuario_perfil)
      * @param userRol           Rol del usuario autenticado (header)
-     * @param userIdAutenticado ID del usuario autenticado (header)
+     * @param userIdAutenticado ID del usuario autenticado (de auth - header)
+     * @param userEmail         Email del usuario autenticado (header)
      * @return Lista de rutinas del socio
      */
     @GetMapping("/socio/{idSocio}")
     public ResponseEntity<List<RutinaGeneracionResponseDTO>> obtenerRutinasSocio(
             @PathVariable Long idSocio,
             @RequestHeader(value = "X-User-Rol", required = false) String userRol,
-            @RequestHeader(value = "X-User-Id", required = false) Long userIdAutenticado) {
+            @RequestHeader(value = "X-User-Id", required = false) Long userIdAutenticado,
+            @RequestHeader(value = "X-User-Email", required = false) String userEmail) {
 
         try {
             List<RutinaGeneracionResponseDTO> rutinas = rutinaService.obtenerRutinasSocio(
-                    idSocio, userRol, userIdAutenticado);
+                    idSocio, userRol, userIdAutenticado, userEmail);
             return ResponseEntity.ok(rutinas);
 
         } catch (SecurityAuthorizationException e) {
@@ -126,18 +131,20 @@ public class RutinaController {
      * 
      * @param idRutina          ID de la rutina a consultar
      * @param userRol           Rol del usuario autenticado (header)
-     * @param userIdAutenticado ID del usuario autenticado (header)
+     * @param userIdAutenticado ID del usuario autenticado (de auth - header)
+     * @param userEmail         Email del usuario autenticado (header)
      * @return DTO de la rutina
      */
     @GetMapping("/{idRutina}")
     public ResponseEntity<RutinaGeneracionResponseDTO> obtenerRutina(
             @PathVariable Long idRutina,
             @RequestHeader(value = "X-User-Rol", required = false) String userRol,
-            @RequestHeader(value = "X-User-Id", required = false) Long userIdAutenticado) {
+            @RequestHeader(value = "X-User-Id", required = false) Long userIdAutenticado,
+            @RequestHeader(value = "X-User-Email", required = false) String userEmail) {
 
         try {
             RutinaGeneracionResponseDTO rutina = rutinaService.obtenerRutina(
-                    idRutina, userRol, userIdAutenticado);
+                    idRutina, userRol, userIdAutenticado, userEmail);
             return ResponseEntity.ok(rutina);
 
         } catch (SecurityAuthorizationException e) {
