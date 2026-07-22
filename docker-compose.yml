@@ -26,6 +26,7 @@ services:
     environment:
       JWT_SECRET: ${JWT_SECRET}
       SUPABASE_PASSWORD: ${SUPABASE_PASSWORD}
+      BIOMETRIC_JWT_SECRET: ${BIOMETRIC_JWT_SECRET}
     networks:
       - pulsegym
     env_file:
@@ -89,6 +90,7 @@ services:
       WHATSAPP_PROVIDER: ${WHATSAPP_PROVIDER:-mock}
       USUARIOS_SERVICE_URL: http://pg-ms-users:8081
       AUTH_SERVICE_URL: http://pg-ms-auth:8090
+      BIOMETRIC_JWT_SECRET: ${BIOMETRIC_JWT_SECRET}
     env_file:
       - .env
     networks:
@@ -122,6 +124,7 @@ services:
       - pulsegym
     environment:
       JWT_SECRET: ${JWT_SECRET}
+      BIOMETRIC_JWT_SECRET: ${BIOMETRIC_JWT_SECRET}
 
 networks:
   pulsegym:

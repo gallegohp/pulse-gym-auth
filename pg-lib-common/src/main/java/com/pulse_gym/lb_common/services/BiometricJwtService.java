@@ -1,4 +1,4 @@
-package com.pulse_gym.ms_operation.services;
+package com.pulse_gym.lb_common.services;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;

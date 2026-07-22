@@ -13,6 +13,7 @@ import com.pulse_gym.lb_common.entity.operation.AuditoriaBiometrica;
 import com.pulse_gym.lb_common.entity.operation.Sede;
 import com.pulse_gym.lb_common.enums.EnumEstadoAcceso;
 import com.pulse_gym.lb_common.enums.EnumTipoAcceso;
+import com.pulse_gym.lb_common.services.BiometricJwtService;
 import com.pulse_gym.lb_common.services.ValidacionDeRoles;
 import com.pulse_gym.ms_operation.repository.AsistenciaRepository;
 import com.pulse_gym.ms_operation.repository.AuditoriaBiometricaRepository;

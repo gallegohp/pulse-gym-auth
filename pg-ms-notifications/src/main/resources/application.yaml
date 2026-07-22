@@ -72,6 +72,10 @@ notificaciones:
       auth-token: ${TWILIO_AUTH_TOKEN:}
       from-number: ${TWILIO_FROM_NUMBER:}
 
+biometric:
+  jwt:
+    secret-key: ${BIOMETRIC_JWT_SECRET}
+
 microservicio:
   usuarios:
     url: ${USUARIOS_SERVICE_URL:http://pg-ms-users:8081}

@@ -13,15 +13,19 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.pulse_gym.lb_common.client.AuthServiceClient;
 import com.pulse_gym.lb_common.client.NotificacionClient;
+import com.pulse_gym.lb_common.client.UsuarioClient;
+import com.pulse_gym.lb_common.dto.ChangePasswordRequestDTO;
 import com.pulse_gym.lb_common.dto.ContrasenaOlvidada;
 import com.pulse_gym.lb_common.dto.EnvioEventoNotificacionDTO;
 import com.pulse_gym.lb_common.dto.HttpGlobalResponse;
 import com.pulse_gym.lb_common.dto.JwtDTO;
 import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
 import com.pulse_gym.lb_common.dto.RestablecerContrasena;
+import com.pulse_gym.lb_common.dto.UsuarioPerfilResponseDTO;
 import com.pulse_gym.lb_common.entity.auth.PasswordResetToken;
 import com.pulse_gym.lb_common.entity.auth.User;
 import com.pulse_gym.lb_common.enums.EnumEventoAsociado;
+import com.pulse_gym.lb_common.services.BiometricJwtService;
 import com.pulse_gym.lb_common.services.JwtService;
 import com.pulse_gym.ms_auth.dto.LoginRequestDTO;
 import com.pulse_gym.ms_auth.dto.RegisterRequestDTO;
@@ -57,6 +61,14 @@ public class AuthService {
     /** Cliente para interactuar con el servicio de autenticación */
     private final AuthServiceClient authServiceClient;
 
+    /** Servicio para generación y validación de tokens biométricos */
+    private final BiometricJwtService biometricJwtService;
+
+    /**
+     * Cliente para interactuar con el microservicio de usuarios (pg-ms-users)
+     */
+    private final UsuarioClient usuarioClient;
+
     /** Tiempo de expiración del token de restablecimiento en minutos */
     @Value("${app.security.reset-token-expiration-minutes:10}")
     private long tokenExpirationMinutes;
@@ -87,6 +99,10 @@ public class AuthService {
         if (userAuthRepository.findByEmail(requestDTO.getEmail()).isPresent()) {
             logger.warn("=== PASO 2: Email ya existe: {} ===", requestDTO.getEmail());
             return new MessegeGlobalDTO("El correo ya esta en uso");
+        }
+
+        if (userAuthRepository.findByUsername(requestDTO.getUsername()).isPresent()) {
+            return new MessegeGlobalDTO("El nombre de usuario ya está en uso");
         }
 
         logger.info("=== PASO 3: Creando usuario ===");
@@ -326,5 +342,143 @@ public class AuthService {
         tokenRepository.save(resetToken);
 
         return new MessegeGlobalDTO("Contraseña restablecida exitosamente");
+    }
+
+    /**
+     * Autenticación biométrica usando el token JWT biométrico.
+     * 
+     * @param biometricToken Token JWT generado por el dispositivo biométrico
+     * @return Token JWT de acceso normal (para la aplicación)
+     * @throws RuntimeException Si la autenticación falla
+     */
+    @Transactional
+    public HttpGlobalResponse<JwtDTO> loginBiometrico(String biometricToken) {
+        logger.info("[HUELLA] Inicio de autenticación biométrica");
+
+        HttpGlobalResponse<JwtDTO> response = new HttpGlobalResponse<>();
+
+        if (!biometricJwtService.validateToken(biometricToken)) {
+            logger.warn("[HUELLA] Token biométrico inválido");
+            response.setMessege("Huella no reconocida. Intente de nuevo o use otro método.");
+            return response;
+        }
+
+        if (biometricJwtService.isTokenExpired(biometricToken)) {
+            logger.warn("[HUELLA] Token biométrico expirado");
+            response.setMessege("Huella no reconocida. Intente de nuevo o use otro método.");
+            return response;
+        }
+
+        Long userId = biometricJwtService.extractUserId(biometricToken);
+        String deviceId = biometricJwtService.extractDeviceId(biometricToken);
+
+        if (userId == null || deviceId == null) {
+            logger.warn("[HUELLA] Token biométrico incompleto - userId: {}, deviceId: {}", userId, deviceId);
+            response.setMessege("Huella no reconocida. Intente de nuevo o use otro método.");
+            return response;
+        }
+
+        logger.info("[HUELLA] Token válido para userId: {}, deviceId: {}", userId, deviceId);
+
+        UsuarioPerfilResponseDTO usuarioPerfil;
+        try {
+            usuarioPerfil = usuarioClient.obtenerUsuarioPorIdInterno(userId);
+        } catch (Exception e) {
+            logger.error("[HUELLA] Error al consultar usuario en pg-ms-users: {}", e.getMessage());
+            response.setMessege("Error interno al validar la huella");
+            return response;
+        }
+
+        if (usuarioPerfil == null) {
+            logger.warn("[HUELLA] Usuario no encontrado: {}", userId);
+            response.setMessege("Huella no reconocida. Intente de nuevo o use otro método.");
+            return response;
+        }
+
+        if (usuarioPerfil.getEstado() == null ||
+                !usuarioPerfil.getEstado().name().equalsIgnoreCase("ACTIVO")) {
+            logger.warn("[HUELLA] Usuario inactivo: {}", userId);
+            response.setMessege("Usuario inactivo. Contacte con administración.");
+            return response;
+        }
+
+        String hashGuardado = usuarioPerfil.getBiometricDeviceId();
+        if (hashGuardado == null || hashGuardado.trim().isEmpty()) {
+            logger.warn("[HUELLA] Usuario sin huella registrada: {}", userId);
+            response.setMessege("Huella no reconocida. Intente de nuevo o use otro método.");
+            return response;
+        }
+
+        String hashDeviceIdToken = biometricJwtService.generateHash(deviceId);
+        if (hashDeviceIdToken == null || !hashDeviceIdToken.equals(hashGuardado)) {
+            logger.warn("[HUELLA] Hash no coincide para usuario: {}. Hash esperado: {}, hash recibido: {}",
+                    userId, hashGuardado.substring(0, 10) + "...",
+                    hashDeviceIdToken != null ? hashDeviceIdToken.substring(0, 10) + "..." : "null");
+            response.setMessege("Huella no reconocida. Intente de nuevo o use otro método.");
+            return response;
+        }
+
+        User authUser = userAuthRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Usuario de autenticación no encontrado"));
+
+        String jwt = jwtService.generateToken(authUser.getId(), authUser.getRol().name(), authUser.getEmail());
+
+        JwtDTO jwtDTO = new JwtDTO();
+        jwtDTO.setJwt(jwt);
+        response.setMessege("Autenticación biométrica exitosa");
+        response.setData(jwtDTO);
+
+        logger.info("[HUELLA] Autenticación biométrica exitosa para usuario: {}", userId);
+
+        return response;
+    }
+
+    /**
+     * Cambia la contraseña de un usuario autenticado.
+     * Valida la contraseña actual, aplica políticas de seguridad,
+     * encripta la nueva y actualiza la base de datos.
+     * 
+     * @param userId     ID del usuario autenticado
+     * @param requestDTO DTO con contraseña actual, nueva y confirmación
+     * @return Mensaje de éxito
+     * @throws RuntimeException si alguna validación falla
+     */
+    @Transactional
+    public MessegeGlobalDTO changePassword(Long userId, ChangePasswordRequestDTO requestDTO) {
+        logger.info("[PASSWORD] Inicio de cambio de contraseña para usuario ID: {}", userId);
+
+        // 1. Buscar usuario
+        User user = userAuthRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        // 2. Validar contraseña actual
+        if (!passwordEncoder.matches(requestDTO.getCurrentPassword(), user.getPassword())) {
+            logger.warn("[PASSWORD] Contraseña actual incorrecta para usuario ID: {}", userId);
+            throw new RuntimeException("La contraseña actual es incorrecta");
+        }
+
+        // 3. Validar que nueva contraseña coincida con confirmación
+        if (!requestDTO.getNewPassword().equals(requestDTO.getConfirmPassword())) {
+            logger.warn("[PASSWORD] Las contraseñas no coinciden para usuario ID: {}", userId);
+            throw new RuntimeException("La nueva contraseña y la confirmación no coinciden");
+        }
+
+        // 4. Validar que la nueva contraseña no sea igual a la actual
+        if (passwordEncoder.matches(requestDTO.getNewPassword(), user.getPassword())) {
+            logger.warn("[PASSWORD] La nueva contraseña es igual a la actual para usuario ID: {}", userId);
+            throw new RuntimeException("La nueva contraseña no puede ser igual a la actual");
+        }
+
+        // 5. Encriptar nueva contraseña con BCrypt
+        String encodedPassword = passwordEncoder.encode(requestDTO.getNewPassword());
+
+        // 6. Actualizar en BD
+        user.setPassword(encodedPassword);
+        userAuthRepository.save(user);
+
+        // 7. Log estructurado
+        logger.info("[PASSWORD] Contraseña actualizada exitosamente para usuario ID: {}", userId);
+
+        return new MessegeGlobalDTO("Contraseña actualizada exitosamente");
     }
 }

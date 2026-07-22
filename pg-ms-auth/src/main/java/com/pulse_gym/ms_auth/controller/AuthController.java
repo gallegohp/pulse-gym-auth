@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -13,7 +14,10 @@ import com.pulse_gym.lb_common.dto.MessegeGlobalDTO;
 import com.pulse_gym.lb_common.dto.RestablecerContrasena;
 import com.pulse_gym.lb_common.dto.SolicitudTokenBiometricoDTO;
 import com.pulse_gym.lb_common.entity.auth.User;
+import com.pulse_gym.lb_common.services.JwtService;
 import com.pulse_gym.lb_common.dto.AuthUserDTO;
+import com.pulse_gym.lb_common.dto.BiometricLoginRequestDTO;
+import com.pulse_gym.lb_common.dto.ChangePasswordRequestDTO;
 import com.pulse_gym.lb_common.dto.ContrasenaOlvidada;
 import com.pulse_gym.lb_common.dto.HttpGlobalResponse;
 import com.pulse_gym.lb_common.dto.JwtDTO;
@@ -35,12 +39,13 @@ public class AuthController {
     private final AuthService authService;
     private final UserAuthRepository userAuthRepository;
     private final BiometricTokenService biometricTokenService;
+    private final JwtService jwtService;
 
     /**
      * Registro de usuario
      */
     @PostMapping("/register")
-    public ResponseEntity<MessegeGlobalDTO> register(@RequestBody RegisterRequestDTO requestDTO) {
+    public ResponseEntity<MessegeGlobalDTO> register(@Valid @RequestBody RegisterRequestDTO requestDTO) {
         try {
             MessegeGlobalDTO messegeGlobalDTO = authService.register(requestDTO);
             return ResponseEntity.status(HttpStatus.ACCEPTED).body(messegeGlobalDTO);
@@ -118,7 +123,8 @@ public class AuthController {
     }
 
     /**
-     * Endpoint interno para obtener usuario por email (usado por otros microservicios)
+     * Endpoint interno para obtener usuario por email (usado por otros
+     * microservicios)
      */
     @GetMapping("/api/internal/users/email/{email}")
     public ResponseEntity<AuthUserDTO> getUserByEmail(@PathVariable String email) {
@@ -187,6 +193,72 @@ public class AuthController {
             JwtDTO errorDto = new JwtDTO();
             errorDto.setJwt("Error interno al generar el token");
             return new ResponseEntity<JwtDTO>(errorDto, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * Autenticación biométrica (login con huella)
+     * POST /auth/biometric/login
+     * 
+     * @param tokenRequest DTO con el token biométrico
+     * @return Token JWT de acceso normal (para la aplicación)
+     */
+    @PostMapping("/biometric/login")
+    public ResponseEntity<HttpGlobalResponse<JwtDTO>> loginBiometrico(
+            @RequestBody BiometricLoginRequestDTO tokenRequest) {
+        try {
+            HttpGlobalResponse<JwtDTO> response = authService.loginBiometrico(tokenRequest.getToken());
+            HttpStatus status = response.getMessege().contains("exitosa")
+                    ? HttpStatus.OK
+                    : HttpStatus.UNAUTHORIZED;
+            return ResponseEntity.status(status).body(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            HttpGlobalResponse<JwtDTO> errorResponse = new HttpGlobalResponse<>();
+            errorResponse.setMessege("Error interno al procesar la autenticación biométrica");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
+
+    /**
+     * Cambio de contraseña de usuario autenticado
+     * POST /auth/change-password
+     * 
+     * @param requestDTO DTO con contraseña actual, nueva y confirmación
+     * @param authHeader Header Authorization con el token JWT
+     * @return Mensaje de éxito o error
+     */
+    @PostMapping("/change-password")
+    public ResponseEntity<MessegeGlobalDTO> changePassword(
+            @Valid @RequestBody ChangePasswordRequestDTO requestDTO,
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+        try {
+            // 1. Extraer userId del token
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(new MessegeGlobalDTO("Token no proporcionado"));
+            }
+
+            String token = authHeader.substring(7);
+            Long userId = jwtService.extractUserId(token);
+
+            if (userId == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(new MessegeGlobalDTO("Token inválido"));
+            }
+
+            // 2. Llamar al servicio
+            MessegeGlobalDTO response = authService.changePassword(userId, requestDTO);
+            return ResponseEntity.ok(response);
+
+        } catch (RuntimeException e) {
+            // Devolver error con mensaje claro
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new MessegeGlobalDTO(e.getMessage()));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new MessegeGlobalDTO("Error al cambiar la contraseña"));
         }
     }
 }

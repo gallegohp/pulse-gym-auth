@@ -37,3 +37,7 @@ security:
   jwt:
     secret-key: ${JWT_SECRET}
     token-expiration: 3600000
+biometric:
+  jwt:
+    secret-key: ${BIOMETRIC_JWT_SECRET}
+    token-expiration: 300000
