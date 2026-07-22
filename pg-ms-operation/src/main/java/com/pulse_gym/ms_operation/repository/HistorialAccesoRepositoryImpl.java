@@ -12,6 +12,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Repository
@@ -22,38 +23,60 @@ public class HistorialAccesoRepositoryImpl implements HistorialAccesoRepositoryC
 
     @Override
     public Page<HistorialAccesoDTO> consultarHistorialAccesos(HistorialAccesoFiltroDTO filtro, Pageable pageable) {
-        String sql = buildQuery(filtro, true);
-        String countSql = buildQuery(filtro, false);
-
+        // Preparar parámetros base
         MapSqlParameterSource params = new MapSqlParameterSource();
-        params.addValue("usuarioId", filtro.getUsuarioId());
         params.addValue("fechaInicio", filtro.getFechaInicio() != null ? filtro.getFechaInicio() : LocalDateTime.MIN);
         params.addValue("fechaFin", filtro.getFechaFin() != null ? filtro.getFechaFin() : LocalDateTime.MAX);
-
-        String tipoAcceso = filtro.getTipoAcceso();
-        if (tipoAcceso != null && tipoAcceso.equalsIgnoreCase("WEB")) {
-            params.addValue("tipoAcceso", "WEB");
-        } else if (tipoAcceso != null && tipoAcceso.equalsIgnoreCase("HUELLA")) {
-            params.addValue("tipoAcceso", "BIOMETRICO");
-        } else {
-            params.addValue("tipoAcceso", null);
-        }
-
-        params.addValue("resultado", filtro.getResultado());
-
         params.addValue("offset", pageable.getOffset());
         params.addValue("limit", pageable.getPageSize());
 
-        List<HistorialAccesoDTO> content = jdbcTemplate.query(sql, params, new BeanPropertyRowMapper<>(HistorialAccesoDTO.class));
+        // Construir consulta UNION (sin paginación, solo datos)
+        String unionQuery = buildUnionQuery(filtro, params);
+        // Construir consulta de conteo
+        String countQuery = buildCountQuery(filtro, params);
 
-        Long total = jdbcTemplate.queryForObject(countSql, params, Long.class);
+        // Ejecutar consulta principal
+        List<HistorialAccesoDTO> content = jdbcTemplate.query(unionQuery, params, new BeanPropertyRowMapper<>(HistorialAccesoDTO.class));
+
+        // Ejecutar consulta de conteo
+        Long total = jdbcTemplate.queryForObject(countQuery, params, Long.class);
 
         return new PageImpl<>(content, pageable, total != null ? total : 0);
     }
 
-    private String buildQuery(HistorialAccesoFiltroDTO filtro, boolean withPagination) {
-        StringBuilder sql = new StringBuilder();
+    /**
+     * Construye la consulta UNION completa con paginación.
+     */
+    private String buildUnionQuery(HistorialAccesoFiltroDTO filtro, MapSqlParameterSource params) {
+        String baseQuery = buildBaseUnionQuery(filtro, params);
+        return "SELECT * FROM (" + baseQuery + ") AS historial ORDER BY fechaHora DESC OFFSET :offset LIMIT :limit";
+    }
 
+    /**
+     * Construye la consulta de conteo.
+     */
+    private String buildCountQuery(HistorialAccesoFiltroDTO filtro, MapSqlParameterSource params) {
+        String baseQuery = buildBaseUnionQuery(filtro, params);
+        return "SELECT COUNT(*) FROM (" + baseQuery + ") AS historial";
+    }
+
+    /**
+     * Construye la parte central de la consulta (UNION ALL) sin ORDER BY ni paginación.
+     */
+    private String buildBaseUnionQuery(HistorialAccesoFiltroDTO filtro, MapSqlParameterSource params) {
+        // Parte 1: Asistencias
+        String asistenciaQuery = buildAsistenciaQuery(filtro, params);
+        // Parte 2: Auditoría biométrica
+        String biometricaQuery = buildBiometricaQuery(filtro, params);
+
+        return asistenciaQuery + " UNION ALL " + biometricaQuery;
+    }
+
+    /**
+     * Construye la consulta para la tabla asistencia.
+     */
+    private String buildAsistenciaQuery(HistorialAccesoFiltroDTO filtro, MapSqlParameterSource params) {
+        StringBuilder sql = new StringBuilder();
         sql.append("SELECT ");
         sql.append("    a.id_usuario AS usuarioId, ");
         sql.append("    CONCAT(u.nombre, ' ', u.apellido) AS nombreUsuario, ");
@@ -71,21 +94,15 @@ public class HistorialAccesoRepositoryImpl implements HistorialAccesoRepositoryC
         sql.append("LEFT JOIN users_schema.usuario_perfil u ON a.id_usuario = u.id_usuario ");
         sql.append("LEFT JOIN operations_schema.sede s ON a.id_sede = s.id_sede ");
         sql.append("WHERE 1=1 ");
-        sql.append("  AND (:usuarioId IS NULL OR a.id_usuario = :usuarioId) ");
-        sql.append("  AND a.fecha_hora_entrada BETWEEN :fechaInicio AND :fechaFin ");
-        sql.append("  AND ( ");
-        sql.append("        (:tipoAcceso IS NULL) ");
-        sql.append("        OR (:tipoAcceso = 'WEB' AND a.tipo_acceso IN ('WEB', 'APP')) ");
-        sql.append("        OR (:tipoAcceso = 'BIOMETRICO' AND a.tipo_acceso = 'BIOMETRICO') ");
-        sql.append("      ) ");
-        sql.append("  AND ( ");
-        sql.append("        (:resultado IS NULL) ");
-        sql.append("        OR (:resultado = 'EXITOSO' AND a.estado_acceso = 'PERMITIDO') ");
-        sql.append("        OR (:resultado = 'FALLIDO' AND a.estado_acceso = 'DENEGADO') ");
-        sql.append("        OR (:resultado = 'BLOQUEADO' AND 1=0) "); 
-        sql.append("      ) ");
+        sql.append(buildWhereAsistencia(filtro, params));
+        return sql.toString();
+    }
 
-        sql.append("UNION ALL ");
+    /**
+     * Construye la consulta para la tabla auditoria_biometrica.
+     */
+    private String buildBiometricaQuery(HistorialAccesoFiltroDTO filtro, MapSqlParameterSource params) {
+        StringBuilder sql = new StringBuilder();
         sql.append("SELECT ");
         sql.append("    ab.id_usuario AS usuarioId, ");
         sql.append("    CONCAT(u.nombre, ' ', u.apellido) AS nombreUsuario, ");
@@ -103,24 +120,87 @@ public class HistorialAccesoRepositoryImpl implements HistorialAccesoRepositoryC
         sql.append("LEFT JOIN users_schema.usuario_perfil u ON ab.id_usuario = u.id_usuario ");
         sql.append("LEFT JOIN operations_schema.sede s ON ab.id_sede = s.id_sede ");
         sql.append("WHERE 1=1 ");
-        sql.append("  AND (:usuarioId IS NULL OR ab.id_usuario = :usuarioId) ");
-        sql.append("  AND ab.fecha_hora BETWEEN :fechaInicio AND :fechaFin ");
+        sql.append(buildWhereBiometrica(filtro, params));
+        return sql.toString();
+    }
 
-        sql.append("  AND (:tipoAcceso IS NULL OR :tipoAcceso = 'BIOMETRICO') ");
-        // Filtro por resultado 
-        sql.append("  AND ( ");
-        sql.append("        (:resultado IS NULL) ");
-        sql.append("        OR (:resultado = 'EXITOSO' AND ab.exitoso = true) ");
-        sql.append("        OR (:resultado = 'FALLIDO' AND ab.exitoso = false AND ab.mensaje NOT LIKE '%bloqueado%') ");
-        sql.append("        OR (:resultado = 'BLOQUEADO' AND ab.exitoso = false AND ab.mensaje LIKE '%bloqueado%') ");
-        sql.append("      ) ");
+    /**
+     * Construye las condiciones WHERE para asistencias.
+     */
+    private String buildWhereAsistencia(HistorialAccesoFiltroDTO filtro, MapSqlParameterSource params) {
+        List<String> conditions = new ArrayList<>();
 
-        // Orden y paginación
-        sql.append("ORDER BY fechaHora DESC ");
-        if (withPagination) {
-            sql.append("OFFSET :offset LIMIT :limit ");
+        // Usuario
+        if (filtro.getUsuarioId() != null) {
+            conditions.add("a.id_usuario = :usuarioId");
+            params.addValue("usuarioId", filtro.getUsuarioId());
         }
 
-        return sql.toString();
+        // Fechas
+        conditions.add("a.fecha_hora_entrada BETWEEN :fechaInicio AND :fechaFin");
+
+        // Tipo de acceso
+        if (filtro.getTipoAcceso() != null) {
+            if (filtro.getTipoAcceso().equalsIgnoreCase("WEB")) {
+                conditions.add("a.tipo_acceso IN ('WEB', 'APP')");
+            } else if (filtro.getTipoAcceso().equalsIgnoreCase("HUELLA")) {
+                conditions.add("a.tipo_acceso = 'BIOMETRICO'");
+            }
+        }
+
+        // Resultado
+        if (filtro.getResultado() != null) {
+            String res = filtro.getResultado().toUpperCase();
+            if (res.equals("EXITOSO")) {
+                conditions.add("a.estado_acceso = 'PERMITIDO'");
+            } else if (res.equals("FALLIDO")) {
+                conditions.add("a.estado_acceso = 'DENEGADO'");
+            } else if (res.equals("BLOQUEADO")) {
+                // Las asistencias no tienen bloqueado -> condición falsa
+                conditions.add("1=0");
+            }
+        }
+
+        return conditions.isEmpty() ? "" : " AND " + String.join(" AND ", conditions);
+    }
+
+    /**
+     * Construye las condiciones WHERE para auditoría biométrica.
+     */
+    private String buildWhereBiometrica(HistorialAccesoFiltroDTO filtro, MapSqlParameterSource params) {
+        List<String> conditions = new ArrayList<>();
+
+        // Usuario
+        if (filtro.getUsuarioId() != null) {
+            conditions.add("ab.id_usuario = :usuarioId");
+            // No agregamos de nuevo el parámetro porque ya se agregó en la primera parte.
+            // Pero como el parámetro es el mismo, ya está registrado en params.
+        }
+
+        // Fechas
+        conditions.add("ab.fecha_hora BETWEEN :fechaInicio AND :fechaFin");
+
+        // Tipo de acceso: para biométrica siempre es BIOMETRICO
+        if (filtro.getTipoAcceso() != null) {
+            if (filtro.getTipoAcceso().equalsIgnoreCase("WEB")) {
+                // Si se pide WEB, no debería mostrar biométrica -> condición falsa
+                conditions.add("1=0");
+            }
+            // Si es HUELLA o null, no agregamos condición extra (todos son BIOMETRICO)
+        }
+
+        // Resultado
+        if (filtro.getResultado() != null) {
+            String res = filtro.getResultado().toUpperCase();
+            if (res.equals("EXITOSO")) {
+                conditions.add("ab.exitoso = true");
+            } else if (res.equals("FALLIDO")) {
+                conditions.add("ab.exitoso = false AND ab.mensaje NOT LIKE '%bloqueado%'");
+            } else if (res.equals("BLOQUEADO")) {
+                conditions.add("ab.exitoso = false AND ab.mensaje LIKE '%bloqueado%'");
+            }
+        }
+
+        return conditions.isEmpty() ? "" : " AND " + String.join(" AND ", conditions);
     }
 }
