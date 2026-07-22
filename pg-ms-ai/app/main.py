@@ -44,7 +44,7 @@ async def health() -> Dict[str, str]:
     return {
         "status": status,
         "service": "pg-ms-ai",
-        "gemini": groq_status,
+        "provider": groq_status,
         "model": groq_service.model_name if groq_service.api_key else "N/A (simulation)"
     }
 
