@@ -105,9 +105,9 @@ public class HistorialAccesoRepositoryImpl implements HistorialAccesoRepositoryC
         sql.append("WHERE 1=1 ");
         sql.append("  AND (:usuarioId IS NULL OR ab.id_usuario = :usuarioId) ");
         sql.append("  AND ab.fecha_hora BETWEEN :fechaInicio AND :fechaFin ");
-        
+
         sql.append("  AND (:tipoAcceso IS NULL OR :tipoAcceso = 'BIOMETRICO') ");
-        // Filtro por resultado
+        // Filtro por resultado 
         sql.append("  AND ( ");
         sql.append("        (:resultado IS NULL) ");
         sql.append("        OR (:resultado = 'EXITOSO' AND ab.exitoso = true) ");
