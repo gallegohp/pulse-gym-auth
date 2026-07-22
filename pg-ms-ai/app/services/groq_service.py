@@ -8,7 +8,7 @@ from app.services.parser import parse_response
 
 logger = logging.getLogger(__name__)
 
-class GeminiService:
+class GroqService:
     def __init__(self):
         self.api_key = settings.GROQ_API_KEY
         self.model_name = settings.MODEL_NAME or "llama-3.3-70b-versatile"

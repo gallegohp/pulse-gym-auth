@@ -4,7 +4,7 @@ import logging
 from typing import Dict, Any
 
 from app.models.schemas import RutinaGeneracionRequest
-from app.services.gemini_service import GeminiService
+from app.services.groq_service import GroqService
 
 logging.basicConfig(
     level=logging.INFO,
@@ -13,8 +13,8 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 app = FastAPI(
-    title="Pulse Gym - Gemini AI Service",
-    description="Servicio de generación de rutinas personalizadas con Gemini AI",
+    title="Pulse Gym - Groq AI Service",
+    description="Servicio de generación de rutinas personalizadas con Groq AI",
     version="1.0.0"
 )
 
@@ -26,12 +26,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-gemini_service = GeminiService()
+groq_service = GroqService()
 
 @app.get("/")
 async def root() -> Dict[str, str]:
     """Root endpoint"""
-    return {"message": "Pulse Gym - Gemini AI Service", "status": "running"}
+    return {"message": "Pulse Gym - Groq AI Service", "status": "running"}
 
 @app.get("/api/ai/health")
 async def health() -> Dict[str, str]:
@@ -40,18 +40,18 @@ async def health() -> Dict[str, str]:
     Retorna información sobre la conexión con Gemini.
     """
     status = "ok"
-    gemini_status = "connected" if gemini_service.api_key else "simulation"
+    groq_status = "connected" if groq_service.api_key else "simulation"
     return {
         "status": status,
         "service": "pg-ms-ai",
-        "gemini": gemini_status,
-        "model": gemini_service.model_name if gemini_service.api_key else "N/A (simulation)"
+        "gemini": groq_status,
+        "model": groq_service.model_name if groq_service.api_key else "N/A (simulation)"
     }
 
 @app.post("/api/ai/generar-rutina")
 async def generar_rutina(request: RutinaGeneracionRequest) -> Dict[str, Any]:
     """
-    Genera una rutina personalizada con Gemini.
+    Genera una rutina personalizada con Groq.
     
     Args:
         request: Datos del socio y preferencias
@@ -66,7 +66,7 @@ async def generar_rutina(request: RutinaGeneracionRequest) -> Dict[str, Any]:
         contexto = request.model_dump()
         logger.info(f"Generando rutina para socio ID: {contexto.get('id_socio')}")
         
-        resultado = gemini_service.generar_rutina(contexto)
+        resultado = groq_service.generar_rutina(contexto)
         
         logger.info(f"Rutina generada exitosamente")
         return resultado
@@ -89,7 +89,7 @@ async def generar_rutina_contexto(contexto: Dict[str, Any]) -> Dict[str, Any]:
     """
     try:
         logger.info(f"Generando rutina con contexto completo")
-        resultado = gemini_service.generar_rutina(contexto)
+        resultado = groq_service.generar_rutina(contexto)
         return resultado
         
     except Exception as e:
