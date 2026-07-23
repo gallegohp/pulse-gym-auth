@@ -2,6 +2,7 @@ package com.pulse_gym.ms_users.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -55,6 +56,37 @@ public class PlanNutricionalController {
             e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
                     "Error al generar el plan nutricional: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 
+     * Obtiene el plan nutricional activo del usuario autenticado
+     * 
+     * @param userRol           Rol del usuario autenticado (header)
+     * @param userIdAutenticado ID del usuario autenticado (header)
+     * @param userEmail         Email del usuario autenticado (header)
+     * @return DTO del plan nutricional activo
+     */
+    @GetMapping("/mi-plan")
+    public ResponseEntity<PlanNutricionalGeneracionResponseDTO> obtenerMiPlan(
+            @RequestHeader(value = "X-User-Rol", required = false) String userRol,
+            @RequestHeader(value = "X-User-Id", required = false) Long userIdAutenticado,
+            @RequestHeader(value = "X-User-Email", required = false) String userEmail) {
+
+        try {
+            PlanNutricionalGeneracionResponseDTO plan = planNutricionalService.obtenerPlanActivo(
+                    userIdAutenticado, userRol, userIdAutenticado, userEmail);
+            return ResponseEntity.ok(plan);
+
+        } catch (SecurityAuthorizationException e) {
+            throw e;
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Error al obtener el plan nutricional", e);
         }
     }
 }
