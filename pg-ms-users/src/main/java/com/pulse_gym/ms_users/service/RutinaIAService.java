@@ -216,7 +216,6 @@ public class RutinaIAService {
         ej.put("equipoNecesario", ejercicio.getEquipoNecesario());
         ej.put("dificultad", ejercicio.getDificultad());
         ej.put("urlImagen", ejercicio.getUrlImagen());
-        ej.put("urlVideo", ejercicio.getUrlVideo());
         return ej;
     }
 
