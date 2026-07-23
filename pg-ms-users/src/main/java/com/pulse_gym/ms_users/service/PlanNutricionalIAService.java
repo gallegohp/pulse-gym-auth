@@ -7,6 +7,7 @@ import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
+import com.pulse_gym.lb_common.dto.PlanNutricionalGeneracionRequestDTO;
 import com.pulse_gym.lb_common.entity.user.HistorialFisico;
 import com.pulse_gym.lb_common.entity.user.PerfilMedico;
 import com.pulse_gym.lb_common.entity.user.RutinaIA;
@@ -173,6 +174,27 @@ public class PlanNutricionalIAService {
 
         log.info("Datos recopilados para socio ID: {} - {} campos", idSocio, datos.size());
         return datos;
+    }
+
+    /**
+     * Construye el contexto con los datos del socio y preferencias para la IA
+     * 
+     * @param idSocio ID del socio
+     * @param request Preferencias del socio para el plan nutricional
+     * @return Mapa con el contexto completo para la IA
+     */
+    public Map<String, Object> construirContextoIA(Long idSocio, PlanNutricionalGeneracionRequestDTO request) {
+        Map<String, Object> contexto = recopilarDatosSocio(idSocio);
+
+        if (request != null) {
+            contexto.put("restriccionesDieteticas", request.getRestriccionesDieteticas());
+            contexto.put("alergias", request.getAlergias());
+            contexto.put("intolerancias", request.getIntolerancias());
+            contexto.put("objetivoEspecifico", request.getObjetivoEspecifico());
+            contexto.put("idRutina", request.getIdRutina());
+        }
+
+        return contexto;
     }
 
 }
