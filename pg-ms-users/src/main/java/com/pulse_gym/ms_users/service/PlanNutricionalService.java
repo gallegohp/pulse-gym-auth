@@ -145,7 +145,7 @@ public class PlanNutricionalService {
             plan.setPlanGenerado(respuestaIA.toString());
         }
 
-        plan.setModeloIa("Gemini-2.5-Flash");
+        plan.setModeloIa("llama-3.3-70b-versatile");
         plan.setVersion(1);
         plan.setActivo(true);
 
