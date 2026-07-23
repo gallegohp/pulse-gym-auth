@@ -13,6 +13,8 @@ import com.pulse_gym.lb_common.dto.PlanNutricionalGeneracionRequestDTO;
 import com.pulse_gym.lb_common.dto.PlanNutricionalGeneracionResponseDTO;
 import com.pulse_gym.lb_common.entity.user.PlanNutricionalIA;
 import com.pulse_gym.lb_common.entity.user.UsuarioPerfil;
+import com.pulse_gym.lb_common.enums.EnumRol;
+import com.pulse_gym.lb_common.exception.SecurityAuthorizationException;
 import com.pulse_gym.ms_users.repository.PlanNutricionalRepository;
 import com.pulse_gym.ms_users.repository.UsuarioPerfilRepository;
 
@@ -158,5 +160,36 @@ public class PlanNutricionalService {
         }
 
         return planNutricionalRepository.save(plan);
+    }
+
+    /**
+     * 
+     * Obtiene el plan nutricional activo de un socio
+     * 
+     * @param idSocio           ID del socio a consultar
+     * @param userRol           Rol del usuario autenticado
+     * @param userIdAutenticado ID del usuario autenticado
+     * @param userEmail         Email del usuario autenticado
+     * @return DTO del plan nutricional activo
+     */
+    public PlanNutricionalGeneracionResponseDTO obtenerPlanActivo(Long idSocio, String userRol,
+            Long userIdAutenticado, String userEmail) {
+
+        if (EnumRol.socio.name().equals(userRol)) {
+            UsuarioPerfil socio = usuarioRepository.findByEmail(userEmail)
+                    .orElseThrow(() -> new RuntimeException("Socio no encontrado con email: " + userEmail));
+
+            if (!idSocio.equals(socio.getIdUsuario())) {
+                throw new SecurityAuthorizationException(
+                        String.format("Acceso denegado. Solo puede ver su propio plan. " +
+                                "Tu ID en usuario_perfil: %d, ID solicitado: %d",
+                                socio.getIdUsuario(), idSocio));
+            }
+        }
+
+        PlanNutricionalIA plan = planNutricionalRepository.findBySocio_IdUsuarioAndActivoTrue(idSocio)
+                .orElseThrow(() -> new RuntimeException("El socio no tiene un plan nutricional activo"));
+
+        return convertirAResponseDTO(plan);
     }
 }
