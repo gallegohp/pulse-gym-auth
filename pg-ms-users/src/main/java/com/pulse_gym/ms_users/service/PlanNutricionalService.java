@@ -1,10 +1,12 @@
 package com.pulse_gym.ms_users.service;
 
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pulse_gym.lb_common.client.AiClient;
 import com.pulse_gym.lb_common.dto.PlanNutricionalGeneracionRequestDTO;
@@ -99,5 +101,53 @@ public class PlanNutricionalService {
                 plan.getIdPlanNutricional(), socio.getNombre());
 
         return respuestaIA;
+    }
+
+    private PlanNutricionalIA guardarPlan(UsuarioPerfil socio,
+            PlanNutricionalGeneracionResponseDTO respuestaIA,
+            PlanNutricionalGeneracionRequestDTO request) {
+
+        PlanNutricionalIA plan = new PlanNutricionalIA();
+        plan.setSocio(socio);
+        plan.setCaloriasDiarias(respuestaIA.getCaloriasDiarias());
+        plan.setProteinasG(respuestaIA.getProteinasG());
+        plan.setCarbohidratosG(respuestaIA.getCarbohidratosG());
+        plan.setGrasasG(respuestaIA.getGrasasG());
+
+        if (request.getRestriccionesDieteticas() != null && !request.getRestriccionesDieteticas().isEmpty()) {
+            plan.setRestriccionesDieteticas(String.join(", ", request.getRestriccionesDieteticas()));
+        }
+
+        try {
+            if (respuestaIA.getSugerenciasComidas() != null) {
+                String sugerenciasJson = objectMapper.writeValueAsString(respuestaIA.getSugerenciasComidas());
+                plan.setSugerenciasComidas(sugerenciasJson);
+            }
+        } catch (JsonProcessingException e) {
+            log.warn("Error al serializar sugerencias de comidas: {}", e.getMessage());
+        }
+
+        try {
+            String planJson = objectMapper.writeValueAsString(respuestaIA);
+            plan.setPlanGenerado(planJson);
+        } catch (JsonProcessingException e) {
+            log.warn("Error al serializar plan nutricional: {}", e.getMessage());
+            plan.setPlanGenerado(respuestaIA.toString());
+        }
+
+        plan.setModeloIa("Gemini-2.5-Flash");
+        plan.setVersion(1);
+        plan.setActivo(true);
+
+        List<PlanNutricionalIA> planesAnteriores = planNutricionalRepository
+                .findBySocio_IdUsuarioAndActivoTrue(socio.getIdUsuario());
+        for (PlanNutricionalIA p : planesAnteriores) {
+            p.setActivo(false);
+        }
+        if (!planesAnteriores.isEmpty()) {
+            planNutricionalRepository.saveAll(planesAnteriores);
+        }
+
+        return planNutricionalRepository.save(plan);
     }
 }
