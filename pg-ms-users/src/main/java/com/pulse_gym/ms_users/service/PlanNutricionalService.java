@@ -37,6 +37,16 @@ public class PlanNutricionalService {
     /** Mapper para convertir objetos a JSON */
     private final ObjectMapper objectMapper;
 
+    /**
+     * 
+     * Genera un plan nutricional usando IA
+     * 
+     * @param request           Preferencias para la generación del plan
+     * @param userRol           Rol del usuario autenticado
+     * @param userIdAutenticado ID del usuario autenticado
+     * @param userEmail         Email del usuario autenticado
+     * @return DTO con el plan nutricional generado
+     */
     @Transactional
     public PlanNutricionalGeneracionResponseDTO generarPlanNutricional(
             PlanNutricionalGeneracionRequestDTO request,
