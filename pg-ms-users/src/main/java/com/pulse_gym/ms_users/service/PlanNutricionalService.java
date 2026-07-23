@@ -103,6 +103,15 @@ public class PlanNutricionalService {
         return respuestaIA;
     }
 
+    /**
+     * 
+     * Guarda el plan nutricional generado por IA en la base de datos
+     * 
+     * @param socio       Socio al que pertenece el plan
+     * @param respuestaIA Respuesta de la IA con los datos del plan
+     * @param request     Preferencias del socio
+     * @return Plan nutricional guardado
+     */
     private PlanNutricionalIA guardarPlan(UsuarioPerfil socio,
             PlanNutricionalGeneracionResponseDTO respuestaIA,
             PlanNutricionalGeneracionRequestDTO request) {
