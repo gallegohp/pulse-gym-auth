@@ -52,7 +52,6 @@ public class EjercicioService {
         dto.setUrlImagen(ejercicio.getUrlImagen());
         dto.setDificultad(ejercicio.getDificultad());
         dto.setCaloriasPorMinuto(ejercicio.getCaloriasPorMinuto());
-        dto.setUrlVideo(ejercicio.getUrlVideo());
         dto.setActivo(ejercicio.getActivo());
         return dto;
     }
@@ -89,7 +88,6 @@ public class EjercicioService {
         ejercicio.setUrlImagen(request.getUrlImagen());
         ejercicio.setDificultad(request.getDificultad());
         ejercicio.setCaloriasPorMinuto(request.getCaloriasPorMinuto());
-        ejercicio.setUrlVideo(request.getUrlVideo());
         ejercicio.setActivo(request.getActivo() != null ? request.getActivo() : true);
 
         ejercicioRepository.save(ejercicio);
@@ -230,9 +228,6 @@ public class EjercicioService {
         }
         if (request.getCaloriasPorMinuto() != null) {
             ejercicio.setCaloriasPorMinuto(request.getCaloriasPorMinuto());
-        }
-        if (request.getUrlVideo() != null) {
-            ejercicio.setUrlVideo(request.getUrlVideo());
         }
         if (request.getActivo() != null) {
             ejercicio.setActivo(request.getActivo());

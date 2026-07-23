@@ -15,11 +15,11 @@ public class RutinaGeneracionRequestDTO {
 
     /** Días por semana para la rutina */
     @Min(value = 1, message = "Los días por semana deben ser al menos 1")
-    private Integer diasPorSemana = 3;
+    private Integer diasPorSemana;
 
     /** Duración en semanas de la rutina */
     @Min(value = 1, message = "La duración en semanas debe ser al menos 1")
-    private Integer duracionSemanas = 4;
+    private Integer duracionSemanas;
 
     /** Equipamiento preferido para la rutina */
     private List<String> preferenciasEquipamiento;

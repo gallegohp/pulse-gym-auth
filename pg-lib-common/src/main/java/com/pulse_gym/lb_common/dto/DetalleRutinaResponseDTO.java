@@ -29,10 +29,6 @@ public class DetalleRutinaResponseDTO {
     @JsonProperty("urlImagen")
     private String urlImagen;
 
-    /** URL del video del ejercicio */
-    @JsonProperty("urlVideo")
-    private String urlVideo;
-
     /** Día de la semana (1-7) en que se realiza */
     @JsonProperty("diaSemana")
     private Integer diaSemana;

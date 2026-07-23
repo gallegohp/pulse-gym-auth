@@ -99,7 +99,6 @@ public class RutinaService {
         dto.setNombreEjercicio(detalle.getEjercicio().getNombre());
         dto.setGrupoMuscular(detalle.getEjercicio().getGrupoMuscular());
         dto.setUrlImagen(detalle.getEjercicio().getUrlImagen());
-        dto.setUrlVideo(detalle.getEjercicio().getUrlVideo());
         dto.setDiaSemana(detalle.getDiaSemana());
         dto.setOrden(detalle.getOrden());
         dto.setSeries(detalle.getSeries());
@@ -282,7 +281,6 @@ public class RutinaService {
                     .ifPresent(ejercicio -> {
                         detalle.setIdEjercicio(ejercicio.getIdEjercicio());
                         detalle.setUrlImagen(ejercicio.getUrlImagen());
-                        detalle.setUrlVideo(ejercicio.getUrlVideo());
                         detalle.setGrupoMuscular(ejercicio.getGrupoMuscular());
                     });
         }
