@@ -18,6 +18,7 @@ import org.springframework.web.server.ResponseStatusException;
 import com.pulse_gym.lb_common.dto.RutinaAjusteRequestDTO;
 import com.pulse_gym.lb_common.dto.RutinaGeneracionRequestDTO;
 import com.pulse_gym.lb_common.dto.RutinaGeneracionResponseDTO;
+import com.pulse_gym.lb_common.dto.RutinaHistorialResponseDTO;
 import com.pulse_gym.lb_common.exception.SecurityAuthorizationException;
 import com.pulse_gym.lb_common.services.ValidacionDeRoles;
 import com.pulse_gym.ms_users.service.RutinaService;
@@ -202,13 +203,16 @@ public class RutinaController {
      * @return Lista del historial de versiones
      */
     @GetMapping("/{idRutina}/historial")
-    public ResponseEntity<List<Object>> obtenerHistorialRutina(
+    public ResponseEntity<List<RutinaHistorialResponseDTO>> obtenerHistorialRutina(
             @PathVariable Long idRutina,
             @RequestHeader(value = "X-User-Rol", required = false) String userRol,
-            @RequestHeader(value = "X-User-Id", required = false) Long userIdAutenticado) {
+            @RequestHeader(value = "X-User-Id", required = false) Long userIdAutenticado,
+            @RequestHeader(value = "X-User-Email", required = false) String userEmail) {
 
         try {
-            return ResponseEntity.ok(List.of());
+            List<RutinaHistorialResponseDTO> historial = rutinaService.obtenerHistorialRutina(
+                    idRutina, userRol, userIdAutenticado, userEmail);
+            return ResponseEntity.ok(historial);
 
         } catch (SecurityAuthorizationException e) {
             throw e;

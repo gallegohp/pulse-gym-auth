@@ -26,6 +26,7 @@ import com.pulse_gym.lb_common.enums.EnumRol;
 import com.pulse_gym.lb_common.exception.SecurityAuthorizationException;
 import com.pulse_gym.ms_users.repository.DetalleRutinaRepository;
 import com.pulse_gym.ms_users.repository.EjercicioRepository;
+import com.pulse_gym.ms_users.repository.HistorialRutinaVersionRepository;
 import com.pulse_gym.ms_users.repository.RutinaRepository;
 import com.pulse_gym.ms_users.repository.UsuarioPerfilRepository;
 
@@ -61,6 +62,9 @@ public class RutinaService {
 
     /** Mapper para convertir objetos a JSON */
     private final ObjectMapper objectMapper;
+
+    /** Repositorio de historial de versiones de rutina */
+    private final HistorialRutinaVersionRepository historialRutinaVersionRepository;
 
     /**
      * Convierte una entidad RutinaIA a RutinaGeneracionResponseDTO
@@ -464,5 +468,55 @@ public class RutinaService {
                 "idRutina", idRutina,
                 "idDetalle", request.getIdDetalle(),
                 "nuevaVersion", rutina.getVersion());
+    }
+
+    /**
+     * 
+     * Obtiene el historial de versiones de una rutina
+     * 
+     * @param idRutina          ID de la rutina a consultar
+     * @param userRol           Rol del usuario autenticado
+     * @param userIdAutenticado ID del usuario autenticado
+     * @param userEmail         Email del usuario autenticado
+     * @return Lista del historial de versiones
+     */
+    public List<RutinaHistorialResponseDTO> obtenerHistorialRutina(Long idRutina, String userRol,
+            Long userIdAutenticado, String userEmail) {
+
+        log.info("Obteniendo historial de rutina ID: {}", idRutina);
+
+        RutinaIA rutina = rutinaRepository.findById(idRutina)
+                .orElseThrow(() -> new RuntimeException("Rutina no encontrada con ID: " + idRutina));
+
+        if (EnumRol.socio.name().equals(userRol)) {
+            UsuarioPerfil socio = usuarioRepository.findByEmail(userEmail)
+                    .orElseThrow(() -> new RuntimeException("Socio no encontrado con email: " + userEmail));
+
+            if (!rutina.getSocio().getIdUsuario().equals(socio.getIdUsuario())) {
+                throw new SecurityAuthorizationException(
+                        "Acceso denegado. Solo puede ver el historial de sus propias rutinas");
+            }
+        }
+
+        List<HistorialRutinaVersion> historial = historialRutinaVersionRepository
+                .findByRutinaIa_IdRutinaIaOrderByVersionDesc(idRutina);
+
+        if (historial.isEmpty()) {
+            log.info("No hay historial para la rutina ID: {}, creando entrada inicial", idRutina);
+
+            HistorialRutinaVersion versionInicial = new HistorialRutinaVersion();
+            versionInicial.setRutinaIa(rutina);
+            versionInicial.setVersion(1);
+            versionInicial.setDatosJson(rutina.getRutinaGenerada());
+            versionInicial.setMotivo("Generación inicial");
+            versionInicial.setFechaModificacion(rutina.getFechaGeneracion());
+
+            historialRutinaVersionRepository.save(versionInicial);
+            historial = List.of(versionInicial);
+        }
+
+        return historial.stream()
+                .map(this::convertirHistorialAResponseDTO)
+                .collect(Collectors.toList());
     }
 }
