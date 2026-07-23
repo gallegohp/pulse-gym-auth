@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pulse_gym.lb_common.client.AiClient;
 import com.pulse_gym.lb_common.dto.PlanNutricionalGeneracionRequestDTO;
 import com.pulse_gym.lb_common.dto.PlanNutricionalGeneracionResponseDTO;
+import com.pulse_gym.lb_common.dto.SugerenciaComidaDTO;
 import com.pulse_gym.lb_common.entity.user.PlanNutricionalIA;
 import com.pulse_gym.lb_common.entity.user.UsuarioPerfil;
 import com.pulse_gym.lb_common.enums.EnumRol;
@@ -191,5 +192,42 @@ public class PlanNutricionalService {
                 .orElseThrow(() -> new RuntimeException("El socio no tiene un plan nutricional activo"));
 
         return convertirAResponseDTO(plan);
+    }
+
+    /**
+     * Convierte una entidad PlanNutricionalIA a
+     * PlanNutricionalGeneracionResponseDTO
+     * 
+     * @param plan Entidad a convertir
+     * @return DTO del plan nutricional
+     */
+    private PlanNutricionalGeneracionResponseDTO convertirAResponseDTO(PlanNutricionalIA plan) {
+        PlanNutricionalGeneracionResponseDTO dto = new PlanNutricionalGeneracionResponseDTO();
+        dto.setIdPlanNutricional(plan.getIdPlanNutricional());
+        dto.setCaloriasDiarias(plan.getCaloriasDiarias());
+        dto.setProteinasG(plan.getProteinasG());
+        dto.setCarbohidratosG(plan.getCarbohidratosG());
+        dto.setGrasasG(plan.getGrasasG());
+        dto.setVersion(plan.getVersion());
+        dto.setGeneradoPorIA(plan.getModeloIa() != null);
+        dto.setFechaGeneracion(plan.getFechaGeneracion());
+
+        if (plan.getRestriccionesDieteticas() != null && !plan.getRestriccionesDieteticas().isEmpty()) {
+            dto.setRestriccionesDieteticas(List.of(plan.getRestriccionesDieteticas().split(", ")));
+        }
+
+        if (plan.getSugerenciasComidas() != null) {
+            try {
+                Map<String, List<SugerenciaComidaDTO>> sugerencias = objectMapper.readValue(
+                        plan.getSugerenciasComidas(),
+                        new com.fasterxml.jackson.core.type.TypeReference<Map<String, List<SugerenciaComidaDTO>>>() {
+                        });
+                dto.setSugerenciasComidas(sugerencias);
+            } catch (Exception e) {
+                log.warn("Error al parsear sugerencias de comidas: {}", e.getMessage());
+            }
+        }
+
+        return dto;
     }
 }
