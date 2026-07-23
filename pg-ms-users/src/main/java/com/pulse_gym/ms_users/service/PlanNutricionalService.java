@@ -76,18 +76,16 @@ public class PlanNutricionalService {
         planNutricionalIAService.validarRolGeneracion(userRol, request.getIdSocio(), userIdAutenticado, userEmail);
         planNutricionalIAService.validarMembresiaActiva(request.getIdSocio());
 
-        Map<String, Object> contexto = planNutricionalIAService.construirContextoIA(request.getIdSocio(), request);
-
         PlanNutricionalGeneracionResponseDTO respuestaIA = null;
         try {
-            String respuestaJson = aiClient.generarRutinaConContexto(contexto);
+            respuestaIA = aiClient.generarPlanNutricional(request);
 
-            log.info("JSON recibido de Python (primeros 300 chars): {}",
-                    respuestaJson.length() > 300 ? respuestaJson.substring(0, 300) + "..." : respuestaJson);
+            if (respuestaIA == null) {
+                throw new RuntimeException("La IA no devolvió un plan nutricional válido");
+            }
 
-            respuestaIA = objectMapper.readValue(respuestaJson, PlanNutricionalGeneracionResponseDTO.class);
-
-            log.info("Plan nutricional generado correctamente");
+            log.info("Plan nutricional generado correctamente: {} calorías diarias",
+                    respuestaIA.getCaloriasDiarias());
         } catch (Exception e) {
             log.error("Error al llamar al servicio de IA: {}", e.getMessage());
             throw new RuntimeException("Error al generar plan nutricional con IA: " + e.getMessage());
