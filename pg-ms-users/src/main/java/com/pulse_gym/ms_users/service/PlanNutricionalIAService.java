@@ -6,6 +6,9 @@ import java.time.Period;
 import org.springframework.stereotype.Service;
 
 import com.pulse_gym.lb_common.entity.user.SocioMembresia;
+import com.pulse_gym.lb_common.entity.user.UsuarioPerfil;
+import com.pulse_gym.lb_common.enums.EnumRol;
+import com.pulse_gym.lb_common.exception.SecurityAuthorizationException;
 import com.pulse_gym.ms_users.repository.HistorialFisicoRepository;
 import com.pulse_gym.ms_users.repository.PerfilMedicoRepository;
 import com.pulse_gym.ms_users.repository.RutinaRepository;
@@ -63,5 +66,47 @@ public class PlanNutricionalIAService {
         }
 
         log.info("Membresía activa confirmada para socio ID: {}", idSocio);
+    }
+
+    /**
+     * Valida que el usuario tenga permisos para generar planes nutricionales
+     * 
+     * @param userRol           Rol del usuario autenticado
+     * @param idSocio           ID del socio para el que se genera el plan
+     * @param userIdAutenticado ID del usuario autenticado
+     * @param userEmail         Email del usuario autenticado
+     */
+    public void validarRolGeneracion(String userRol, Long idSocio, Long userIdAutenticado, String userEmail) {
+        if (userRol == null) {
+            throw new SecurityAuthorizationException("Usuario no autenticado");
+        }
+
+        if (EnumRol.administrador.name().equals(userRol)) {
+            return;
+        }
+
+        if (EnumRol.entrenador.name().equals(userRol)) {
+            return;
+        }
+
+        if (EnumRol.recepcionista.name().equals(userRol)) {
+            return;
+        }
+
+        if (EnumRol.socio.name().equals(userRol)) {
+            UsuarioPerfil socio = usuarioRepository.findByEmail(userEmail)
+                    .orElseThrow(() -> new RuntimeException("Socio no encontrado con email: " + userEmail));
+
+            if (!socio.getIdUsuario().equals(idSocio)) {
+                throw new SecurityAuthorizationException(
+                        String.format("Acceso denegado. Los socios solo pueden generar planes para sí mismos. " +
+                                "Tu ID en usuario_perfil: %d, ID solicitado: %d",
+                                socio.getIdUsuario(), idSocio));
+            }
+            return;
+        }
+
+        throw new SecurityAuthorizationException(
+                "Acceso denegado. Rol '" + userRol + "' no autorizado para generar planes nutricionales");
     }
 }
