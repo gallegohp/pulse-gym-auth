@@ -62,12 +62,6 @@ public class Ejercicio {
     @Column(name = "calorias_por_minuto", precision = 5, scale = 2)
     private java.math.BigDecimal caloriasPorMinuto;
 
-    /**
-     * URL del video demostrativo (opcional)
-     */
-    @Column(name = "url_video", length = 255)
-    private String urlVideo;
-
     /** Indica si el ejercicio está activo */
     @Column(name = "activo", nullable = false)
     private Boolean activo = true;

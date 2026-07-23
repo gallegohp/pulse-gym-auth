@@ -121,6 +121,27 @@ services:
       - pulsegym
     environment:
       JWT_SECRET: ${JWT_SECRET}
+    
+  pg-ms-ai:
+    build:
+      context: ./pg-ms-ai 
+      dockerfile: Dockerfile
+    container_name: pg-ms-ai
+    ports:
+      - "8086:8086"
+    depends_on:
+      - consul
+    environment:
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      MODEL_NAME: ${MODEL_NAME}
+      TEMPERATURE: ${TEMPERATURE}
+      MAX_OUTPUT_TOKENS: ${MAX_OUTPUT_TOKENS}
+      TOP_P: ${TOP_P}
+      TOP_K: ${TOP_K}
+    networks:
+      - pulsegym
+    env_file:
+      - .env
 
 networks:
   pulsegym:

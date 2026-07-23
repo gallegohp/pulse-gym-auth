@@ -44,10 +44,6 @@ public class EjercicioRequestDTO {
     @DecimalMin(value = "0.0", message = "Las calorías por minuto no pueden ser negativas")
     private BigDecimal caloriasPorMinuto;
 
-    /** URL del video demostrativo */
-    @Size(max = 255, message = "La URL del video no puede superar los 255 caracteres")
-    private String urlVideo;
-
     /** Indica si el ejercicio está activo */
     private Boolean activo = true;
 }

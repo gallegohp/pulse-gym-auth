@@ -31,9 +31,6 @@ public class EjercicioResponseDTO {
     /** Calorías estimadas quemadas por minuto */
     private BigDecimal caloriasPorMinuto;
 
-    /** URL del video demostrativo */
-    private String urlVideo;
-
     /** Indica si el ejercicio está activo */
     private Boolean activo;
 }
