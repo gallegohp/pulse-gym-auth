@@ -1,5 +1,8 @@
 package com.pulse_gym.ms_users.service;
 
+import java.time.LocalDate;
+import java.time.Period;
+
 import org.springframework.stereotype.Service;
 
 import com.pulse_gym.ms_users.repository.HistorialFisicoRepository;
@@ -30,4 +33,16 @@ public class PlanNutricionalIAService {
 
     /** Repositorio de membresías de socios */
     private final SocioMembresiaRepository socioMembresiaRepository;
+
+    /**
+     * Calcula la edad a partir de la fecha de nacimiento
+     * 
+     * @param fechaNacimiento Fecha de nacimiento
+     * @return Edad en años, o 0 si la fecha es nula
+     */
+    private int calcularEdad(LocalDate fechaNacimiento) {
+        if (fechaNacimiento == null)
+            return 0;
+        return Period.between(fechaNacimiento, LocalDate.now()).getYears();
+    }
 }
