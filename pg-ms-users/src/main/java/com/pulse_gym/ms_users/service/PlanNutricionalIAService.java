@@ -5,6 +5,7 @@ import java.time.Period;
 
 import org.springframework.stereotype.Service;
 
+import com.pulse_gym.lb_common.entity.user.SocioMembresia;
 import com.pulse_gym.ms_users.repository.HistorialFisicoRepository;
 import com.pulse_gym.ms_users.repository.PerfilMedicoRepository;
 import com.pulse_gym.ms_users.repository.RutinaRepository;
@@ -44,5 +45,23 @@ public class PlanNutricionalIAService {
         if (fechaNacimiento == null)
             return 0;
         return Period.between(fechaNacimiento, LocalDate.now()).getYears();
+    }
+
+    /**
+     * Valida que el socio tenga una membresía activa
+     * 
+     * @param idSocio ID del socio a validar
+     */
+    public void validarMembresiaActiva(Long idSocio) {
+        log.info("Validando membresía activa para socio ID: {}", idSocio);
+
+        SocioMembresia membresiaActiva = socioMembresiaRepository.findMembresiaActivaBySocio(idSocio)
+                .orElseThrow(() -> new RuntimeException("El socio no tiene una membresía activa"));
+
+        if (!membresiaActiva.isActiva()) {
+            throw new RuntimeException("La membresía del socio está inactiva o vencida");
+        }
+
+        log.info("Membresía activa confirmada para socio ID: {}", idSocio);
     }
 }
