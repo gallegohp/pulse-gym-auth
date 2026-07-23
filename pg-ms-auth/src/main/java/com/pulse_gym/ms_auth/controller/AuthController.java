@@ -208,14 +208,14 @@ public class AuthController {
             @RequestBody BiometricLoginRequestDTO tokenRequest) {
         try {
             HttpGlobalResponse<JwtDTO> response = authService.loginBiometrico(tokenRequest.getToken());
-            HttpStatus status = response.getMessege().contains("exitosa")
+            HttpStatus status = response.getMessage().contains("exitosa")
                     ? HttpStatus.OK
                     : HttpStatus.UNAUTHORIZED;
             return ResponseEntity.status(status).body(response);
         } catch (Exception e) {
             e.printStackTrace();
             HttpGlobalResponse<JwtDTO> errorResponse = new HttpGlobalResponse<>();
-            errorResponse.setMessege("Error interno al procesar la autenticación biométrica");
+            errorResponse.setMessage("Error interno al procesar la autenticación biométrica");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }

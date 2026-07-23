@@ -179,7 +179,7 @@ public class AuthService {
 
         if (userFound.isEmpty()) {
             logger.warn("=== LOGIN: Usuario no encontrado: {} ===", requestDTO.getEmail());
-            response.setMessege("Este usuario no se encuentra registrado");
+            response.setMessage("Este usuario no se encuentra registrado");
             return response;
         }
 
@@ -187,7 +187,7 @@ public class AuthService {
 
         if (!passwordEncoder.matches(requestDTO.getPassword(), user.getPassword())) {
             logger.warn("=== LOGIN: Contraseña incorrecta para email: {} ===", requestDTO.getEmail());
-            response.setMessege("Correo o contraseña son incorrectos");
+            response.setMessage("Correo o contraseña son incorrectos");
             return response;
         }
 
@@ -196,7 +196,7 @@ public class AuthService {
         JwtDTO jwtDTO = new JwtDTO();
         String jwt = jwtService.generateToken(user.getId(), user.getRol().name(), user.getEmail());
         jwtDTO.setJwt(jwt);
-        response.setMessege("Inicio de sesion exitoso");
+        response.setMessage("Inicio de sesion exitoso");
         response.setData(jwtDTO);
 
         logger.info("=== LOGIN: Verificando notificacionClient para login, es null? {} ===",
@@ -359,13 +359,13 @@ public class AuthService {
 
         if (!biometricJwtService.validateToken(biometricToken)) {
             logger.warn("[HUELLA] Token biométrico inválido");
-            response.setMessege("Huella no reconocida. Intente de nuevo o use otro método.");
+            response.setMessage("Huella no reconocida. Intente de nuevo o use otro método.");
             return response;
         }
 
         if (biometricJwtService.isTokenExpired(biometricToken)) {
             logger.warn("[HUELLA] Token biométrico expirado");
-            response.setMessege("Huella no reconocida. Intente de nuevo o use otro método.");
+            response.setMessage("Huella no reconocida. Intente de nuevo o use otro método.");
             return response;
         }
 
@@ -374,7 +374,7 @@ public class AuthService {
 
         if (userId == null || deviceId == null) {
             logger.warn("[HUELLA] Token biométrico incompleto - userId: {}, deviceId: {}", userId, deviceId);
-            response.setMessege("Huella no reconocida. Intente de nuevo o use otro método.");
+            response.setMessage("Huella no reconocida. Intente de nuevo o use otro método.");
             return response;
         }
 
@@ -385,27 +385,27 @@ public class AuthService {
             usuarioPerfil = usuarioClient.obtenerUsuarioPorIdInterno(userId);
         } catch (Exception e) {
             logger.error("[HUELLA] Error al consultar usuario en pg-ms-users: {}", e.getMessage());
-            response.setMessege("Error interno al validar la huella");
+            response.setMessage("Error interno al validar la huella");
             return response;
         }
 
         if (usuarioPerfil == null) {
             logger.warn("[HUELLA] Usuario no encontrado: {}", userId);
-            response.setMessege("Huella no reconocida. Intente de nuevo o use otro método.");
+            response.setMessage("Huella no reconocida. Intente de nuevo o use otro método.");
             return response;
         }
 
         if (usuarioPerfil.getEstado() == null ||
                 !usuarioPerfil.getEstado().name().equalsIgnoreCase("ACTIVO")) {
             logger.warn("[HUELLA] Usuario inactivo: {}", userId);
-            response.setMessege("Usuario inactivo. Contacte con administración.");
+            response.setMessage("Usuario inactivo. Contacte con administración.");
             return response;
         }
 
         String hashGuardado = usuarioPerfil.getBiometricDeviceId();
         if (hashGuardado == null || hashGuardado.trim().isEmpty()) {
             logger.warn("[HUELLA] Usuario sin huella registrada: {}", userId);
-            response.setMessege("Huella no reconocida. Intente de nuevo o use otro método.");
+            response.setMessage("Huella no reconocida. Intente de nuevo o use otro método.");
             return response;
         }
 
@@ -414,7 +414,7 @@ public class AuthService {
             logger.warn("[HUELLA] Hash no coincide para usuario: {}. Hash esperado: {}, hash recibido: {}",
                     userId, hashGuardado.substring(0, 10) + "...",
                     hashDeviceIdToken != null ? hashDeviceIdToken.substring(0, 10) + "..." : "null");
-            response.setMessege("Huella no reconocida. Intente de nuevo o use otro método.");
+            response.setMessage("Huella no reconocida. Intente de nuevo o use otro método.");
             return response;
         }
 
@@ -425,7 +425,7 @@ public class AuthService {
 
         JwtDTO jwtDTO = new JwtDTO();
         jwtDTO.setJwt(jwt);
-        response.setMessege("Autenticación biométrica exitosa");
+        response.setMessage("Autenticación biométrica exitosa");
         response.setData(jwtDTO);
 
         logger.info("[HUELLA] Autenticación biométrica exitosa para usuario: {}", userId);

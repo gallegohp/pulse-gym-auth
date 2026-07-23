@@ -12,5 +12,5 @@ public class HttpGlobalResponse<T> {
     /**
      * Mensaje de respuesta
      */
-    private String messege;
+    private String message;
 }
