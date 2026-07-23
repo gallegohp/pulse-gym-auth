@@ -152,7 +152,7 @@ public class PlanNutricionalService {
         plan.setActivo(true);
 
         List<PlanNutricionalIA> planesAnteriores = planNutricionalRepository
-                .findBySocio_IdUsuarioAndActivoTrue(socio.getIdUsuario());
+                .findBySocio_IdUsuarioAndActivoTrueOrderByFechaGeneracionDesc(socio.getIdUsuario());
         for (PlanNutricionalIA p : planesAnteriores) {
             p.setActivo(false);
         }
