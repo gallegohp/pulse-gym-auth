@@ -16,8 +16,10 @@ import com.pulse_gym.lb_common.dto.DetalleRutinaResponseDTO;
 import com.pulse_gym.lb_common.dto.RutinaAjusteRequestDTO;
 import com.pulse_gym.lb_common.dto.RutinaGeneracionRequestDTO;
 import com.pulse_gym.lb_common.dto.RutinaGeneracionResponseDTO;
+import com.pulse_gym.lb_common.dto.RutinaHistorialResponseDTO;
 import com.pulse_gym.lb_common.entity.user.DetalleRutina;
 import com.pulse_gym.lb_common.entity.user.Ejercicio;
+import com.pulse_gym.lb_common.entity.user.HistorialRutinaVersion;
 import com.pulse_gym.lb_common.entity.user.RutinaIA;
 import com.pulse_gym.lb_common.entity.user.UsuarioPerfil;
 import com.pulse_gym.lb_common.enums.EnumRol;
@@ -110,6 +112,29 @@ public class RutinaService {
         dto.setDescansoSegundos(detalle.getDescansoSegundos());
         dto.setNotas(detalle.getNotas());
         dto.setModificadoPor(detalle.getModificadoPor());
+        return dto;
+    }
+
+    /**
+     * Convierte una entidad HistorialRutinaVersion a RutinaHistorialResponseDTO
+     * 
+     * @param historial Entidad a convertir
+     * @return DTO del historial
+     */
+    private RutinaHistorialResponseDTO convertirHistorialAResponseDTO(HistorialRutinaVersion historial) {
+        RutinaHistorialResponseDTO dto = new RutinaHistorialResponseDTO();
+        dto.setIdHistorial(historial.getIdHistorial());
+        dto.setVersion(historial.getVersion());
+        dto.setDatosJson(historial.getDatosJson());
+        dto.setMotivo(historial.getMotivo());
+        dto.setFechaModificacion(historial.getFechaModificacion());
+
+        if (historial.getModificadoPor() != null) {
+            dto.setModificadoPor(historial.getModificadoPor().getEmail());
+        } else {
+            dto.setModificadoPor("Sistema");
+        }
+
         return dto;
     }
 
