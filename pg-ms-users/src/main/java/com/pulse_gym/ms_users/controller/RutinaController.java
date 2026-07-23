@@ -159,27 +159,28 @@ public class RutinaController {
     }
 
     /**
-     * Ajusta un detalle de una rutina
      * 
-     * @param idRutina ID de la rutina a ajustar
-     * @param request  DTO con los datos a ajustar
-     * @param userRol  Rol del usuario autenticado (header)
+     * Ajusta un detalle específico de una rutina
+     * 
+     * @param idRutina          ID de la rutina a ajustar
+     * @param request           DTO con los datos a modificar
+     * @param userRol           Rol del usuario autenticado (header)
+     * @param userIdAutenticado ID del usuario autenticado (header)
+     * @param userEmail         Email del usuario autenticado (header)
      * @return Mapa con el resultado del ajuste
      */
     @PutMapping("/{idRutina}/ajustar")
     public ResponseEntity<Map<String, Object>> ajustarRutina(
             @PathVariable Long idRutina,
             @Valid @RequestBody RutinaAjusteRequestDTO request,
-            @RequestHeader(value = "X-User-Rol", required = false) String userRol) {
+            @RequestHeader(value = "X-User-Rol", required = false) String userRol,
+            @RequestHeader(value = "X-User-Id", required = false) Long userIdAutenticado,
+            @RequestHeader(value = "X-User-Email", required = false) String userEmail) {
 
         try {
-            ValidacionDeRoles.validarEntrenador(userRol);
-
-            return ResponseEntity.ok(Map.of(
-                    "success", true,
-                    "message", "Rutina ajustada correctamente",
-                    "idRutina", idRutina,
-                    "idDetalle", request.getIdDetalle()));
+            Map<String, Object> response = rutinaService.ajustarRutina(
+                    idRutina, request, userRol, userIdAutenticado, userEmail);
+            return ResponseEntity.ok(response);
 
         } catch (SecurityAuthorizationException e) {
             throw e;

@@ -1,5 +1,6 @@
 package com.pulse_gym.ms_users.service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +13,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pulse_gym.lb_common.client.AiClient;
 import com.pulse_gym.lb_common.dto.DetalleRutinaResponseDTO;
+import com.pulse_gym.lb_common.dto.RutinaAjusteRequestDTO;
 import com.pulse_gym.lb_common.dto.RutinaGeneracionRequestDTO;
 import com.pulse_gym.lb_common.dto.RutinaGeneracionResponseDTO;
 import com.pulse_gym.lb_common.entity.user.DetalleRutina;
@@ -366,5 +368,76 @@ public class RutinaService {
         return rutinas.stream()
                 .map(this::convertirAResponseDTO)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * 
+     * Ajusta un detalle específico de una rutina
+     * 
+     * @param idRutina          ID de la rutina a ajustar
+     * @param request           DTO con los datos a modificar
+     * @param userRol           Rol del usuario autenticado
+     * @param userIdAutenticado ID del usuario autenticado
+     * @param userEmail         Email del usuario autenticado
+     * @return Mapa con el resultado del ajuste
+     */
+    @Transactional
+    public Map<String, Object> ajustarRutina(Long idRutina, RutinaAjusteRequestDTO request,
+            String userRol, Long userIdAutenticado, String userEmail) {
+
+        log.info("Ajustando rutina ID: {}, detalle ID: {}", idRutina, request.getIdDetalle());
+
+        if (!EnumRol.entrenador.name().equals(userRol) &&
+                !EnumRol.administrador.name().equals(userRol) &&
+                !EnumRol.recepcionista.name().equals(userRol)) {
+            throw new SecurityAuthorizationException(
+                    "Acceso denegado. Solo entrenadores, administradores o recepcionista pueden ajustar rutinas");
+        }
+
+        RutinaIA rutina = rutinaRepository.findById(idRutina)
+                .orElseThrow(() -> new RuntimeException("Rutina no encontrada con ID: " + idRutina));
+
+        DetalleRutina detalle = detalleRutinaRepository.findById(request.getIdDetalle())
+                .orElseThrow(() -> new RuntimeException("Detalle no encontrado con ID: " + request.getIdDetalle()));
+
+        if (!detalle.getRutinaIa().getIdRutinaIa().equals(idRutina)) {
+            throw new RuntimeException("El detalle no pertenece a esta rutina");
+        }
+
+        if (request.getSeries() != null) {
+            detalle.setSeries(request.getSeries());
+        }
+        if (request.getRepeticionesMin() != null) {
+            detalle.setRepeticionesMin(request.getRepeticionesMin());
+        }
+        if (request.getRepeticionesMax() != null) {
+            detalle.setRepeticionesMax(request.getRepeticionesMax());
+        }
+        if (request.getPesoSugerido() != null) {
+            detalle.setPesoSugerido(request.getPesoSugerido());
+        }
+        if (request.getDescansoSegundos() != null) {
+            detalle.setDescansoSegundos(request.getDescansoSegundos());
+        }
+        if (request.getNotas() != null) {
+            detalle.setNotas(request.getNotas());
+        }
+
+        detalle.setModificadoPor(userEmail != null ? userEmail : userRol);
+        detalle.setFechaModificacion(LocalDateTime.now());
+
+        detalleRutinaRepository.save(detalle);
+
+        rutina.setVersion(rutina.getVersion() + 1);
+        rutinaRepository.save(rutina);
+
+        log.info("Rutina ID: {} ajustada correctamente por: {}", idRutina, userEmail);
+
+        return Map.of(
+                "success", true,
+                "message", "Rutina ajustada correctamente",
+                "idRutina", idRutina,
+                "idDetalle", request.getIdDetalle(),
+                "nuevaVersion", rutina.getVersion());
     }
 }
