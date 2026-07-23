@@ -3,6 +3,7 @@ package com.pulse_gym.ms_users.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -87,6 +88,39 @@ public class PlanNutricionalController {
             e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
                     "Error al obtener el plan nutricional", e);
+        }
+    }
+
+    /**
+     * 
+     * Obtiene el plan nutricional activo de un socio específico
+     * 
+     * @param idSocio           ID del socio a consultar
+     * @param userRol           Rol del usuario autenticado (header)
+     * @param userIdAutenticado ID del usuario autenticado (header)
+     * @param userEmail         Email del usuario autenticado (header)
+     * @return DTO del plan nutricional activo
+     */
+    @GetMapping("/socio/{idSocio}")
+    public ResponseEntity<PlanNutricionalGeneracionResponseDTO> obtenerPlanSocio(
+            @PathVariable Long idSocio,
+            @RequestHeader(value = "X-User-Rol", required = false) String userRol,
+            @RequestHeader(value = "X-User-Id", required = false) Long userIdAutenticado,
+            @RequestHeader(value = "X-User-Email", required = false) String userEmail) {
+
+        try {
+            PlanNutricionalGeneracionResponseDTO plan = planNutricionalService.obtenerPlanActivo(
+                    idSocio, userRol, userIdAutenticado, userEmail);
+            return ResponseEntity.ok(plan);
+
+        } catch (SecurityAuthorizationException e) {
+            throw e;
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Error al obtener el plan nutricional del socio", e);
         }
     }
 }
