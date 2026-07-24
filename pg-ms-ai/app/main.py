@@ -37,7 +37,7 @@ async def root() -> Dict[str, str]:
 async def health() -> Dict[str, str]:
     """
     Verifica el estado del servicio.
-    Retorna información sobre la conexión con Gemini.
+    Retorna información sobre la conexión con Groq.
     """
     status = "ok"
     groq_status = "connected" if groq_service.api_key else "simulation"
@@ -94,6 +94,24 @@ async def generar_rutina_contexto(contexto: Dict[str, Any]) -> Dict[str, Any]:
         
     except Exception as e:
         logger.error(f"Error al generar rutina: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/ai/generar-plan-nutricional")
+async def generar_plan_nutricional(request: PlanNutricionalGeneracionRequest) -> Dict[str, Any]:
+    """
+    Genera un plan nutricional personalizado con IA.
+    """
+    try:
+        contexto = request.model_dump()
+        logger.info(f"Generando plan nutricional para socio ID: {contexto.get('id_socio')}")
+        
+        resultado = groq_service.generar_plan_nutricional(contexto)
+        
+        logger.info(f"Plan nutricional generado exitosamente")
+        return resultado
+        
+    except Exception as e:
+        logger.error(f"Error al generar plan nutricional: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":

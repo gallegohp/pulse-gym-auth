@@ -2,7 +2,7 @@ from typing import Dict, Any, List
 
 def build_prompt(contexto: Dict[str, Any]) -> str:
     """
-    Construye el prompt para Gemini basado en el contexto del socio.
+    Construye el prompt para Groq basado en el contexto del socio.
     """
     
     ejercicios_disponibles = contexto.get("ejerciciosDisponibles", [])

@@ -4,7 +4,7 @@ from typing import Dict, Any
 
 def parse_response(respuesta: str) -> Dict[str, Any]:
     """
-    Parsea la respuesta de Gemini y la convierte a un diccionario.
+    Parsea la respuesta de Groq y la convierte a un diccionario.
     Maneja tanto el formato con "dias" como con "detalles".
     """
     

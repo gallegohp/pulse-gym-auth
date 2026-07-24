@@ -68,7 +68,7 @@ class GroqService:
                 return resultado
             else:
                 if resultado.get("dias") and len(resultado.get("dias", [])) > 0:
-                    logger.info("Transformando 'dias' a 'detalles' en gemini_service")
+                    logger.info("Transformando 'dias' a 'detalles' en groq_service")
                     detalles = []
                     for dia in resultado.get("dias", []):
                         for ejercicio in dia.get("ejercicios", []):
