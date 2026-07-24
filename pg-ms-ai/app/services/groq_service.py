@@ -160,3 +160,53 @@ class GroqService:
             "explicacion_ia": "[MODO SIMULACIÓN] Verifica tu conexión o credenciales de la API de Groq para habilitar el motor real.",
             "detalles": []
         }
+
+def generar_plan_nutricional(self, contexto: Dict[str, Any]) -> Dict[str, Any]:
+    """Genera un plan nutricional personalizado"""
+    
+    if not self.api_key or not self.client:
+        return self._generar_plan_nutricional_simulado(contexto)
+    
+    try:
+        prompt = build_prompt_nutricional(contexto)
+        logger.info(f"Enviando prompt a Groq para nutrición")
+        
+        chat_completion = self.client.chat.completions.create(
+            messages=[{"role": "user", "content": prompt}],
+            model=self.model_name,
+            temperature=settings.TEMPERATURE,
+            max_tokens=settings.MAX_OUTPUT_TOKENS,
+            top_p=settings.TOP_P,
+            response_format={"type": "json_object"}
+        )
+        
+        respuesta_texto = chat_completion.choices[0].message.content
+        return parse_response(respuesta_texto)
+        
+    except Exception as e:
+        logger.error(f"Error en plan nutricional: {str(e)}")
+        return self._generar_plan_nutricional_simulado(contexto)
+
+def _generar_plan_nutricional_simulado(self, contexto: Dict[str, Any]) -> Dict[str, Any]:
+    """Plan nutricional simulado"""
+    return {
+        "calorias_diarias": 2200,
+        "proteinas_g": 150.0,
+        "carbohidratos_g": 250.0,
+        "grasas_g": 70.0,
+        "sugerencias_comidas": {
+            "desayuno": [
+                {"nombre": "Avena con frutas y nueces", "calorias": 350, "proteinas": 10, "carbohidratos": 50, "grasas": 8}
+            ],
+            "almuerzo": [
+                {"nombre": "Pollo a la plancha con arroz integral", "calorias": 600, "proteinas": 40, "carbohidratos": 70, "grasas": 15}
+            ],
+            "cena": [
+                {"nombre": "Pescado con verduras al vapor", "calorias": 500, "proteinas": 35, "carbohidratos": 30, "grasas": 20}
+            ],
+            "colaciones": [
+                {"nombre": "Yogur con granola", "calorias": 200, "proteinas": 12, "carbohidratos": 25, "grasas": 5}
+            ]
+        },
+        "explicacion_ia": "[MODO SIMULACIÓN] Plan nutricional básico. Conecta la IA para planes personalizados."
+    }
