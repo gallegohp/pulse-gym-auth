@@ -57,3 +57,42 @@ SOLO JSON. SIN TEXTO ADICIONAL.
 """
     
     return prompt
+
+def build_prompt_nutricional(contexto: Dict[str, Any]) -> str:
+    """Construye el prompt para generar un plan nutricional"""
+    
+    prompt = f"""
+Eres un nutricionista experto en deporte y fitness.
+
+DATOS DEL SOCIO:
+- Nombre: {contexto.get('nombre', 'No especificado')}
+- Edad: {contexto.get('edad', 0)} años
+- Peso: {contexto.get('peso', 'No especificado')} kg
+- Estatura: {contexto.get('estatura', 'No especificado')} cm
+- Objetivo: {contexto.get('objetivoPrincipal', 'No especificado')}
+- Nivel: {contexto.get('nivelExperiencia', 'No especificado')}
+- Porcentaje grasa: {contexto.get('porcentajeGrasa', 'No especificado')}%
+- Condiciones: {contexto.get('condicionesCronicas', 'Ninguna')}
+- Alergias: {contexto.get('alergias', 'Ninguna')}
+- Días entrenamiento: {contexto.get('diasEntrenamiento', 0)}
+- Restricciones dietéticas: {contexto.get('restriccionesDieteticas', 'Ninguna')}
+- Objetivo específico: {contexto.get('objetivoEspecifico', 'Mantener peso')}
+
+RESPONDE SOLO CON JSON:
+{{
+    "calorias_diarias": 2200,
+    "proteinas_g": 150.0,
+    "carbohidratos_g": 250.0,
+    "grasas_g": 70.0,
+    "sugerencias_comidas": {{
+        "desayuno": [
+            {{"nombre": "Avena con frutas", "calorias": 350, "proteinas": 10, "carbohidratos": 50, "grasas": 8}}
+        ],
+        "almuerzo": [...],
+        "cena": [...],
+        "colaciones": [...]
+    }},
+    "explicacion_ia": "Explicación del plan"
+}}
+"""
+    return prompt
