@@ -65,7 +65,6 @@ public class PlanNutricionalService {
         if ("socio".equals(userRol)) {
             socio = usuarioRepository.findByEmail(userEmail)
                     .orElseThrow(() -> new RuntimeException("Socio no encontrado con email: " + userEmail));
-
             request.setIdSocio(socio.getIdUsuario());
             log.info("Socio autenticado por email: {}, ID en usuario_perfil: {}", userEmail, socio.getIdUsuario());
         } else {
@@ -76,13 +75,16 @@ public class PlanNutricionalService {
         planNutricionalIAService.validarRolGeneracion(userRol, request.getIdSocio(), userIdAutenticado, userEmail);
         planNutricionalIAService.validarMembresiaActiva(request.getIdSocio());
 
+        Map<String, Object> contexto = planNutricionalIAService.construirContextoIA(request.getIdSocio(), request);
+
         PlanNutricionalGeneracionResponseDTO respuestaIA = null;
         try {
-            respuestaIA = aiClient.generarPlanNutricional(request);
+            String respuestaJson = aiClient.generarPlanNutricionalConContexto(contexto);
 
-            if (respuestaIA == null) {
-                throw new RuntimeException("La IA no devolvió un plan nutricional válido");
-            }
+            log.info("JSON recibido de Python (primeros 300 chars): {}",
+                    respuestaJson.length() > 300 ? respuestaJson.substring(0, 300) + "..." : respuestaJson);
+
+            respuestaIA = objectMapper.readValue(respuestaJson, PlanNutricionalGeneracionResponseDTO.class);
 
             log.info("Plan nutricional generado correctamente: {} calorías diarias",
                     respuestaIA.getCaloriasDiarias());

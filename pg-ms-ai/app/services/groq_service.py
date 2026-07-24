@@ -2,6 +2,7 @@ import logging
 from typing import Dict, Any
 from groq import Groq
 
+from app.services.prompt_builder import build_prompt, build_prompt_nutricional
 from app.config.settings import settings
 from app.services.prompt_builder import build_prompt
 from app.services.parser import parse_response
@@ -160,53 +161,76 @@ class GroqService:
             "explicacion_ia": "[MODO SIMULACIÓN] Verifica tu conexión o credenciales de la API de Groq para habilitar el motor real.",
             "detalles": []
         }
-
-def generar_plan_nutricional(self, contexto: Dict[str, Any]) -> Dict[str, Any]:
-    """Genera un plan nutricional personalizado"""
     
-    if not self.api_key or not self.client:
-        return self._generar_plan_nutricional_simulado(contexto)
-    
-    try:
-        prompt = build_prompt_nutricional(contexto)
-        logger.info(f"Enviando prompt a Groq para nutrición")
+    def generar_plan_nutricional(self, contexto: Dict[str, Any]) -> Dict[str, Any]:
+        """Genera un plan nutricional personalizado"""
         
-        chat_completion = self.client.chat.completions.create(
-            messages=[{"role": "user", "content": prompt}],
-            model=self.model_name,
-            temperature=settings.TEMPERATURE,
-            max_tokens=settings.MAX_OUTPUT_TOKENS,
-            top_p=settings.TOP_P,
-            response_format={"type": "json_object"}
-        )
+        if not self.api_key or not self.client:
+            logger.info("Usando MODO SIMULACIÓN para plan nutricional")
+            return self._generar_plan_nutricional_simulado(contexto)
         
-        respuesta_texto = chat_completion.choices[0].message.content
-        return parse_response(respuesta_texto)
-        
-    except Exception as e:
-        logger.error(f"Error en plan nutricional: {str(e)}")
-        return self._generar_plan_nutricional_simulado(contexto)
+        try:
+            prompt = build_prompt_nutricional(contexto)
+            logger.info(f"Enviando prompt a Groq para nutrición (tamaño: {len(prompt)} caracteres)")
+            
+            chat_completion = self.client.chat.completions.create(
+                messages=[{"role": "user", "content": prompt}],
+                model=self.model_name,
+                temperature=settings.TEMPERATURE,
+                max_tokens=settings.MAX_OUTPUT_TOKENS,
+                top_p=settings.TOP_P,
+                response_format={"type": "json_object"}
+            )
+            
+            respuesta_texto = chat_completion.choices[0].message.content
+            logger.info(f"Respuesta recibida de Groq (tamaño: {len(respuesta_texto)} caracteres)")
+            
+            print(f"\n{'='*60}")
+            print(f"RESPUESTA PLAN NUTRICIONAL:")
+            print(f"{'='*60}")
+            print(respuesta_texto[:1500])
+            if len(respuesta_texto) > 1500:
+                print(f"... (truncado, total: {len(respuesta_texto)} caracteres)")
+            print(f"{'='*60}\n")
+            
+            resultado = parse_response(respuesta_texto)
+            
+            if resultado.get("calorias_diarias") and resultado.get("sugerencias_comidas"):
+                logger.info(f"Plan nutricional generado: {resultado.get('calorias_diarias')} calorías")
+                return resultado
+            else:
+                logger.warning("La respuesta no tiene la estructura esperada. Usando simulación.")
+                return self._generar_plan_nutricional_simulado(contexto)
+            
+        except Exception as e:
+            logger.error(f"Error en plan nutricional: {str(e)}")
+            return self._generar_plan_nutricional_simulado(contexto)
 
-def _generar_plan_nutricional_simulado(self, contexto: Dict[str, Any]) -> Dict[str, Any]:
-    """Plan nutricional simulado"""
-    return {
-        "calorias_diarias": 2200,
-        "proteinas_g": 150.0,
-        "carbohidratos_g": 250.0,
-        "grasas_g": 70.0,
-        "sugerencias_comidas": {
-            "desayuno": [
-                {"nombre": "Avena con frutas y nueces", "calorias": 350, "proteinas": 10, "carbohidratos": 50, "grasas": 8}
-            ],
-            "almuerzo": [
-                {"nombre": "Pollo a la plancha con arroz integral", "calorias": 600, "proteinas": 40, "carbohidratos": 70, "grasas": 15}
-            ],
-            "cena": [
-                {"nombre": "Pescado con verduras al vapor", "calorias": 500, "proteinas": 35, "carbohidratos": 30, "grasas": 20}
-            ],
-            "colaciones": [
-                {"nombre": "Yogur con granola", "calorias": 200, "proteinas": 12, "carbohidratos": 25, "grasas": 5}
-            ]
-        },
-        "explicacion_ia": "[MODO SIMULACIÓN] Plan nutricional básico. Conecta la IA para planes personalizados."
-    }
+    def _generar_plan_nutricional_simulado(self, contexto: Dict[str, Any]) -> Dict[str, Any]:
+        """Plan nutricional simulado"""
+        nombre = contexto.get('nombre', 'Socio')
+        objetivo = contexto.get('objetivoEspecifico', 'Mantener peso')
+        
+        return {
+            "calorias_diarias": 2200,
+            "proteinas_g": 150.0,
+            "carbohidratos_g": 250.0,
+            "grasas_g": 70.0,
+            "restricciones_dieteticas": contexto.get('restriccionesDieteticas', []),
+            "sugerencias_comidas": {
+                "desayuno": [
+                    {"nombre": "Avena con frutas y nueces", "calorias": 350, "proteinas": 10, "carbohidratos": 50, "grasas": 8}
+                ],
+                "almuerzo": [
+                    {"nombre": "Pollo a la plancha con arroz integral", "calorias": 600, "proteinas": 40, "carbohidratos": 70, "grasas": 15}
+                ],
+                "cena": [
+                    {"nombre": "Pescado con verduras al vapor", "calorias": 500, "proteinas": 35, "carbohidratos": 30, "grasas": 20}
+                ],
+                "colaciones": [
+                    {"nombre": "Yogur con granola", "calorias": 200, "proteinas": 12, "carbohidratos": 25, "grasas": 5}
+                ]
+            },
+            "explicacion_ia": f"[MODO SIMULACIÓN] Plan nutricional básico para {nombre} con objetivo: {objetivo}. Conecta la IA para planes personalizados."
+        }
+

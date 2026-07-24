@@ -194,7 +194,9 @@ public class PlanNutricionalIAService {
             contexto.put("idRutina", request.getIdRutina());
         }
 
+        log.info("Contexto construido con: nombre={}, peso={}, edad={}",
+                contexto.get("nombre"), contexto.get("peso"), contexto.get("edad"));
+
         return contexto;
     }
-
 }

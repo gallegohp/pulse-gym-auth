@@ -49,4 +49,12 @@ public interface AiClient {
     @PostMapping("/api/ai/generar-plan-nutricional")
     PlanNutricionalGeneracionResponseDTO generarPlanNutricional(
             @RequestBody PlanNutricionalGeneracionRequestDTO request);
+
+    /**
+     * 
+     * @param contexto
+     * @return
+     */
+    @PostMapping("/api/ai/generar-plan-nutricional-contexto")
+    String generarPlanNutricionalConContexto(@RequestBody Map<String, Object> contexto);
 }

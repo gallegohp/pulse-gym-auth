@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import logging
 from typing import Dict, Any
 
+from app.models.schemas import RutinaGeneracionRequest, PlanNutricionalGeneracionRequest
 from app.models.schemas import RutinaGeneracionRequest
 from app.services.groq_service import GroqService
 
@@ -108,6 +109,27 @@ async def generar_plan_nutricional(request: PlanNutricionalGeneracionRequest) ->
         resultado = groq_service.generar_plan_nutricional(contexto)
         
         logger.info(f"Plan nutricional generado exitosamente")
+        return resultado
+        
+    except Exception as e:
+        logger.error(f"Error al generar plan nutricional: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/ai/generar-plan-nutricional-contexto")
+async def generar_plan_nutricional_contexto(contexto: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Genera un plan nutricional con contexto completo.
+    Endpoint para pruebas avanzadas.
+    
+    Args:
+        contexto: Diccionario completo con todos los datos del socio
+        
+    Returns:
+        Plan nutricional generado
+    """
+    try:
+        logger.info(f"Generando plan nutricional con contexto completo")
+        resultado = groq_service.generar_plan_nutricional(contexto)
         return resultado
         
     except Exception as e:
