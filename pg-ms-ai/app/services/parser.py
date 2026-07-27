@@ -4,8 +4,8 @@ from typing import Dict, Any
 
 def parse_response(respuesta: str) -> Dict[str, Any]:
     """
-    Parsea la respuesta de Gemini y la convierte a un diccionario.
-    Maneja tanto el formato con "dias" como con "detalles".
+    Parsea la respuesta de Groq y la convierte a un diccionario.
+    Maneja rutinas (con "dias"/"detalles") y planes nutricionales (con "calorias_diarias").
     """
     
     if not respuesta:
@@ -58,8 +58,31 @@ def parse_response(respuesta: str) -> Dict[str, Any]:
 
 def _procesar_json(data: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Procesa el JSON parseado, transformando "dias" a "detalles" si es necesario.
+    Procesa el JSON parseado.
+    Detecta si es plan nutricional (tiene calorias_diarias) o rutina (tiene detalles/dias).
     """
+    
+    if "calorias_diarias" in data or "caloriasDiarias" in data:
+        print("Plan nutricional detectado")
+        if "caloriasDiarias" in data and "calorias_diarias" not in data:
+            data["calorias_diarias"] = data["caloriasDiarias"]
+            del data["caloriasDiarias"]
+        if "proteinasG" in data and "proteinas_g" not in data:
+            data["proteinas_g"] = data["proteinasG"]
+            del data["proteinasG"]
+        if "carbohidratosG" in data and "carbohidratos_g" not in data:
+            data["carbohidratos_g"] = data["carbohidratosG"]
+            del data["carbohidratosG"]
+        if "grasasG" in data and "grasas_g" not in data:
+            data["grasas_g"] = data["grasasG"]
+            del data["grasasG"]
+        if "explicacionIA" in data and "explicacion_ia" not in data:
+            data["explicacion_ia"] = data["explicacionIA"]
+            del data["explicacionIA"]
+        if "sugerenciasComidas" in data and "sugerencias_comidas" not in data:
+            data["sugerencias_comidas"] = data["sugerenciasComidas"]
+            del data["sugerenciasComidas"]
+        return data
     
     if "detalles" in data and data["detalles"]:
         print(f"JSON ya tiene 'detalles' con {len(data['detalles'])} ejercicios")
@@ -108,7 +131,7 @@ def _procesar_json(data: Dict[str, Any]) -> Dict[str, Any]:
         print(f"Convertidos {len(data['detalles'])} ejercicios a 'detalles'")
         return data
     
-    print("No se encontraron ejercicios en la respuesta")
+    print("No se encontraron ni ejercicios ni plan nutricional en la respuesta")
     return data
 
 

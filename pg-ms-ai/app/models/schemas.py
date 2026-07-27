@@ -34,3 +34,29 @@ class RutinaGeneracionResponse(BaseModel):
     descripcion: str
     explicacion_ia: str
     dias: List[DiaRutinaRequest]
+
+class PlanNutricionalGeneracionRequest(BaseModel):
+    id_socio: int
+    restricciones_dieteticas: Optional[List[str]] = None
+    alergias: Optional[List[str]] = None
+    intolerancias: Optional[List[str]] = None
+    objetivo_especifico: Optional[str] = None
+
+class SugerenciaComida(BaseModel):
+    nombre: str
+    descripcion: Optional[str] = None
+    calorias: float
+    proteinas: Optional[float] = None
+    carbohidratos: Optional[float] = None
+    grasas: Optional[float] = None
+    ingredientes: Optional[str] = None
+    preparacion: Optional[str] = None
+
+class PlanNutricionalGeneracionResponse(BaseModel):
+    calorias_diarias: int
+    proteinas_g: float
+    carbohidratos_g: float
+    grasas_g: float
+    restricciones_dieteticas: Optional[List[str]] = None
+    sugerencias_comidas: Dict[str, List[SugerenciaComida]]
+    explicacion_ia: str

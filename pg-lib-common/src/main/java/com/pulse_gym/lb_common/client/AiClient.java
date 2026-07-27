@@ -6,6 +6,8 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import com.pulse_gym.lb_common.dto.PlanNutricionalGeneracionRequestDTO;
+import com.pulse_gym.lb_common.dto.PlanNutricionalGeneracionResponseDTO;
 import com.pulse_gym.lb_common.dto.RutinaGeneracionRequestDTO;
 import com.pulse_gym.lb_common.dto.RutinaGeneracionResponseDTO;
 
@@ -37,4 +39,22 @@ public interface AiClient {
      */
     @PostMapping("/api/ai/health")
     Map<String, String> health();
+
+    /**
+     * Genera un plan nutricional personalizado usando IA
+     * 
+     * @param request Datos del socio y preferencias
+     * @return Plan nutricional generado con sugerencias de comidas
+     */
+    @PostMapping("/api/ai/generar-plan-nutricional")
+    PlanNutricionalGeneracionResponseDTO generarPlanNutricional(
+            @RequestBody PlanNutricionalGeneracionRequestDTO request);
+
+    /**
+     * 
+     * @param contexto
+     * @return
+     */
+    @PostMapping("/api/ai/generar-plan-nutricional-contexto")
+    String generarPlanNutricionalConContexto(@RequestBody Map<String, Object> contexto);
 }
