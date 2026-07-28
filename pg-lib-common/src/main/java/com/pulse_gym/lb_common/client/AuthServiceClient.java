@@ -19,7 +19,6 @@ public class AuthServiceClient {
     /** URL del servicio de autenticación */
     private final String authServiceUrl = "http://pg-ms-auth/auth";
 
-
     /**
      * Obtiene el rol de un usuario desde auth-service
      * 
@@ -58,5 +57,22 @@ public class AuthServiceClient {
         }
         return null;
     }
-}
 
+    /**
+     * Obtiene el usuario completo desde auth-service por ID
+     * 
+     * @param id ID del usuario
+     * @return AuthUserDTO o null si no se encuentra
+     */
+    public AuthUserDTO obtenerUsuarioPorId(Long id) {
+        try {
+            ResponseEntity<AuthUserDTO> authResponse = restTemplate.getForEntity(
+                    authServiceUrl + "/api/internal/users/id/" + id,
+                    AuthUserDTO.class);
+            return authResponse.getBody();
+        } catch (Exception e) {
+            System.err.println("Error al obtener usuario para ID " + id + ": " + e.getMessage());
+        }
+        return null;
+    }
+}

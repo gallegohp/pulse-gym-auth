@@ -49,5 +49,5 @@ logging:
 
 biometric:
   jwt:
-    secret-key: ${BIOMETRIC_JWT_SECRET:biometricSecretKeyForDemo}
+    secret-key: ${BIOMETRIC_JWT_SECRET}
     token-expiration: 300000

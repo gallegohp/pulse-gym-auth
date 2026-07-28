@@ -123,7 +123,9 @@ public class JwtValidationFilter implements GlobalFilter, Ordered {
                 || path.startsWith("/pg-ms-auth/auth/refresh")
                 || path.startsWith("/pg-ms-auth/auth/forgot-password")
                 || path.startsWith("/pg-ms-auth/auth/reset-password")
-                || path.startsWith("/pg-ms-operation/api/asistencias/entrada-biometrica");
+                || path.startsWith("/pg-ms-operation/api/asistencias/entrada-biometrica")
+                || path.startsWith("/pg-ms-operation/api/asistencias/entrada-biometrica")
+                || path.startsWith("/pg-ms-auth/auth/biometric/login");
     }
 
     /**
@@ -146,4 +148,6 @@ public class JwtValidationFilter implements GlobalFilter, Ordered {
     public int getOrder() {
         return Ordered.HIGHEST_PRECEDENCE;
     }
+
+
 }
